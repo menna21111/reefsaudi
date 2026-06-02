@@ -4,6 +4,8 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/utils/app_color.dart';
 import '../../../../core/utils/app_font.dart';
 import '../../../../core/utils/app_string.dart';
+import '../../../achievement_rates_management/presentation/screens/achievement_rates_management_screen.dart';
+import '../../../extracts_management/presentation/screens/extracts_management_screen.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -20,6 +22,33 @@ class CustomDrawer extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               children: [
+                _buildDrawerItem(
+                  icon: Icons.trending_up_rounded,
+                  title: 'إدارة نسب الإنجاز',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            const AchievementRatesManagementScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.receipt_long_rounded,
+                  title: 'إدارة المستخلصات',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ExtractsManagementScreen(),
+                      ),
+                    );
+                  },
+                ),
                 _buildDrawerItem(
                   icon: Icons.verified_user_rounded,
                   title: 'ادارة الجوده',

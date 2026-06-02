@@ -7,6 +7,7 @@ import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/dashboard/presentation/screens/placeholder_screens.dart';
 import '../../features/financial_requirements/presentation/screens/financial_requirements_screen.dart';
+import '../../features/tasks/presentation/screens/tasks_screen.dart';
 import '../services/service_locator.dart';
 import '../utils/app_color.dart';
 import '../utils/app_font.dart';
@@ -42,7 +43,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
         child: const DashboardScreen(),
       ),
       const FinancialRequirementsScreen(),
-      const TasksPlaceholderScreen(),
+      const TasksScreen(),
       // const QualityPlaceholderScreen(),
       const ProfilePlaceholderScreen(),
     ];

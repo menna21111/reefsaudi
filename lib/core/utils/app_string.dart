@@ -1,4 +1,3 @@
-/// مفاتيح النصوص للترجمة - استخدمها مع .tr() بعد مده
 class AppString {
   // ==================== Authentication & Login ====================
   static const String loginTitle = 'login_title';

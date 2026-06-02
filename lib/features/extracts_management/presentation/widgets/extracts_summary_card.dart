@@ -1,69 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/utils/app_color.dart';
+import '../../../../core/utils/app_font.dart';
+import 'extracts_summary_sub_stat.dart';
 
 class ExtractsSummaryCard extends StatelessWidget {
   final String title;
   final String mainValue;
-  final String approvedLabel;
-  final String approvedValue;
-  final String rejectedLabel;
-  final String rejectedValue;
-  final Color mainValueColor;
+  final String disbursedValue;
+  final String inProcessValue;
+  final Color inProcessColor;
 
   const ExtractsSummaryCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.mainValue,
-    required this.approvedLabel,
-    required this.approvedValue,
-    required this.rejectedLabel,
-    required this.rejectedValue,
-    this.mainValueColor = AppColor.kPrimaryColor,
-  }) : super(key: key);
+    required this.disbursedValue,
+    required this.inProcessValue,
+    this.inProcessColor = AppColor.kGoldColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
-        color: AppColor.kSurfaceColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withOpacity(0.5),
+        ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            title,
-            style: TextStyle(color: AppColor.kWhiteColor, fontSize: 14.sp, fontWeight: FontWeight.w600),
+          RobotoText(
+            text: title,
+            fontSize: 11.sp,
+            color: Theme.of(context).textTheme.bodyMedium?.color ?? AppColor.kGrayTextColor,
+            fontWeight: FontWeight.w500,
+            textAlign: TextAlign.right,
+          ),
+          SizedBox(height: 8.h),
+          RobotoText(
+            text: mainValue,
+            fontSize: 26.sp,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+            textAlign: TextAlign.right,
           ),
           SizedBox(height: 12.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                mainValue,
-                style: TextStyle(color: mainValueColor, fontSize: 24.sp, fontWeight: FontWeight.bold),
+              ExtractsSummarySubStat(
+                label: 'disbursed'.tr(),
+                value: disbursedValue,
+                valueColor: Theme.of(context).colorScheme.primary,
               ),
-            ],
-          ),
-          SizedBox(height: 16.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(approvedLabel, style: TextStyle(color: AppColor.kGrayTextColor, fontSize: 10.sp)),
-                  Text(approvedValue, style: TextStyle(color: AppColor.kPrimaryColor, fontSize: 12.sp, fontWeight: FontWeight.bold)),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(rejectedLabel, style: TextStyle(color: AppColor.kGrayTextColor, fontSize: 10.sp)),
-                  Text(rejectedValue, style: TextStyle(color: AppColor.kRedColor, fontSize: 12.sp, fontWeight: FontWeight.bold)),
-                ],
+              ExtractsSummarySubStat(
+                label: 'in_process'.tr(),
+                value: inProcessValue,
+                valueColor: inProcessColor,
               ),
             ],
           ),

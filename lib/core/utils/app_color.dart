@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'app_color_scheme.dart';
 
 class AppColor {
+  // Dark Theme Colors
   static const Color kPrimaryColor = Color(0xFF10B981);
   static const Color kPrimaryActionColor = Color(0xFF10B981);
   static const Color kBackgroundColor = Color(0xFF10131A);
@@ -42,6 +43,18 @@ class AppColor {
   static const Color kText2GrayColor = Color(0xFF484848);
   static const Color kborderdisableColor = Color(0xFF545454);
   static const Color kDisabledColor = Color(0xFFA19F9F);
+
+  // Light Theme Colors (أبيض مع أخضر)
+  static const Color kLightBackgroundColor = Color(0xFFFFFFFF);
+  static const Color kLightSurfaceColor = Color(0xFFF5F5F5);
+  static const Color kLightInputBackgroundColor = Color(0xFFFAFAFA);
+  static const Color kLightInputBorderColor = Color(0xFFE0E0E0);
+  static const Color kLightTextColor = Color(0xFF1F2937);
+  static const Color kLightSecondaryTextColor = Color(0xFF6B7280);
+  static const Color kLightCardSurface = Color(0xFFFFFFFF);
+  static const Color kLightBorderColor = Color(0xFFE5E7EB);
+  static const Color kLightBorderLight = Color(0xFFF3F4F6);
+  static const Color kLightGradientEnd = Color(0xFFFFFFFF);
 }
 
 class LightAppColor implements AppColorScheme {
