@@ -28,48 +28,55 @@ class LoginTextFieldWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final inputTheme = theme.inputDecorationTheme;
+    final secondaryText =
+        theme.textTheme.bodyMedium?.color ?? AppColor.kGrayTextColor;
+    final fillColor = inputTheme.fillColor ?? colorScheme.surface;
+    final borderColor = inputTheme.enabledBorder is OutlineInputBorder
+        ? (inputTheme.enabledBorder! as OutlineInputBorder).borderSide.color
+        : theme.dividerColor;
+
     return Column(
       children: [
-        // Label
         Row(
           children: [
             RobotoText(
               text: label,
-
               fontSize: 12.sp,
               fontWeight: FontWeight.w500,
-              color: AppColor.kGrayTextColor,
+              color: secondaryText,
             ),
           ],
         ),
         SizedBox(height: 8.h),
-        // Text field
         TextFormField(
           controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,
           validator: validator,
           style: TextStyle(
-            fontFamily: 'Roboto',
+            fontFamily: 'Almarai',
             fontSize: 12.sp,
             fontWeight: FontWeight.w400,
-            color: AppColor.kWhiteColor,
+            color: colorScheme.onSurface,
           ),
-          cursorColor: AppColor.kPrimaryColor,
+          cursorColor: colorScheme.primary,
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: TextStyle(
-              fontFamily: 'Roboto',
+              fontFamily: 'Almarai',
               fontSize: 13.sp,
               fontWeight: FontWeight.w400,
-              color: AppColor.kGrayTextColor.withOpacity(0.5),
+              color: secondaryText.withValues(alpha: 0.5),
             ),
             prefixIcon: prefixIcon != null
                 ? Padding(
                     padding: EdgeInsets.only(left: 12.w, right: 8.w),
                     child: Icon(
                       prefixIcon,
-                      color: AppColor.kGrayTextColor.withOpacity(0.6),
+                      color: secondaryText.withValues(alpha: 0.6),
                       size: 20.sp,
                     ),
                   )
@@ -80,22 +87,19 @@ class LoginTextFieldWidget extends StatelessWidget {
             ),
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: AppColor.kInputBackgroundColor,
+            fillColor: fillColor,
             contentPadding: EdgeInsets.symmetric(
               horizontal: 16.w,
               vertical: 14.h,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14.r),
-              borderSide: BorderSide(
-                color: AppColor.kInputBorderColor,
-                width: 1,
-              ),
+              borderSide: BorderSide(color: borderColor, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14.r),
-              borderSide: const BorderSide(
-                color: AppColor.kPrimaryColor,
+              borderSide: BorderSide(
+                color: colorScheme.primary,
                 width: 1.5,
               ),
             ),
@@ -111,7 +115,7 @@ class LoginTextFieldWidget extends StatelessWidget {
               ),
             ),
             errorStyle: TextStyle(
-              fontFamily: 'Roboto',
+              fontFamily: 'Almarai',
               fontSize: 11.sp,
               color: AppColor.kRedColor,
             ),

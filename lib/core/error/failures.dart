@@ -50,18 +50,26 @@ class ServerFailure<T> extends Failure<T> {
   factory ServerFailure.fromResponse(int? statusCode, dynamic response) {
     String errorMessage = 'Oops There was an Error, Please try again';
 
-    if (response is Map && response.containsKey('message')) {
-      final msg = response['message'];
-      if (msg is List && msg.isNotEmpty) {
-        errorMessage = msg[0].toString();
-      } else if (msg is String && msg.isNotEmpty) {
-        errorMessage = msg;
-      } else if (msg != null) {
-        errorMessage = msg.toString();
+    if (response is Map) {
+      final validationMessage = _validationErrorsMessage(response);
+      if (validationMessage != null) {
+        errorMessage = validationMessage;
+      } else if (response.containsKey('message')) {
+        final msg = response['message'];
+        if (msg is List && msg.isNotEmpty) {
+          errorMessage = msg[0].toString();
+        } else if (msg is String && msg.isNotEmpty) {
+          errorMessage = msg;
+        } else if (msg != null) {
+          errorMessage = msg.toString();
+        }
+      } else if (response['title'] is String &&
+          (response['title'] as String).isNotEmpty) {
+        errorMessage = response['title'] as String;
       }
     } else if (statusCode != null) {
       if (statusCode == 401) {
-        errorMessage = 'Unauthorized, Please login again';
+        errorMessage = 'بيانات الدخول غير صحيحة. تأكد من البريد وكلمة المرور';
       } else if (statusCode == 404) {
         errorMessage = 'Your request not found, Please try later!';
       } else if (statusCode >= 500) {
@@ -70,6 +78,22 @@ class ServerFailure<T> extends Failure<T> {
     }
 
     return ServerFailure<T>(errorMessage);
+  }
+
+  static String? _validationErrorsMessage(Map response) {
+    final errors = response['errors'];
+    if (errors is! Map) return null;
+
+    final messages = <String>[];
+    for (final entry in errors.entries) {
+      final value = entry.value;
+      if (value is List && value.isNotEmpty) {
+        messages.add(value.first.toString());
+      } else if (value is String && value.isNotEmpty) {
+        messages.add(value);
+      }
+    }
+    return messages.isEmpty ? null : messages.join('\n');
   }
 }
 

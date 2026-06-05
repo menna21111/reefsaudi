@@ -1,7 +1,8 @@
 class ApiConstants {
-  // static const String _prodBaseUrl = "https://qaribapp.com/";
-  static const String _devBaseUrl = "https://api.mandoobexpress.com/api/v1/";
-  static const String domain = "https://api.mandoobexpress.com/api/v1/";
+  static const String baseurl = 'https://pmoapi.almanzoor.net/api/';
+  // Legacy (unused by PMO flows)
+  static const String _devBaseUrl = 'https://api.mandoobexpress.com/api/v1/';
+  static const String domain = baseurl;
 
   // // Default to prod, but will be overridden by Remote Config
   // // Set to true by default here IF you want local dev to be default without config
@@ -11,7 +12,7 @@ class ApiConstants {
   //   _useDevServer = value;
   // }
 
-  static String get baseUrl => _devBaseUrl;
+  static String get baseUrl => baseurl;
   // _useDevServer ?
 
   // : _prodBaseUrl;

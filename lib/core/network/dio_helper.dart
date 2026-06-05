@@ -1,47 +1,42 @@
 import 'dart:developer';
-import 'package:intl/intl.dart';
-
 
 import 'package:dio/dio.dart';
-
 import 'package:flutter/foundation.dart';
-import 'package:jwt_decode/jwt_decode.dart';
-
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
-import '../services/app_locle.dart';
 import '../services/auth_interceptor.dart';
 import '../services/service_locator.dart';
 import '../services/token_service/token_storage.dart';
 import 'api_constant.dart';
-
-
+import 'authorization_header.dart';
 
 class DioHelper {
-  // static final AppPreferences _appPreferences = instance<AppPreferences>();
   static Dio? dio;
+
+  static TokenStorage get _tokenStorage => sl<TokenStorage>();
 
   static Future<void> init() async {
     dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
         receiveDataWhenStatusError: true,
+        headers: AuthorizationHeader.defaultBaseHeaders(),
       ),
     );
 
-    dio?.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        String? accestoken = await sl<TokenStorage>().getToken();
-        String lang = await AppLocale.getSavedLanguage();
-
-        options.headers['Content-Type'] = 'application/json';
-        options.headers['Accept-Language'] = lang;
-        if (accestoken != null) {
-          options.headers['Authorization'] = 'Bearer $accestoken';
-        }
-        return handler.next(options);
-      },
-    ));
+    dio?.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          await AuthorizationHeader.applyStandard(options, _tokenStorage);
+          final auth = options.headers[AuthorizationHeader.headerKey];
+          log(
+            'DioHelper - ${options.method} ${options.path} | '
+            '${AuthorizationHeader.headerKey}: ${auth ?? '(none)'}',
+          );
+          return handler.next(options);
+        },
+      ),
+    );
 
     dio?.interceptors.add(AuthInterceptor());
 
@@ -56,11 +51,28 @@ class DioHelper {
     }
   }
 
+  static Future<Map<String, dynamic>> headers({String path = ''}) async {
+    return AuthorizationHeader.build(
+      storage: _tokenStorage,
+      path: path,
+    );
+  }
+
+  static Future<void> syncHeaders({required String path}) async {
+    final built = await headers(path: path);
+    if (dio != null) {
+      dio!.options.headers = Map<String, dynamic>.from(built);
+    }
+  }
+
+  static Future<String?> getAccessToken() => _tokenStorage.getToken();
+
   static Future<Response> getData({
     required String url,
     Map<String, dynamic>? query,
   }) async {
-    return await dio!.get(url, queryParameters: query);
+    await syncHeaders(path: url);
+    return dio!.get(url, queryParameters: query);
   }
 
   static Future<Response> postData({
@@ -68,6 +80,7 @@ class DioHelper {
     required dynamic data,
     Map<String, dynamic>? query,
   }) async {
+    await syncHeaders(path: url);
     return dio!.post(url, data: data, queryParameters: query);
   }
 
@@ -76,8 +89,9 @@ class DioHelper {
     required dynamic data,
     Map<String, dynamic>? query,
   }) async {
-    final token = await sl<TokenStorage>().getToken();
-    final userId = await sl<TokenStorage>().getUserId();
+    await syncHeaders(path: url);
+    final token = await _tokenStorage.getToken();
+    final userId = await _tokenStorage.getLegacyUserId();
 
     return dio!.put(
       '$url?access-token=$token&id=$userId',
@@ -90,8 +104,9 @@ class DioHelper {
     required String url,
     Map<String, dynamic>? query,
   }) async {
-    final token = await sl<TokenStorage>().getToken();
-    final userId = await sl<TokenStorage>().getUserId();
+    await syncHeaders(path: url);
+    final token = await _tokenStorage.getToken();
+    final userId = await _tokenStorage.getLegacyUserId();
 
     return dio!.delete(
       '$url?access-token=$token&id=$userId',

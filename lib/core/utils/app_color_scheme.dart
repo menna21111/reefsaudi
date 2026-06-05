@@ -19,11 +19,8 @@ abstract class AppColorScheme {
 }
 
 
-//
-// context.watch<ThemeBloc>().state.appColor;
-//
-//
-//
-//
-//
-// sl<ThemeBloc>().state.appColor
+// الألوان حسب الثيم:
+//   context.appColors           (extension في app_theme_context.dart)
+//   context.watch<ThemeBloc>().state.appColor
+//   AppTheme.of(isDark)
+//   AppTheme.light / AppTheme.dark

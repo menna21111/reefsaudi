@@ -65,16 +65,16 @@ class LightAppColor implements AppColorScheme {
   Color get kGoldColor => AppColor.kGoldColor;
 
   @override
-  Color get kWhiteColor => AppColor.kWhiteColor;
+  Color get kWhiteColor => AppColor.kLightTextColor;
 
   @override
-  Color get kBgColor => AppColor.kBackgroundColor;
+  Color get kBgColor => AppColor.kLightBackgroundColor;
 
   @override
   Color get kBlackColor => AppColor.kBlackColor;
 
   @override
-  Color get kGrayColor => AppColor.kGrayColor;
+  Color get kGrayColor => AppColor.kLightSecondaryTextColor;
 
   @override
   Color get kDarkGrayColor => AppColor.kDarkGrayColor;
@@ -86,10 +86,10 @@ class LightAppColor implements AppColorScheme {
   Color get kRedColor => AppColor.kRedColor;
 
   @override
-  Color get kIconColor => AppColor.kIconColor;
+  Color get kIconColor => AppColor.kLightTextColor;
 
   @override
-  Color get kBorderColor => AppColor.kBorderColor;
+  Color get kBorderColor => AppColor.kLightBorderColor;
 
   @override
   Color get kInputPrimaryColor => AppColor.kPrimaryColor;
@@ -98,9 +98,10 @@ class LightAppColor implements AppColorScheme {
   Color get kSecondChartGradientColor => AppColor.kPrimaryColor;
 
   @override
-  Color get kFontColor => AppColor.kFontColor;
+  Color get kFontColor => AppColor.kLightTextColor;
+
   @override
-  Color get kInputColor => AppColor.kInputColor;
+  Color get kInputColor => AppColor.kLightInputBackgroundColor;
 }
 
 class DarkAppColor implements AppColorScheme {
@@ -120,7 +121,7 @@ class DarkAppColor implements AppColorScheme {
   Color get kBlackColor => AppColor.kBlackColor;
 
   @override
-  Color get kGrayColor => AppColor.kGrayColor;
+  Color get kGrayColor => AppColor.kGrayTextColor;
 
   @override
   Color get kDarkGrayColor => AppColor.kDarkGrayColor;

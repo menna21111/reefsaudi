@@ -4,14 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'package:reefsaudia/features/auth/presination/screans/login_screan.dart';
-
 import 'core/blocs/theme_bloc.dart';
-import 'core/config/navigation.dart';
+import 'core/config/auth_gate.dart';
 import 'core/network/dio_helper.dart';
 import 'core/services/app_locle.dart';
 import 'core/services/service_locator.dart';
-import 'core/utils/app_theme.dart';
+import 'core/theme/dark_theme_data.dart';
+import 'core/theme/light_theme_data.dart';
 import 'core/utils/cache_helper.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -65,12 +64,12 @@ class MyApp extends StatelessWidget {
               locale: context.locale,
 
               // ✅ Theme
-              theme: AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
+              theme: lightThemeData,
+              darkTheme: darkThemeData,
               themeMode: themeState.isDark ? ThemeMode.dark : ThemeMode.light,
 
               // ✅ FIX: IMPORTANT (prevents your crash)
-              home: BottomNavigation(),
+              home: const AuthGate(),
             );
           },
         );
