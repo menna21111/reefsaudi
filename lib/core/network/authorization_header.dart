@@ -21,19 +21,31 @@ class AuthorizationHeader {
         'Content-Type': 'application/json',
       };
 
+  static String requestPath(RequestOptions options) {
+    final uriPath = options.uri.path;
+    if (uriPath.isNotEmpty && uriPath != '/') {
+      return uriPath;
+    }
+    return options.path;
+  }
+
   static Future<Map<String, dynamic>> build({
     required TokenStorage storage,
     required String path,
+    bool includeAuth = true,
   }) async {
-    final accessToken = await storage.getToken();
     final lang = await AppLocale.getSavedLanguage();
     final headers = <String, dynamic>{
       'Content-Type': 'application/json',
       'Accept-Language': lang,
     };
 
-    final auth = bearerValue(accessToken);
-    if (PmoEndpoints.requiresAuth(path) && auth != null) {
+    if (!includeAuth || PmoEndpoints.isLoginPath(path)) {
+      return headers;
+    }
+
+    final auth = bearerValue(await storage.getToken());
+    if (auth != null) {
       headers[headerKey] = auth;
     }
 
@@ -44,21 +56,20 @@ class AuthorizationHeader {
     RequestOptions options,
     TokenStorage storage,
   ) async {
-    final accessToken = await storage.getToken();
+    final path = requestPath(options);
     final lang = await AppLocale.getSavedLanguage();
 
     options.headers['Content-Type'] = 'application/json';
     options.headers['Accept-Language'] = lang;
+    options.headers.remove(headerKey);
 
-    if (PmoEndpoints.requiresAuth(options.path)) {
-      final auth = bearerValue(accessToken);
-      if (auth != null) {
-        options.headers[headerKey] = auth;
-      } else {
-        options.headers.remove(headerKey);
-      }
-    } else {
-      options.headers.remove(headerKey);
+    if (PmoEndpoints.isLoginPath(path)) {
+      return;
+    }
+
+    final auth = bearerValue(await storage.getToken());
+    if (auth != null) {
+      options.headers[headerKey] = auth;
     }
   }
 }

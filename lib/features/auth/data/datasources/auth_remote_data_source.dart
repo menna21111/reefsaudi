@@ -1,7 +1,7 @@
 import '../../../../core/network/dio_helper.dart';
 import '../../../../core/network/pmo_endpoints.dart';
-import '../models/account_model.dart';
 import '../models/login_response_model.dart';
+import '../models/profile_model.dart';
 
 abstract class AuthRemoteDataSource {
   Future<LoginResponseModel> login({
@@ -11,14 +11,10 @@ abstract class AuthRemoteDataSource {
     required String firebaseToken,
   });
 
-  Future<AccountModel> getAccount();
+  Future<ProfileModel> getAccount();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  
-
-  AuthRemoteDataSourceImpl();
-
   @override
   Future<LoginResponseModel> login({
     required String email,
@@ -41,8 +37,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<AccountModel> getAccount() async {
+  Future<ProfileModel> getAccount() async {
     final response = await DioHelper.getData(url: PmoEndpoints.account);
-    return AccountModel.fromJson(response.data as Map<String, dynamic>);
+    return ProfileModel.fromJson(response.data as Map<String, dynamic>);
   }
 }

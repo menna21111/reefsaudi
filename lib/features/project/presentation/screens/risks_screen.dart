@@ -1,10 +1,17 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:reefsaudia/core/utils/app_font.dart';
+
 import '../../../../core/utils/app_color.dart';
+import '../../data/models/project_api_models.dart';
+import '../cubit/project_statistics_cubit.dart';
 
 class RisksScreen extends StatefulWidget {
-  const RisksScreen({super.key});
+  final String projectId;
+
+  const RisksScreen({super.key, required this.projectId});
 
   @override
   State<RisksScreen> createState() => _RisksScreenState();
@@ -12,36 +19,24 @@ class RisksScreen extends StatefulWidget {
 
 class _RisksScreenState extends State<RisksScreen> {
   bool isTableView = true;
+  late List<Map<String, dynamic>> _risks;
 
-  final List<Map<String, dynamic>> _risks = [
-    {
-      'id': 'R-001',
-      'title': 'تأخر التوريدات',
-      'probability': 'عالية',
-      'impact': 'عالي',
-      'status': 'مفتوح',
-      'owner': 'م. أحمد',
-      'date': '2024-05-01',
-    },
-    {
-      'id': 'R-002',
-      'title': 'نقص العمالة',
-      'probability': 'متوسطة',
-      'impact': 'متوسط',
-      'status': 'قيد المعالجة',
-      'owner': 'م. سارة',
-      'date': '2024-05-10',
-    },
-    {
-      'id': 'R-003',
-      'title': 'تجاوز الميزانية',
-      'probability': 'منخفضة',
-      'impact': 'عالي',
-      'status': 'مغلق',
-      'owner': 'م. خالد',
-      'date': '2024-04-20',
-    },
-  ];
+  List<Map<String, dynamic>> _mapRisks(List<RiskMatrixItemDto> risks) {
+    return risks
+        .map(
+          (risk) => {
+            'id': risk.id,
+            'title': risk.title,
+            'probability': '${risk.probability}',
+            'impact': '${risk.impact}',
+            'status': risk.score >= 12 ? 'مفتوح' : 'قيد المعالجة',
+            'owner': risk.responsePlan,
+            'date': '',
+            'score': risk.score,
+          },
+        )
+        .toList();
+  }
 
   Color _statusColor(String status) {
     switch (status) {
@@ -69,6 +64,32 @@ class _RisksScreenState extends State<RisksScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<ProjectRisksCubit, ProjectRisksState>(
+      builder: (context, state) {
+        if (state is ProjectRisksLoading || state is ProjectRisksInitial) {
+          return Scaffold(
+            backgroundColor: AppColor.kBackgroundColor,
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (state is ProjectRisksError) {
+          return Scaffold(
+            backgroundColor: AppColor.kBackgroundColor,
+            body: Center(child: Text(state.message.tr())),
+          );
+        }
+
+        final risks = state is ProjectRisksLoaded
+            ? _mapRisks(state.risks)
+            : <Map<String, dynamic>>[];
+
+        return _buildContent(context, risks);
+      },
+    );
+  }
+
+  Widget _buildContent(BuildContext context, List<Map<String, dynamic>> risks) {
+    _risks = risks;
     return Scaffold(
       backgroundColor: AppColor.kBackgroundColor,
       appBar: AppBar(

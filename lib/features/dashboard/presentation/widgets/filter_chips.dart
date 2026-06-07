@@ -1,10 +1,11 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:reefsaudia/core/utils/app_font.dart';
-import '../../../../core/utils/app_color.dart';
+
 import '../../../../core/utils/app_string.dart';
+import '../../../../core/utils/app_theme_context.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -14,10 +15,12 @@ class FilterChipsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return BlocBuilder<DashboardBloc, DashboardState>(
       builder: (context, state) {
-        String selectedStatus = 'all';
-        if (state is DashboardLoaded) {
+        var selectedStatus = 'all';
+        if (state is DashboardStatsLoaded) {
           selectedStatus = state.selectedStatus;
         }
 
@@ -47,33 +50,31 @@ class FilterChipsSection extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () {
                     context.read<DashboardBloc>().add(
-                      FilterProjects(status['key']!),
-                    );
+                          FilterProjects(status['key']!),
+                        );
                   },
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 20.w),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? AppColor.kPrimaryColor
-                          : AppColor.kSurfaceColor,
+                          ? colors.kPrimaryColor
+                          : Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(16.r),
                       border: Border.all(
                         color: isSelected
                             ? Colors.transparent
-                            : AppColor.kBorderColor.withOpacity(0.3),
+                            : colors.kBorderColor.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Center(
                       child: RobotoText(
                         text: status['label']!,
-
                         fontSize: 12.sp,
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.w500,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.w500,
                         color: isSelected
-                            ? AppColor.kWhiteColor
-                            : AppColor.kGrayTextColor,
+                            ? Colors.white
+                            : colors.kGrayColor,
                       ),
                     ),
                   ),

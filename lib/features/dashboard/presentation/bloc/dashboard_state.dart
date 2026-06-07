@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
-import '../../domain/entities/project.dart';
+
+import '../../data/models/project_search_response_model.dart';
 
 abstract class DashboardState extends Equatable {
   const DashboardState();
@@ -10,27 +11,39 @@ abstract class DashboardState extends Equatable {
 
 class DashboardInitial extends DashboardState {}
 
-class DashboardLoading extends DashboardState {}
+class DashboardStatsLoading extends DashboardState {}
 
-class DashboardLoaded extends DashboardState {
-  final List<Project> allProjects;
-  final List<Project> filteredProjects;
-  final String selectedStatus; // 'all', 'in_progress', 'stalled', 'finished'
+class DashboardStatsLoaded extends DashboardState {
+  final DashboardStats stats;
+  final String selectedStatus;
+  final String? query;
 
-  const DashboardLoaded({
-    required this.allProjects,
-    required this.filteredProjects,
-    required this.selectedStatus,
+  const DashboardStatsLoaded({
+    required this.stats,
+    this.selectedStatus = 'all',
+    this.query,
   });
 
   @override
-  List<Object?> get props => [allProjects, filteredProjects, selectedStatus];
+  List<Object?> get props => [stats, selectedStatus, query];
+
+  DashboardStatsLoaded copyWith({
+    DashboardStats? stats,
+    String? selectedStatus,
+    String? query,
+  }) {
+    return DashboardStatsLoaded(
+      stats: stats ?? this.stats,
+      selectedStatus: selectedStatus ?? this.selectedStatus,
+      query: query ?? this.query,
+    );
+  }
 }
 
-class DashboardError extends DashboardState {
+class DashboardStatsError extends DashboardState {
   final String message;
 
-  const DashboardError(this.message);
+  const DashboardStatsError(this.message);
 
   @override
   List<Object?> get props => [message];

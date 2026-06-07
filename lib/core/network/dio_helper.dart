@@ -51,17 +51,26 @@ class DioHelper {
     }
   }
 
-  static Future<Map<String, dynamic>> headers({String path = ''}) async {
+  static Future<Map<String, dynamic>> headers({
+    String path = '',
+    bool includeAuth = true,
+  }) async {
     return AuthorizationHeader.build(
       storage: _tokenStorage,
       path: path,
+      includeAuth: includeAuth,
     );
   }
 
   static Future<void> syncHeaders({required String path}) async {
-    final built = await headers(path: path);
+    final built = await headers(
+      path: path,
+      // Keep Authorization per-request only (interceptor), not on shared Dio options.
+      includeAuth: false,
+    );
     if (dio != null) {
       dio!.options.headers = Map<String, dynamic>.from(built);
+      dio!.options.headers.remove(AuthorizationHeader.headerKey);
     }
   }
 

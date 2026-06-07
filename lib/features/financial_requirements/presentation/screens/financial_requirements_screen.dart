@@ -9,7 +9,9 @@ import '../widgets/financial_requirement_card.dart';
 import '../widgets/financial_requirement_table.dart';
 
 class FinancialRequirementsScreen extends StatefulWidget {
-  const FinancialRequirementsScreen({super.key});
+  final String? projectId;
+
+  const FinancialRequirementsScreen({super.key, this.projectId});
 
   @override
   State<FinancialRequirementsScreen> createState() =>

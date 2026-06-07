@@ -15,7 +15,7 @@ class AuthInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     log('AuthInterceptor - Request sending: ${options.method} ${options.uri}');
     log(
-      'AuthInterceptor - Authorization: ${options.headers['Authorization'] ?? 'Bearer'}',
+      'AuthInterceptor - Authorization: ${options.headers['Authorization'] ?? '(none)'}',
     );
     super.onRequest(options, handler);
   }

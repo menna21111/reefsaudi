@@ -9,10 +9,9 @@ import '../../features/dashboard/presentation/screens/placeholder_screens.dart';
 import '../../features/financial_requirements/presentation/screens/financial_requirements_screen.dart';
 import '../../features/tasks/presentation/screens/tasks_screen.dart';
 import '../services/service_locator.dart';
-import '../utils/app_color.dart';
 import '../utils/app_font.dart';
-import '../utils/app_icon.dart';
 import '../utils/app_string.dart';
+import '../utils/app_theme_context.dart';
 
 class BottomNavigation extends StatefulWidget {
   final int initialIndex;
@@ -92,17 +91,15 @@ class _BottomNavigationState extends State<BottomNavigation> {
   }
 
   Widget _buildBottomNavigationBar() {
+    final colors = context.appColors;
+
     return Container(
       height: 78.h,
       decoration: BoxDecoration(
-        color: AppColor.kSurfaceColor,
-        // borderRadius: BorderRadius.only(
-        //   topLeft: Radius.circular(24.r),
-        //   topRight: Radius.circular(24.r),
-        // ),
+        color: colors.kInputColor,
         border: Border(
           top: BorderSide(
-            color: AppColor.kBorderColor.withOpacity(0.3),
+            color: colors.kBorderColor.withOpacity(0.3),
             width: 1,
           ),
         ),
@@ -121,9 +118,11 @@ class _BottomNavigationState extends State<BottomNavigation> {
   }
 
   Widget _buildNavItem(int index) {
+    final colors = context.appColors;
     final item = _navItems[index];
     final isSelected = _selectedIndex == index;
-    final color = isSelected ? AppColor.kPrimaryColor : AppColor.kGrayTextColor;
+    final color =
+        isSelected ? colors.kPrimaryColor : colors.kGrayColor;
 
     return Expanded(
       child: GestureDetector(
@@ -138,7 +137,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
               height: 3.h,
               width: isSelected ? 36.w : 0,
               decoration: BoxDecoration(
-                color: AppColor.kPrimaryColor,
+                color: colors.kPrimaryColor,
                 borderRadius: BorderRadius.circular(2.r),
               ),
             ),

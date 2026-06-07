@@ -49,17 +49,18 @@ class AchievementRatesScreen extends StatelessWidget {
               child: Column(
                 children: [
                   CustomProgressBar(
+                    
                     label: 'نسبة الإنجاز المخطط لها',
                     percentageText: '25%',
                     percentage: 0.25,
-                    color: AppColor.kGrayTextColor,
+                    color: AppColor.kGrayTextColor, backgroundColor: AppColor.kPrimaryColor
                   ),
                   SizedBox(height: 16.h),
                   CustomProgressBar(
                     label: 'نسبة الإنجاز الفعلي',
                     percentageText: '20%',
                     percentage: 0.20,
-                    color: AppColor.kPrimaryColor,
+                    color: AppColor.kPrimaryColor, backgroundColor: AppColor.kPrimaryColor,
                   ),
                 ],
               ),

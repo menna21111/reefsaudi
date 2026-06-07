@@ -7,7 +7,13 @@ abstract class DashboardEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadDashboardProjects extends DashboardEvent {}
+class LoadDashboardStats extends DashboardEvent {
+  const LoadDashboardStats();
+}
+
+class RefreshDashboard extends DashboardEvent {
+  const RefreshDashboard();
+}
 
 class FilterProjects extends DashboardEvent {
   final String status;
@@ -15,5 +21,14 @@ class FilterProjects extends DashboardEvent {
   const FilterProjects(this.status);
 
   @override
-  List<Object?> get props => [status];
+  List<Object> get props => [status];
+}
+
+class SearchProjects extends DashboardEvent {
+  final String? query;
+
+  const SearchProjects(this.query);
+
+  @override
+  List<Object?> get props => [query];
 }

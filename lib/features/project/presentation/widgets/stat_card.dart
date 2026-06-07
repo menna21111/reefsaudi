@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:reefsaudia/core/utils/app_font.dart';
-import '../../../../core/utils/app_color.dart';
+
+import '../../../../core/utils/app_font.dart';
+import '../../../../core/utils/app_theme_context.dart';
 
 class StatCard extends StatelessWidget {
   final String title;
@@ -21,17 +22,20 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 12.w),
       decoration: BoxDecoration(
-        color: AppColor.kSurfaceColor,
+        color: colors.kInputColor,
         borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: colors.kBorderColor.withOpacity(0.25)),
       ),
       child: Column(
         children: [
           RobotoText(
             text: title,
-            color: AppColor.kGrayTextColor,
+            color: colors.kGrayColor,
             fontSize: 12.sp,
           ),
           SizedBox(height: 8.h),

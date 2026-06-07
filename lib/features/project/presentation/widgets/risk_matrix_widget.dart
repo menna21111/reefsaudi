@@ -5,12 +5,14 @@ import 'package:reefsaudia/core/utils/app_color.dart';
 class RiskMatrixWidget extends StatelessWidget {
   final int markerIndex;
   final int advancedRisksCount;
+  final String? highlightTitle;
 
   const RiskMatrixWidget({
-    Key? key,
+    super.key,
     this.markerIndex = 17,
     this.advancedRisksCount = 3,
-  }) : super(key: key);
+    this.highlightTitle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +95,8 @@ class RiskMatrixWidget extends StatelessWidget {
               SizedBox(width: 8.w),
               Expanded(
                 child: Text(
-                  'مصفوفة المخاطر عند شديد التأثير متوسط الاحتمالية',
+                  highlightTitle ??
+                      'مصفوفة المخاطر عند شديد التأثير متوسط الاحتمالية',
                   style: TextStyle(
                     color: AppColor.kGrayTextColor,
                     fontSize: 9.sp,

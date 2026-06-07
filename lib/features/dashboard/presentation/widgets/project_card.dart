@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:reefsaudia/core/services/service_locator.dart';
 import 'package:reefsaudia/core/utils/app_font.dart';
 import '../../../../core/funcation.dart';
-import '../../../../core/utils/app_color.dart';
 import '../../../../core/utils/app_string.dart';
+import '../../../../core/utils/app_theme_context.dart';
+import '../../../project/presentation/cubit/project_statistics_cubit.dart';
 import '../../../project/presentation/screens/project_details_screen.dart';
 import '../../domain/entities/project.dart';
 import 'package:intl/intl.dart';
@@ -15,60 +18,79 @@ class ProjectCard extends StatelessWidget {
 
   const ProjectCard({super.key, required this.project});
 
+  Color _parseHexColor(String? hex, Color fallback) {
+    if (hex == null || hex.isEmpty) return fallback;
+    final value = hex.replaceAll('#', '');
+    if (value.length != 6) return fallback;
+    return Color(int.parse('FF$value', radix: 16));
+  }
+
   @override
   Widget build(BuildContext context) {
-    final statusData = _getStatusData(project.status);
+    final colors = context.appColors;
+    final statusData = _getStatusData(context, project.status);
 
     return GestureDetector(
       onTap: () {
         AppFunctions.navigateTo(
           context,
-          const ProjectDetailsScreen(),
+          BlocProvider(
+            create: (_) => sl<ProjectDetailsCubit>()..load(project.id),
+            child: ProjectDetailsScreen(projectId: project.id),
+          ),
           PageTransitionType.leftToRight,
         );
       },
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColor.kSurfaceColor,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(18.r),
-          border: Border.all(color: AppColor.kBorderColor.withOpacity(0.3)),
+          border: Border.all(
+            color: colors.kBorderColor.withValues(alpha: 0.3),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(statusData),
-            _buildTitleAndDescription(),
-            _buildBudgetAndEntity(),
+            _buildTitleAndDescription(context),
+            _buildBudgetAndEntity(context),
             SizedBox(height: 14.h),
-            _buildProgressBar(statusData),
+            _buildProgressBar(context, statusData),
             SizedBox(height: 12.h),
-            Divider(color: AppColor.kBorderColor.withOpacity(0.3), height: 1),
-            _buildActionButtons(),
+            Divider(
+              color: colors.kBorderColor.withValues(alpha: 0.3),
+              height: 1,
+            ),
+            _buildActionButtons(context),
           ],
         ),
       ),
     );
   }
 
-  Map<String, dynamic> _getStatusData(String status) {
+  Map<String, dynamic> _getStatusData(BuildContext context, String status) {
+    final colors = context.appColors;
+    final apiColor = _parseHexColor(project.statusColor, colors.kPrimaryColor);
+
     switch (status) {
       case 'finished':
         return {
-          'color': AppColor.kPrimaryColor,
-          'bg': AppColor.kPrimaryColor.withOpacity(0.1),
+          'color': apiColor,
+          'bg': apiColor.withValues(alpha: 0.1),
           'label': AppString.finished.tr(),
         };
       case 'stalled':
         return {
-          'color': AppColor.kGoldColor,
-          'bg': AppColor.kGoldColor.withOpacity(0.1),
+          'color': apiColor,
+          'bg': apiColor.withValues(alpha: 0.1),
           'label': AppString.stalled.tr(),
         };
       default:
         return {
-          'color': Colors.cyan,
-          'bg': Colors.cyan.withOpacity(0.1),
+          'color': apiColor,
+          'bg': apiColor.withValues(alpha: 0.1),
           'label': AppString.inProgress.tr(),
         };
     }
@@ -108,19 +130,22 @@ class ProjectCard extends StatelessWidget {
               ],
             ),
           ),
-          RobotoText(
-            text: project.daysLeft != null
-                ? '${project.daysLeft} ${'يوم متبقي'.tr()}'
-                : 'تم التسليم'.tr(),
-            fontSize: 11.sp,
-            color: AppColor.kGrayTextColor,
+          Builder(
+            builder: (context) => RobotoText(
+              text: project.daysLeft != null
+                  ? '${project.daysLeft} ${AppString.daysRemaining.tr()}'
+                  : AppString.delivered.tr(),
+              fontSize: 11.sp,
+              color: context.appColors.kGrayColor,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTitleAndDescription() {
+  Widget _buildTitleAndDescription(BuildContext context) {
+    final colors = context.appColors;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Column(
@@ -131,20 +156,21 @@ class ProjectCard extends StatelessWidget {
 
             fontSize: 14.sp,
             fontWeight: FontWeight.bold,
-            color: AppColor.kWhiteColor,
+            color: colors.kFontColor,
           ),
           SizedBox(height: 6.h),
           RobotoText(
             text: project.description,
             fontSize: 12.sp,
-            color: AppColor.kGrayTextColor,
+            color: colors.kGrayColor,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBudgetAndEntity() {
+  Widget _buildBudgetAndEntity(BuildContext context) {
+    final colors = context.appColors;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Row(
@@ -154,16 +180,16 @@ class ProjectCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               RobotoText(
-                text: 'الميزانية'.tr(),
+                text: AppString.budget.tr(),
                 fontSize: 11.sp,
-                color: AppColor.kGrayTextColor,
+                color: colors.kGrayColor,
               ),
               SizedBox(height: 4.h),
               RobotoText(
                 text:
                     '${NumberFormat('#,###').format(project.budget)} ${AppString.sar.tr()}',
                 fontSize: 12.sp,
-                color: AppColor.kPrimaryColor,
+                color: colors.kPrimaryColor,
                 fontWeight: FontWeight.bold,
               ),
             ],
@@ -172,16 +198,16 @@ class ProjectCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               RobotoText(
-                text: 'الحالة'.tr(),
+                text: AppString.statusLabel.tr(),
                 fontSize: 11.sp,
-                color: AppColor.kGrayTextColor,
+                color: colors.kGrayColor,
               ),
 
               SizedBox(height: 4.h),
               RobotoText(
                 text: project.entityName,
                 fontSize: 12.sp,
-                color: AppColor.kWhiteColor,
+                color: colors.kFontColor,
                 fontWeight: FontWeight.w600,
               ),
             ],
@@ -191,7 +217,8 @@ class ProjectCard extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressBar(Map<String, dynamic> statusData) {
+  Widget _buildProgressBar(BuildContext context, Map<String, dynamic> statusData) {
+    final colors = context.appColors;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Column(
@@ -200,14 +227,14 @@ class ProjectCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               RobotoText(
-                text: 'نسبة الإنجاز'.tr(),
+                text: AppString.completionPercentage.tr(),
                 fontSize: 11.sp,
-                color: AppColor.kGrayTextColor,
+                color: colors.kGrayColor,
               ),
               RobotoText(
                 text: '${project.progress.toInt()}%',
                 fontSize: 11.sp,
-                color: AppColor.kWhiteColor,
+                color: colors.kFontColor,
                 fontWeight: FontWeight.bold,
               ),
             ],
@@ -218,7 +245,7 @@ class ProjectCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: project.progress / 100,
               minHeight: 6.h,
-              backgroundColor: AppColor.kBackgroundColor,
+              backgroundColor: colors.kBgColor,
               valueColor: AlwaysStoppedAnimation<Color>(statusData['color']),
             ),
           ),
@@ -227,7 +254,8 @@ class ProjectCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(BuildContext context) {
+    final colors = context.appColors;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       child: Row(
@@ -239,7 +267,7 @@ class ProjectCard extends StatelessWidget {
                 onPressed: () {},
                 icon: Icon(
                   Icons.description_outlined,
-                  color: AppColor.kGrayTextColor,
+                  color: colors.kGrayColor,
                   size: 20.sp,
                 ),
               ),
@@ -247,7 +275,7 @@ class ProjectCard extends StatelessWidget {
                 onPressed: () {},
                 icon: Icon(
                   Icons.remove_red_eye_outlined,
-                  color: AppColor.kGrayTextColor,
+                  color: colors.kGrayColor,
                   size: 20.sp,
                 ),
               ),
@@ -257,7 +285,7 @@ class ProjectCard extends StatelessWidget {
             onPressed: () {},
             icon: Icon(
               Icons.more_horiz_rounded,
-              color: AppColor.kGrayTextColor,
+              color: colors.kGrayColor,
               size: 20.sp,
             ),
           ),

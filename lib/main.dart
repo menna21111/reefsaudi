@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'core/blocs/theme_bloc.dart';
 import 'core/config/auth_gate.dart';
+import 'core/permissions/permission_cubit.dart';
 import 'core/network/dio_helper.dart';
 import 'core/services/app_locle.dart';
 import 'core/services/service_locator.dart';
@@ -37,7 +38,13 @@ void main() async {
       path: 'assets/translations',
       startLocale: const Locale('ar'),
       fallbackLocale: const Locale('ar'),
-      child: BlocProvider(create: (_) => sl<ThemeBloc>(), child: const MyApp()),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => sl<ThemeBloc>()),
+          BlocProvider(create: (_) => sl<PermissionCubit>()),
+        ],
+        child: const MyApp(),
+      ),
     ),
   );
 }

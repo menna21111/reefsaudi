@@ -9,6 +9,7 @@ class Project extends Equatable {
   final double progress; // percentage (e.g. 42.0)
   final String entityName; // e.g. 'منصة اعتماد' or 'شركة الخريف'
   final int? daysLeft;
+  final String? statusColor;
 
   const Project({
     required this.id,
@@ -19,6 +20,7 @@ class Project extends Equatable {
     required this.progress,
     required this.entityName,
     this.daysLeft,
+    this.statusColor,
   });
 
   @override
@@ -31,5 +33,6 @@ class Project extends Equatable {
         progress,
         entityName,
         daysLeft,
+        statusColor,
       ];
 }

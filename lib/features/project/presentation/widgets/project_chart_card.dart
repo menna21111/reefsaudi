@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:reefsaudia/core/utils/app_font.dart';
+
 import '../../../../core/utils/app_color.dart';
+import '../../data/models/project_api_models.dart';
 import 'custom_line_chart.dart';
 import 'legend_item.dart';
 
 class ProjectChartCard extends StatelessWidget {
-  const ProjectChartCard({super.key});
+  final double completionPercent;
+  final List<ProjectAchievementPointDto> achievementPoints;
+
+  const ProjectChartCard({
+    super.key,
+    required this.completionPercent,
+    this.achievementPoints = const [],
+  });
 
   @override
   Widget build(BuildContext context) {
+    final actual = achievementPoints.map((e) => e.actual.toDouble()).toList();
+    final planned = achievementPoints.map((e) => e.planned.toDouble()).toList();
+
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -21,9 +32,15 @@ class ProjectChartCard extends StatelessWidget {
         children: [
           _buildHeader(),
           SizedBox(height: 4.h),
-          _buildSubHeader(),
+          _buildSubHeader(completionPercent),
           SizedBox(height: 24.h),
-          SizedBox(height: 200.h, child: const CustomLineChart()),
+          SizedBox(
+            height: 200.h,
+            child: CustomLineChart(
+              actualPoints: actual,
+              plannedPoints: planned,
+            ),
+          ),
           SizedBox(height: 16.h),
           _buildLegend(),
         ],
@@ -48,9 +65,9 @@ class ProjectChartCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSubHeader() {
+  Widget _buildSubHeader(double percent) {
     return Text(
-      'النسبة المئوية لإنجاز المشروع',
+      'النسبة المئوية لإنجاز المشروع: ${percent.toStringAsFixed(1)}%',
       style: TextStyle(color: AppColor.kGrayTextColor, fontSize: 12.sp),
     );
   }

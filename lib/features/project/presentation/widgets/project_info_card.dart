@@ -1,11 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:reefsaudia/core/utils/app_font.dart';
+
 import '../../../../core/utils/app_color.dart';
+import '../../data/models/project_api_models.dart';
 import 'info_row.dart';
 
 class ProjectInfoCard extends StatelessWidget {
-  const ProjectInfoCard({super.key});
+  final String consultant;
+  final String contractor;
+  final String startDate;
+  final String endDate;
+  final double budget;
+
+  const ProjectInfoCard({
+    super.key,
+    required this.consultant,
+    required this.contractor,
+    required this.startDate,
+    required this.endDate,
+    required this.budget,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,13 +35,17 @@ class ProjectInfoCard extends StatelessWidget {
         children: [
           _buildHeader(),
           Divider(color: AppColor.kInputBorderColor, height: 32.h),
-          InfoRow(label: 'تاريخ البدء', value: '25 يوليو 2022'),
+          InfoRow(label: 'الاستشاري', value: consultant),
           SizedBox(height: 16.h),
-          InfoRow(label: 'تاريخ الانتهاء', value: '24 يونيو 2024'),
+          InfoRow(label: 'المقاول', value: contractor),
+          SizedBox(height: 16.h),
+          InfoRow(label: 'تاريخ البدء', value: formatApiDate(startDate)),
+          SizedBox(height: 16.h),
+          InfoRow(label: 'تاريخ الانتهاء', value: formatApiDate(endDate)),
           SizedBox(height: 16.h),
           InfoRow(
-            label: 'مدة المشروع (يوم)',
-            value: '700 يوم',
+            label: 'الميزانية التعاقدية',
+            value: budget.toStringAsFixed(0),
             valueColor: AppColor.kPrimaryColor,
           ),
         ],
@@ -44,12 +63,6 @@ class ProjectInfoCard extends StatelessWidget {
           color: AppColor.kWhiteColor,
           fontSize: 16.sp,
           fontWeight: FontWeight.bold,
-        ),
-        const Spacer(),
-        RobotoText(
-          text: 'PR-10',
-          color: AppColor.kPrimaryColor,
-          fontSize: 12.sp,
         ),
       ],
     );
