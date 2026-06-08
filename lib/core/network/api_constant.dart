@@ -1,8 +1,12 @@
 class ApiConstants {
-  static const String baseurl = 'https://pmoapi.almanzoor.net/api/';
-  // Legacy (unused by PMO flows)
-  static const String _devBaseUrl = 'https://api.mandoobexpress.com/api/v1/';
-  static const String domain = baseurl;
+  // static const String _prodBaseUrl = "https://qaribapp.com/";
+  static const String _devBaseUrl = "https://api.mandoobexpress.com/api/v1/";
+  static const String reefBaseUrl = 'https://apiour.mohamedelsayed.site/api/';
+  static const String domain = "https://api.mandoobexpress.com/api/v1/";
+
+  // TODO: Remove temporary token after auth integration.
+  static const String tempAccessToken =
+      'eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2IiwidHlwIjoiSldUIiwiY3R5IjoiSldUIn0..nUHlJ34z6mP3dHSN9Hf8sw.iT3W-6JToz6pTz4bhs52SQ0YNMJWPFGDNeZOWqjNsDmTblfmARrMrR9QuzymhiojL52P7h5BBvkCczoHmlvc9oi78MDcaZMVjvVFDa6qSCHI_t8C_HayjmW0KMJ1B4T0DVCE-PFytbDzCyUV90ieMH53vuC6ZFyG2n_Vv1iJnrqSdnf7IvE7Uy3HR07Ibge7z9FQ5lOwHncaZ2c4gugTpsIoI-TnMGyzx8BMXbsKysDl0N5q4XmkEFZceAzy61zKKD-V5lSygUfMvxjTxvhF34wfBdaHpwmeyO5veA7gLaxRTFvz30pRX99w5rY9ALySEYX6GsOCjJ0xp9ZkgYtE7oC-BDxvsBrcgLJL3rA-jSQ9AEa7Mu19pF9Sv7u0uLpg-DaN6mbdHGlyA8j3lrtBDzobI888egK5TXj_ack6VBjwZ7D9Z-6f6dE-mF0h99N2w0ynlAsnVYRjEZgZ-bG41c94MPCkB905hDJquDlUb0VuWdk9fbc4KFrGQC1fX5fe.K0lr8x6F4GxvTg7JcoqaVQ';
 
   // // Default to prod, but will be overridden by Remote Config
   // // Set to true by default here IF you want local dev to be default without config
@@ -12,7 +16,7 @@ class ApiConstants {
   //   _useDevServer = value;
   // }
 
-  static String get baseUrl => baseurl;
+  static String get baseUrl => _devBaseUrl;
   // _useDevServer ?
 
   // : _prodBaseUrl;
@@ -37,4 +41,7 @@ class ApiConstants {
   static String get verifyOtpUrl => "collector/verify-otp";
   static String get resendOtpUrl => "collector/resend-otp";
   static String get resetPasswordUrl => "collector/reset-password";
+
+  static String get financialStatementUrl =>
+      '${reefBaseUrl}FinancialStatement';
 }
