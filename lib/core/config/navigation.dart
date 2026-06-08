@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
-import '../../features/dashboard/presentation/screens/placeholder_screens.dart';
+import '../../features/dashboard/presentation/screens/profile_screen.dart';
 import '../../features/financial_requirements/presentation/screens/financial_requirements_screen.dart';
 import '../../features/tasks/presentation/screens/tasks_screen.dart';
 import '../services/service_locator.dart';
@@ -44,7 +44,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
       const FinancialRequirementsScreen(),
       const TasksScreen(),
       // const QualityPlaceholderScreen(),
-      const ProfilePlaceholderScreen(),
+      const ProfileScreen(),
     ];
   }
 

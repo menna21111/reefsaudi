@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'core/blocs/theme_bloc.dart';
-import 'core/config/auth_gate.dart';
+import 'core/config/splash_screen.dart';
 import 'core/permissions/permission_cubit.dart';
 import 'core/network/dio_helper.dart';
 import 'core/services/app_locle.dart';
@@ -76,7 +76,7 @@ class MyApp extends StatelessWidget {
               themeMode: themeState.isDark ? ThemeMode.dark : ThemeMode.light,
 
               // ✅ FIX: IMPORTANT (prevents your crash)
-              home: const AuthGate(),
+              home: const SplashScreen(),
             );
           },
         );

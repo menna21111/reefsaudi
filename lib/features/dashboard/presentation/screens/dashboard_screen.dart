@@ -16,6 +16,7 @@ import '../bloc/dashboard_state.dart';
 import '../widgets/actions_row.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/dashboard_header.dart';
+import '../widgets/dashboard_search_bar.dart';
 import '../widgets/filter_chips.dart';
 import '../widgets/project_card.dart';
 import '../widgets/project_table.dart';
@@ -138,7 +139,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     );
                   },
                 ),
-                SliverToBoxAdapter(child: SizedBox(height: 16.h)),
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  sliver: const SliverToBoxAdapter(child: DashboardSearchBar()),
+                ),
+                SliverToBoxAdapter(child: SizedBox(height: 12.h)),
                 const SliverToBoxAdapter(child: FilterChipsSection()),
                 SliverToBoxAdapter(child: SizedBox(height: 12.h)),
                 SliverPadding(

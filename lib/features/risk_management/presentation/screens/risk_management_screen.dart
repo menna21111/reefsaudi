@@ -9,8 +9,8 @@ import '../../../../core/utils/app_string.dart';
 import '../../../../core/utils/app_theme_context.dart';
 import '../../data/models/project_risk_models.dart';
 import '../cubit/risk_management_cubit.dart';
-import '../widgets/add_risk_sheet.dart';
 import '../widgets/risk_table.dart';
+import 'risk_add_screen.dart';
 
 class RiskManagementScreen extends StatelessWidget {
   const RiskManagementScreen({super.key});
@@ -62,20 +62,7 @@ class _RiskManagementViewState extends State<_RiskManagementView> {
     final state = cubit.state;
     if (state is! RiskManagementLoaded) return;
 
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(
-        value: cubit,
-        child: AddRiskSheet(
-          projects: state.projects,
-          accounts: state.accounts,
-          isLoading: state.isFormDataLoading,
-          isSubmitting: state.isSubmitting,
-        ),
-      ),
-    );
+    await Navigator.push<bool>(context, RiskAddScreen.route(cubit));
   }
 
   @override

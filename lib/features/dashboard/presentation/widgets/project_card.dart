@@ -63,7 +63,7 @@ class ProjectCard extends StatelessWidget {
               color: colors.kBorderColor.withValues(alpha: 0.3),
               height: 1,
             ),
-            _buildActionButtons(context),
+            // _buildActionButtons(context),
           ],
         ),
       ),
