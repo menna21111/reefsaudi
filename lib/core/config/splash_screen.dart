@@ -110,21 +110,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             );
           },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Applogo(height: 120.h, width: 100.w),
-              SizedBox(height: 36.h),
-              SizedBox(
-                width: 28.w,
-                height: 28.w,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: colors.kPrimaryColor,
-                ),
-              ),
-            ],
-          ),
+          child: Applogo(height: 120.h, width: 100.w),
         ),
       ),
     );

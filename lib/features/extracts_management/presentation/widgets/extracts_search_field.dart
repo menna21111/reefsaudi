@@ -6,11 +6,13 @@ import '../../../../core/utils/app_color.dart';
 class ExtractsSearchField extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
 
   const ExtractsSearchField({
     super.key,
     required this.controller,
     this.onChanged,
+    this.onSubmitted,
   });
 
   @override
@@ -19,6 +21,8 @@ class ExtractsSearchField extends StatelessWidget {
       controller: controller,
       textAlign: TextAlign.right,
       onChanged: onChanged,
+      onSubmitted: onSubmitted,
+      textInputAction: TextInputAction.search,
       style: TextStyle(
         color: Theme.of(context).textTheme.displayLarge?.color,
         fontSize: 13.sp,

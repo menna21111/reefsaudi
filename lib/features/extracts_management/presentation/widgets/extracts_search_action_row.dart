@@ -5,13 +5,13 @@ import 'extracts_search_field.dart';
 
 class ExtractsSearchActionRow extends StatelessWidget {
   final TextEditingController searchController;
-  final ValueChanged<String>? onSearchChanged;
+  final VoidCallback? onSearchSubmitted;
   final VoidCallback? onAddTap;
 
   const ExtractsSearchActionRow({
     super.key,
     required this.searchController,
-    this.onSearchChanged,
+    this.onSearchSubmitted,
     this.onAddTap,
   });
 
@@ -22,7 +22,7 @@ class ExtractsSearchActionRow extends StatelessWidget {
         Expanded(
           child: ExtractsSearchField(
             controller: searchController,
-            onChanged: onSearchChanged,
+            onSubmitted: (_) => onSearchSubmitted?.call(),
           ),
         ),
         SizedBox(width: 12.w),

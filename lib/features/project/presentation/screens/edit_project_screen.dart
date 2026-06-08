@@ -1,13 +1,16 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/utils/app_color.dart';
+
+import '../../../../core/utils/app_string.dart';
+import '../../../../core/utils/app_theme_context.dart';
 import '../../../../core/widgets/button_custom.dart';
-import '../widgets/custom_text_field.dart';
-import '../widgets/custom_dropdown.dart';
 import '../widgets/custom_date_picker.dart';
+import '../widgets/custom_dropdown.dart';
+import '../widgets/custom_text_field.dart';
 
 class EditProjectScreen extends StatefulWidget {
-  const EditProjectScreen({Key? key}) : super(key: key);
+  const EditProjectScreen({super.key});
 
   @override
   State<EditProjectScreen> createState() => _EditProjectScreenState();
@@ -42,21 +45,50 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     super.dispose();
   }
 
+  Future<void> _pickDate({
+    required DateTime initialDate,
+    required DateTime lastDate,
+    required void Function(String formatted) onPicked,
+  }) async {
+    final colors = context.appColorsRead;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2020),
+      lastDate: lastDate,
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context).colorScheme.copyWith(
+                primary: colors.kPrimaryColor,
+              ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null) {
+      onPicked(
+        '${picked.year}/${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}',
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: AppColor.kBackgroundColor,
+      backgroundColor: colors.kBgColor,
       appBar: AppBar(
-        backgroundColor: AppColor.kSurfaceColor,
+        backgroundColor: colors.kInputColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColor.kWhiteColor),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: colors.kFontColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'تعديل المشروع',
+          AppString.editProject.tr(),
           style: TextStyle(
-            color: AppColor.kWhiteColor,
+            color: colors.kFontColor,
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
           ),
@@ -64,7 +96,10 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
         centerTitle: true,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: AppColor.kBorderColor.withOpacity(0.4)),
+          child: Container(
+            height: 1,
+            color: colors.kBorderColor.withValues(alpha: 0.4),
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -72,20 +107,24 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Section 1: بيانات المشروع ──
-            _buildSectionTitle('بيانات المشروع', Icons.data_usage_outlined),
+            _buildSectionTitle(
+              context,
+              AppString.projectDataSection.tr(),
+              Icons.data_usage_outlined,
+            ),
             SizedBox(height: 16.h),
             _buildCard(
+              context,
               children: [
                 CustomTextField(
-                  label: 'اسم المشروع',
-                  hintText: 'أدخل اسم المشروع',
+                  label: AppString.projectName.tr(),
+                  hintText: AppString.enterProjectName.tr(),
                   controller: _projectNameController,
                 ),
                 SizedBox(height: 16.h),
                 CustomDropdown(
-                  label: 'مسؤول عن المشروع',
-                  hintText: 'اختر المسؤول',
+                  label: AppString.projectResponsible.tr(),
+                  hintText: AppString.selectOption.tr(),
                   initialValue: _selectedManager,
                   items: const [
                     'مكتب إدارة المشاريع',
@@ -97,8 +136,8 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                 ),
                 SizedBox(height: 16.h),
                 CustomDropdown(
-                  label: 'الاستشاري العام',
-                  hintText: 'اختر الاستشاري',
+                  label: AppString.generalConsultant.tr(),
+                  hintText: AppString.selectOption.tr(),
                   initialValue: _selectedConsultant,
                   items: const [
                     'المشاريع الشامل',
@@ -113,71 +152,43 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                   children: [
                     Expanded(
                       child: CustomDatePicker(
-                        label: 'تاريخ البدء',
+                        label: AppString.startDate.tr(),
                         dateText: _startDate,
-                        onTap: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime(2023, 12, 1),
-                            firstDate: DateTime(2020),
-                            lastDate: DateTime(2030),
-                            builder: (context, child) => Theme(
-                              data: ThemeData.dark().copyWith(
-                                colorScheme: const ColorScheme.dark(primary: AppColor.kPrimaryColor),
-                              ),
-                              child: child!,
-                            ),
-                          );
-                          if (picked != null) {
-                            setState(() {
-                              _startDate =
-                                  '${picked.year}/${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}';
-                            });
-                          }
-                        },
+                        onTap: () => _pickDate(
+                          initialDate: DateTime(2023, 12, 1),
+                          lastDate: DateTime(2030),
+                          onPicked: (formatted) =>
+                              setState(() => _startDate = formatted),
+                        ),
                       ),
                     ),
                     SizedBox(width: 16.w),
                     Expanded(
                       child: CustomDatePicker(
-                        label: 'تاريخ الانتهاء',
+                        label: AppString.endDate.tr(),
                         dateText: _endDate,
-                        onTap: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime(2025, 12, 1),
-                            firstDate: DateTime(2020),
-                            lastDate: DateTime(2035),
-                            builder: (context, child) => Theme(
-                              data: ThemeData.dark().copyWith(
-                                colorScheme: const ColorScheme.dark(primary: AppColor.kPrimaryColor),
-                              ),
-                              child: child!,
-                            ),
-                          );
-                          if (picked != null) {
-                            setState(() {
-                              _endDate =
-                                  '${picked.year}/${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}';
-                            });
-                          }
-                        },
+                        onTap: () => _pickDate(
+                          initialDate: DateTime(2025, 12, 1),
+                          lastDate: DateTime(2035),
+                          onPicked: (formatted) =>
+                              setState(() => _endDate = formatted),
+                        ),
                       ),
                     ),
                   ],
                 ),
                 SizedBox(height: 16.h),
                 CustomTextField(
-                  label: 'ميزانية المشروع',
+                  label: AppString.projectBudgetLabel.tr(),
                   hintText: '5,000,000',
                   controller: _budgetController,
                   isNumber: true,
                   suffixIcon: Padding(
                     padding: EdgeInsets.all(12.w),
                     child: Text(
-                      'ر.س',
+                      AppString.sar.tr(),
                       style: TextStyle(
-                        color: AppColor.kPrimaryColor,
+                        color: colors.kPrimaryColor,
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
                       ),
@@ -186,17 +197,19 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                 ),
               ],
             ),
-
             SizedBox(height: 24.h),
-
-            // ── Section 2: إدارة الإشراف ──
-            _buildSectionTitle('إدارة الإشراف', Icons.engineering_outlined),
+            _buildSectionTitle(
+              context,
+              AppString.supervisionManagementSection.tr(),
+              Icons.engineering_outlined,
+            ),
             SizedBox(height: 16.h),
             _buildCard(
+              context,
               children: [
                 CustomDropdown(
-                  label: 'مهندس استشاري',
-                  hintText: 'اختر المكتب الاستشاري',
+                  label: AppString.consultingOffice.tr(),
+                  hintText: AppString.consultingEngineer.tr(),
                   initialValue: _selectedConsultingOffice,
                   items: const [
                     'مكتب الاستشارات الهندسية',
@@ -204,49 +217,51 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                     'مكتب الرائد',
                     'مكتب التميز',
                   ],
-                  onChanged: (val) => setState(() => _selectedConsultingOffice = val),
+                  onChanged: (val) =>
+                      setState(() => _selectedConsultingOffice = val),
                 ),
                 SizedBox(height: 16.h),
                 CustomTextField(
-                  label: 'مهندس مدني',
-                  hintText: 'أدخل اسم المهندس',
+                  label: AppString.civilEngineer.tr(),
+                  hintText: AppString.enterEngineerName.tr(),
                   controller: _civilEngController,
                 ),
                 SizedBox(height: 16.h),
                 CustomTextField(
-                  label: 'مهندس معماري',
-                  hintText: 'أدخل اسم المهندس',
+                  label: AppString.architecturalEngineer.tr(),
+                  hintText: AppString.enterEngineerName.tr(),
                   controller: _archEngController,
                 ),
                 SizedBox(height: 16.h),
                 CustomTextField(
-                  label: 'مهندس كهربائي',
-                  hintText: 'أدخل اسم المهندس',
+                  label: AppString.electricalEngineer.tr(),
+                  hintText: AppString.enterEngineerName.tr(),
                   controller: _elecEngController,
                 ),
                 SizedBox(height: 16.h),
                 CustomTextField(
-                  label: 'مهندس ميكانيكا',
-                  hintText: 'أدخل اسم المهندس',
+                  label: AppString.mechanicalEngineer.tr(),
+                  hintText: AppString.enterEngineerName.tr(),
                   controller: _mechEngController,
                 ),
               ],
             ),
-
             SizedBox(height: 24.h),
-
-            // ── Section 3: إدارة المشاريع ──
-            _buildSectionTitle('إدارة المشاريع', Icons.business_center_outlined),
+            _buildSectionTitle(
+              context,
+              AppString.projectManagementSection.tr(),
+              Icons.business_center_outlined,
+            ),
             SizedBox(height: 16.h),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               decoration: BoxDecoration(
-                color: AppColor.kSurfaceColor,
+                color: colors.kInputColor,
                 borderRadius: BorderRadius.circular(16.r),
                 border: Border.all(
                   color: isProjectActive
-                      ? AppColor.kPrimaryColor.withOpacity(0.4)
-                      : AppColor.kBorderColor.withOpacity(0.3),
+                      ? colors.kPrimaryColor.withValues(alpha: 0.4)
+                      : colors.kBorderColor.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -256,14 +271,18 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'حالة المشروع',
-                        style: TextStyle(color: AppColor.kGrayTextColor, fontSize: 12.sp),
+                        AppString.projectStatus.tr(),
+                        style: TextStyle(color: colors.kGrayColor, fontSize: 12.sp),
                       ),
                       SizedBox(height: 4.h),
                       Text(
-                        isProjectActive ? 'نشط' : 'غير نشط',
+                        isProjectActive
+                            ? AppString.projectActive.tr()
+                            : AppString.projectInactive.tr(),
                         style: TextStyle(
-                          color: isProjectActive ? AppColor.kPrimaryColor : AppColor.kRedColor,
+                          color: isProjectActive
+                              ? colors.kPrimaryColor
+                              : colors.kRedColor,
                           fontSize: 16.sp,
                           fontWeight: FontWeight.bold,
                         ),
@@ -273,49 +292,48 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                   Switch(
                     value: isProjectActive,
                     onChanged: (val) => setState(() => isProjectActive = val),
-                    activeColor: AppColor.kPrimaryColor,
-                    inactiveThumbColor: AppColor.kGrayTextColor,
-                    inactiveTrackColor: AppColor.kBorderColor,
+                    activeColor: colors.kPrimaryColor,
+                    inactiveThumbColor: colors.kGrayColor,
+                    inactiveTrackColor: colors.kBorderColor,
                   ),
                 ],
               ),
             ),
-
             SizedBox(height: 32.h),
-
-            // ── Buttons ──
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColor.kInputBorderColor),
+                      side: BorderSide(color: colors.kBorderColor),
                       padding: EdgeInsets.symmetric(vertical: 14.h),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.r),
                       ),
                     ),
                     child: Text(
-                      'إلغاء',
-                      style: TextStyle(color: AppColor.kWhiteColor, fontSize: 16.sp),
+                      AppString.cancel.tr(),
+                      style: TextStyle(color: colors.kFontColor, fontSize: 16.sp),
                     ),
                   ),
                 ),
                 SizedBox(width: 16.w),
                 Expanded(
                   child: ButtonCustom(
-                    text: 'حفظ التغييرات',
+                    text: AppString.saveChanges.tr(),
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'تم حفظ التغييرات بنجاح',
-                            style: TextStyle(color: AppColor.kWhiteColor),
+                            AppString.changesSavedSuccessfully.tr(),
+                            style: TextStyle(color: colors.kFontColor),
                           ),
-                          backgroundColor: AppColor.kPrimaryColor,
+                          backgroundColor: colors.kPrimaryColor,
                           behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
                         ),
                       );
                       Navigator.pop(context);
@@ -331,22 +349,24 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title, IconData icon) {
+  Widget _buildSectionTitle(BuildContext context, String title, IconData icon) {
+    final colors = context.appColors;
+
     return Row(
       children: [
         Container(
           padding: EdgeInsets.all(6.w),
           decoration: BoxDecoration(
-            color: AppColor.kPrimaryColor.withOpacity(0.1),
+            color: colors.kPrimaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8.r),
           ),
-          child: Icon(icon, color: AppColor.kPrimaryColor, size: 18.sp),
+          child: Icon(icon, color: colors.kPrimaryColor, size: 18.sp),
         ),
         SizedBox(width: 10.w),
         Text(
           title,
           style: TextStyle(
-            color: AppColor.kWhiteColor,
+            color: colors.kFontColor,
             fontSize: 16.sp,
             fontWeight: FontWeight.bold,
           ),
@@ -355,13 +375,15 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     );
   }
 
-  Widget _buildCard({required List<Widget> children}) {
+  Widget _buildCard(BuildContext context, {required List<Widget> children}) {
+    final colors = context.appColors;
+
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: AppColor.kSurfaceColor,
+        color: colors.kInputColor,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: AppColor.kBorderColor.withOpacity(0.3)),
+        border: Border.all(color: colors.kBorderColor.withValues(alpha: 0.3)),
       ),
       child: Column(children: children),
     );

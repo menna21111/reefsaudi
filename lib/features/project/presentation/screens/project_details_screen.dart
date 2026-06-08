@@ -5,15 +5,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:reefsaudia/core/funcation.dart';
 import 'package:reefsaudia/core/services/service_locator.dart';
-import 'package:reefsaudia/features/financial_requirements/presentation/screens/financial_requirements_screen.dart';
+import 'package:reefsaudia/features/extracts_management/presentation/screens/extracts_management_screen.dart';
 import 'package:reefsaudia/features/project/presentation/cubit/project_statistics_cubit.dart';
 import 'package:reefsaudia/features/project/presentation/screens/edit_project_screen.dart';
 import 'package:reefsaudia/features/project/presentation/screens/project_blueprint_screen.dart';
 import 'package:reefsaudia/features/project/presentation/screens/project_board_screen.dart';
 import 'package:reefsaudia/features/project/presentation/screens/project_statistics_screen.dart';
 
-import '../../../../core/utils/app_color.dart';
 import '../../../../core/utils/app_font.dart';
+import '../../../../core/utils/app_string.dart';
 import '../../../../core/utils/app_theme_context.dart';
 import '../widgets/project_chart_card.dart';
 import '../widgets/project_header.dart';
@@ -54,7 +54,7 @@ class ProjectDetailsScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 16.h),
                 RobotoText(
-                  text: 'خيارات المشروع',
+                  text: AppString.projectOptions.tr(),
                   color: context.appColors.kPrimaryColor,
                   fontSize: 14.sp,
                   fontWeight: FontWeight.bold,
@@ -62,39 +62,38 @@ class ProjectDetailsScreen extends StatelessWidget {
                 SizedBox(height: 20.h),
                 _buildMenuOption(
                   context,
-                  title: 'إحصائيات المشروع',
+                  title: AppString.projectStatisticsMenu.tr(),
                   icon: Icons.bar_chart_rounded,
                   screen: ProjectStatisticsScreen(projectId: projectId),
                 ),
                 SizedBox(height: 12.h),
                 _buildMenuOption(
                   context,
-                  title: 'أوراق المشروع',
+                  title: AppString.projectDocuments.tr(),
                   icon: Icons.folder_open_rounded,
                   screen: const EditProjectScreen(),
                 ),
                 SizedBox(height: 12.h),
                 _buildMenuOption(
                   context,
-                  title: 'المالية',
+                  title: AppString.projectFinance.tr(),
                   icon: Icons.account_balance_wallet_outlined,
-                  screen: FinancialRequirementsScreen(projectId: projectId),
+                  screen: const ExtractsManagementScreen(),
                 ),
                 SizedBox(height: 12.h),
                 _buildMenuOption(
                   context,
-                  title: 'المخطط ونسبة الإنجاز',
+                  title: AppString.projectBlueprintProgress.tr(),
                   icon: Icons.view_timeline_outlined,
                   screen: BlocProvider(
-                    create: (_) =>
-                        sl<ProjectBlueprintCubit>()..load(projectId),
+                    create: (_) => sl<ProjectBlueprintCubit>()..load(projectId),
                     child: ProjectBlueprintScreen(projectId: projectId),
                   ),
                 ),
                 SizedBox(height: 12.h),
                 _buildMenuOption(
                   context,
-                  title: 'لوحة المهام',
+                  title: AppString.projectTasksBoard.tr(),
                   icon: Icons.assignment_turned_in_outlined,
                   screen: const ProjectBoardScreen(),
                 ),
@@ -109,7 +108,7 @@ class ProjectDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   child: RobotoText(
-                    text: 'إلغاء',
+                    text: AppString.cancel.tr(),
                     color: context.appColors.kRedColor,
                     fontSize: 13.sp,
                     fontWeight: FontWeight.bold,
@@ -194,7 +193,8 @@ class ProjectDetailsScreen extends StatelessWidget {
       ),
       body: BlocBuilder<ProjectDetailsCubit, ProjectDetailsState>(
         builder: (context, state) {
-          if (state is ProjectDetailsLoading || state is ProjectDetailsInitial) {
+          if (state is ProjectDetailsLoading ||
+              state is ProjectDetailsInitial) {
             return Center(
               child: CircularProgressIndicator(color: colors.kPrimaryColor),
             );

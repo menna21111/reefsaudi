@@ -163,6 +163,7 @@ class ProjectCard extends StatelessWidget {
             text: project.description,
             fontSize: 12.sp,
             color: colors.kGrayColor,
+            textAlign: TextAlign.start,
           ),
         ],
       ),

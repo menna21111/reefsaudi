@@ -1,7 +1,10 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:reefsaudia/core/utils/app_color.dart';
+
+import '../../../../core/utils/app_theme_context.dart';
 
 class CashFlowWidget extends StatelessWidget {
   final List<double> line1Data;
@@ -9,18 +12,19 @@ class CashFlowWidget extends StatelessWidget {
   final List<double> line3Data;
 
   const CashFlowWidget({
-    Key? key,
+    super.key,
     required this.line1Data,
     required this.line2Data,
     required this.line3Data,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
+    final colors=context.appColors;
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: AppColor.kSurfaceColor,
+        color: colors.kInputColor,
         borderRadius: BorderRadius.circular(16.r),
       ),
       child: Column(
@@ -28,12 +32,12 @@ class CashFlowWidget extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.timeline, color: AppColor.kPrimaryColor, size: 16.sp),
+              Icon(Icons.timeline, color: colors.kPrimaryColor, size: 16.sp),
               SizedBox(width: 8.w),
               Text(
-                'التدفق الإجمالي',
+                'التدفق الإجمالي'.tr(),
                 style: TextStyle(
-                  color: AppColor.kWhiteColor,
+                  color: colors.kFontColor,
                   fontSize: 12.sp,
                   fontWeight: FontWeight.bold,
                 ),
@@ -56,7 +60,7 @@ class CashFlowWidget extends StatelessWidget {
                       horizontalInterval: 20,
                       getDrawingHorizontalLine: (value) {
                         return FlLine(
-                          color: AppColor.kBorderColor.withOpacity(0.1),
+                          color: colors.kBorderColor.withValues(alpha: 0.1),
                           strokeWidth: 1,
                         );
                       },
@@ -73,7 +77,7 @@ class CashFlowWidget extends StatelessWidget {
                                 entry.key.toDouble(), entry.value * value))
                             .toList(),
                         isCurved: true,
-                        color: AppColor.kPrimaryColor,
+                        color: colors.kPrimaryColor,
                         barWidth: 2,
                         isStrokeCapRound: true,
                         dotData: FlDotData(show: false),
@@ -101,7 +105,7 @@ class CashFlowWidget extends StatelessWidget {
                                 entry.key.toDouble(), entry.value * value))
                             .toList(),
                         isCurved: true,
-                        color: const Color(0xFF4CAF50),
+                        color: colors.kPrimaryColor,
                         barWidth: 2,
                         isStrokeCapRound: true,
                         dotData: FlDotData(show: false),

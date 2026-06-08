@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
-import '../../../../core/network/api_constant.dart';
 import '../../../../core/network/dio_helper.dart';
+import '../../../../core/network/pmo_endpoints.dart';
 import '../models/financial_statements_response_model.dart';
 
 abstract class FinancialRequirementsRemoteDataSource {
@@ -20,7 +20,7 @@ class FinancialRequirementsRemoteDataSourceImpl
   }) async {
     try {
       final response = await DioHelper.getData(
-        url: ApiConstants.financialStatementUrl,
+        url: PmoEndpoints.financialStatement,
         query: {
           'pageNumber': pageNumber,
           'pageSize': pageSize,

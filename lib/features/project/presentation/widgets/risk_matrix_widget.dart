@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:reefsaudia/core/utils/app_color.dart';
+import 'package:reefsaudia/core/utils/app_theme_context.dart';
 
 class RiskMatrixWidget extends StatelessWidget {
   final int markerIndex;
@@ -16,10 +17,11 @@ class RiskMatrixWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors=context.appColors;
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: AppColor.kSurfaceColor,
+        color: colors.kInputColor,
         borderRadius: BorderRadius.circular(16.r),
       ),
       child: Column(
@@ -29,14 +31,14 @@ class RiskMatrixWidget extends StatelessWidget {
             children: [
               Icon(
                 Icons.warning_amber_rounded,
-                color: AppColor.kPrimaryColor,
+                color: colors.kPrimaryColor,
                 size: 16.sp,
               ),
               SizedBox(width: 8.w),
               Text(
                 'مصفوفة المخاطر',
                 style: TextStyle(
-                  color: AppColor.kWhiteColor,
+                  color: colors.kFontColor,
                   fontSize: 12.sp,
                   fontWeight: FontWeight.bold,
                 ),
@@ -55,7 +57,7 @@ class RiskMatrixWidget extends StatelessWidget {
             ),
             itemCount: 25,
             itemBuilder: (context, index) {
-              final colors = _getRiskColors();
+              final colors = _getRiskColors(context);
               final bool hasMarker = index == markerIndex;
 
               return TweenAnimationBuilder<double>(
@@ -126,7 +128,7 @@ class RiskMatrixWidget extends StatelessWidget {
     );
   }
 
-  List<Color> _getRiskColors() {
+  List<Color> _getRiskColors(BuildContext context) {
     return [
       // Row 1 (Top) - Highest risk (Red shades)
       const Color(0xFFEF5350), const Color(0xFFE57373), const Color(0xFFEF9A9A),

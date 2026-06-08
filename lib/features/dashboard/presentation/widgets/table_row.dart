@@ -1,25 +1,35 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:easy_localization/easy_localization.dart';
-import '../../../../core/utils/app_color.dart';
-import '../../../../core/utils/app_string.dart';
-import '../../domain/entities/project.dart';
 import 'package:intl/intl.dart';
 
-class TableRowWidget extends StatelessWidget {
-  final Project project;
-  final bool isLast;
+import '../../../../core/utils/app_color_scheme.dart';
+import '../../../../core/utils/app_string.dart';
+import '../../domain/entities/project.dart';
 
+class TableRowWidget extends StatelessWidget {
   const TableRowWidget({
     super.key,
     required this.project,
     required this.isLast,
+    required this.colors,
   });
+
+  final Project project;
+  final bool isLast;
+  final AppColorScheme colors;
+
+  Map<String, String> get _locationParts {
+    final parts = project.title.split(' - ');
+    if (parts.length >= 3) {
+      return {'sector': parts[0], 'region': parts[1]};
+    }
+    return {'sector': project.entityName, 'region': '—'};
+  }
 
   @override
   Widget build(BuildContext context) {
     final statusData = _getStatusData(project.status);
-    final parts = _getLocationParts(project.title);
 
     return Container(
       decoration: BoxDecoration(
@@ -27,7 +37,7 @@ class TableRowWidget extends StatelessWidget {
             ? null
             : Border(
                 bottom: BorderSide(
-                  color: AppColor.kBorderColor.withOpacity(0.3),
+                  color: colors.kBorderColor.withValues(alpha: 0.35),
                 ),
               ),
       ),
@@ -36,8 +46,8 @@ class TableRowWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildProjectNameColumn(statusData),
-            _buildTextColumn(parts['sector']!),
-            _buildTextColumn(parts['region']!),
+            _buildTextColumn(_locationParts['sector']!),
+            _buildTextColumn(_locationParts['region']!),
             _buildValueColumn(),
             _buildProgressColumn(statusData),
             _buildActionsColumn(),
@@ -51,31 +61,23 @@ class TableRowWidget extends StatelessWidget {
     switch (status) {
       case 'finished':
         return {
-          'color': AppColor.kPrimaryColor,
-          'bg': AppColor.kPrimaryColor.withOpacity(0.1),
+          'color': colors.kPrimaryColor,
+          'bg': colors.kPrimaryColor.withValues(alpha: 0.12),
           'label': AppString.finished.tr(),
         };
       case 'stalled':
         return {
-          'color': AppColor.kGoldColor,
-          'bg': AppColor.kGoldColor.withOpacity(0.1),
+          'color': colors.kGoldColor,
+          'bg': colors.kGoldColor.withValues(alpha: 0.12),
           'label': AppString.stalled.tr(),
         };
       default:
         return {
-          'color': Colors.cyan,
-          'bg': Colors.cyan.withOpacity(0.1),
+          'color': colors.kPrimaryColor,
+          'bg': colors.kPrimaryColor.withValues(alpha: 0.08),
           'label': AppString.inProgress.tr(),
         };
     }
-  }
-
-  Map<String, String> _getLocationParts(String title) {
-    final parts = title.split(' - ');
-    if (parts.length >= 3) {
-      return {'sector': parts[0], 'region': parts[1]};
-    }
-    return {'sector': 'الفاكهة', 'region': 'عسير'};
   }
 
   Widget _buildProjectNameColumn(Map<String, dynamic> statusData) {
@@ -85,14 +87,14 @@ class TableRowWidget extends StatelessWidget {
         children: [
           Container(
             width: 4.w,
-            margin: EdgeInsets.only(
-              right: 4.w,
-              left: 12.w,
+            margin: EdgeInsetsDirectional.only(
+              start: 12.w,
+              end: 4.w,
               top: 12.h,
               bottom: 12.h,
             ),
             decoration: BoxDecoration(
-              color: statusData['color'],
+              color: statusData['color'] as Color,
               borderRadius: BorderRadius.circular(2.r),
             ),
           ),
@@ -102,7 +104,7 @@ class TableRowWidget extends StatelessWidget {
               child: Text(
                 project.title,
                 style: TextStyle(
-                  color: AppColor.kWhiteColor,
+                  color: colors.kFontColor,
                   fontSize: 13.sp,
                   fontWeight: FontWeight.w600,
                 ),
@@ -122,7 +124,7 @@ class TableRowWidget extends StatelessWidget {
       child: Center(
         child: Text(
           text,
-          style: TextStyle(color: AppColor.kGrayTextColor, fontSize: 12.sp),
+          style: TextStyle(color: colors.kGrayColor, fontSize: 12.sp),
           textAlign: TextAlign.center,
         ),
       ),
@@ -136,7 +138,7 @@ class TableRowWidget extends StatelessWidget {
         child: Text(
           '${NumberFormat('#,###').format(project.budget)} ${AppString.sar.tr()}',
           style: TextStyle(
-            color: AppColor.kWhiteColor,
+            color: colors.kFontColor,
             fontSize: 13.sp,
             fontWeight: FontWeight.bold,
           ),
@@ -147,6 +149,8 @@ class TableRowWidget extends StatelessWidget {
   }
 
   Widget _buildProgressColumn(Map<String, dynamic> statusData) {
+    final statusColor = statusData['color'] as Color;
+
     return SizedBox(
       width: 180.w,
       child: Padding(
@@ -156,14 +160,16 @@ class TableRowWidget extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
               decoration: BoxDecoration(
-                color: statusData['bg'],
+                color: statusData['bg'] as Color,
                 borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: statusData['color'].withOpacity(0.3)),
+                border: Border.all(
+                  color: statusColor.withValues(alpha: 0.35),
+                ),
               ),
               child: Text(
-                statusData['label'],
+                statusData['label'] as String,
                 style: TextStyle(
-                  color: statusData['color'],
+                  color: statusColor,
                   fontSize: 10.sp,
                   fontWeight: FontWeight.bold,
                 ),
@@ -175,15 +181,12 @@ class TableRowWidget extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '${project.progress.toInt()}%',
-                      style: TextStyle(
-                        color: AppColor.kWhiteColor,
-                        fontSize: 10.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  Text(
+                    '${project.progress.toInt()}%',
+                    style: TextStyle(
+                      color: colors.kFontColor,
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   SizedBox(height: 4.h),
@@ -192,10 +195,8 @@ class TableRowWidget extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: project.progress / 100,
                       minHeight: 4.h,
-                      backgroundColor: AppColor.kBackgroundColor,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        statusData['color'],
-                      ),
+                      backgroundColor: colors.kBgColor,
+                      valueColor: AlwaysStoppedAnimation<Color>(statusColor),
                     ),
                   ),
                 ],
@@ -219,7 +220,7 @@ class TableRowWidget extends StatelessWidget {
             onPressed: () {},
             icon: Icon(
               Icons.remove_red_eye_outlined,
-              color: AppColor.kGrayTextColor,
+              color: colors.kGrayColor,
               size: 18.sp,
             ),
           ),
@@ -230,7 +231,7 @@ class TableRowWidget extends StatelessWidget {
             onPressed: () {},
             icon: Icon(
               Icons.description_outlined,
-              color: AppColor.kGrayTextColor,
+              color: colors.kGrayColor,
               size: 18.sp,
             ),
           ),

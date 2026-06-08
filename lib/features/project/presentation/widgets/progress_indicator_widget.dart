@@ -2,21 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:reefsaudia/core/utils/app_color.dart';
+import 'package:reefsaudia/core/utils/app_theme_context.dart';
 
 class ProgressIndicatorWidget extends StatelessWidget {
   final double progress; // 0.0 to 1.0
 
   const ProgressIndicatorWidget({
-    Key? key,
+    super.key,
     required this.progress,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
+    final colors=context.appColors;
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        color: AppColor.kSurfaceColor,
+        color: colors.kInputColor,
         borderRadius: BorderRadius.circular(16.r),
       ),
       child: Column(
@@ -24,7 +26,7 @@ class ProgressIndicatorWidget extends StatelessWidget {
           Text(
             'مؤشر نسبة الإنجاز',
             style: TextStyle(
-              color: AppColor.kWhiteColor,
+              color: colors.kFontColor,
               fontSize: 12.sp,
               fontWeight: FontWeight.bold,
             ),
@@ -48,13 +50,13 @@ class ProgressIndicatorWidget extends StatelessWidget {
                         startDegreeOffset: -90,
                         sections: [
                           PieChartSectionData(
-                            color: AppColor.kPrimaryColor,
+                            color: colors.kPrimaryColor,
                             value: value * 100,
                             title: '',
                             radius: 25.r,
                           ),
                           PieChartSectionData(
-                            color: AppColor.kBorderColor.withOpacity(0.3),
+                            color: colors.kBorderColor.withValues(alpha: 0.3),
                             value: (1 - value) * 100,
                             title: '',
                             radius: 25.r,
@@ -75,7 +77,7 @@ class ProgressIndicatorWidget extends StatelessWidget {
                         Text(
                           '$value%',
                           style: TextStyle(
-                            color: AppColor.kPrimaryColor,
+                            color: colors.kPrimaryColor,
                             fontSize: 28.sp,
                             fontWeight: FontWeight.bold,
                           ),
@@ -84,7 +86,7 @@ class ProgressIndicatorWidget extends StatelessWidget {
                         Text(
                           'مكتمل',
                           style: TextStyle(
-                            color: AppColor.kGrayTextColor,
+                            color: colors.kGrayColor,
                             fontSize: 10.sp,
                           ),
                         ),
@@ -100,7 +102,7 @@ class ProgressIndicatorWidget extends StatelessWidget {
             width: double.infinity,
             height: 8.h,
             decoration: BoxDecoration(
-              color: AppColor.kBorderColor.withOpacity(0.2),
+              color: colors.kBorderColor.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(4.r),
             ),
             child: Row(
@@ -113,7 +115,7 @@ class ProgressIndicatorWidget extends StatelessWidget {
                     return Container(
                       width: (MediaQuery.of(context).size.width - 72.w) * value,
                       decoration: BoxDecoration(
-                        color: AppColor.kPrimaryColor,
+                        color: colors.kPrimaryColor,
                         borderRadius: BorderRadius.circular(4.r),
                       ),
                     );
@@ -129,14 +131,14 @@ class ProgressIndicatorWidget extends StatelessWidget {
               Text(
                 '0%',
                 style: TextStyle(
-                  color: AppColor.kGrayTextColor,
+                  color: colors.kGrayColor,
                   fontSize: 10.sp,
                 ),
               ),
               Text(
                 '100%',
                 style: TextStyle(
-                  color: AppColor.kGrayTextColor,
+                  color: colors.kGrayColor,
                   fontSize: 10.sp,
                 ),
               ),

@@ -45,6 +45,13 @@ import '../../features/risk_management/data/repositories/risk_repository_impl.da
 import '../../features/risk_management/domain/repositories/risk_repository.dart';
 import '../../features/risk_management/presentation/cubit/risk_management_cubit.dart';
 
+// Financial Requirements Imports
+import '../../features/financial_requirements/data/datasources/financial_requirements_remote_data_source.dart';
+import '../../features/financial_requirements/data/repositories/financial_requirements_repository_impl.dart';
+import '../../features/financial_requirements/domain/repositories/financial_requirements_repository.dart';
+import '../../features/financial_requirements/domain/usecases/get_financial_statements.dart';
+import '../../features/financial_requirements/presentation/bloc/financial_requirements_bloc.dart';
+
 final sl = GetIt.instance;
 
 class ServiceLocator {
@@ -161,5 +168,21 @@ class ServiceLocator {
       ),
     );
     sl.registerFactory(() => RiskManagementCubit(repository: sl()));
+
+    sl.registerLazySingleton<FinancialRequirementsRemoteDataSource>(
+      () => FinancialRequirementsRemoteDataSourceImpl(),
+    );
+    sl.registerLazySingleton<FinancialRequirementsRepository>(
+      () => FinancialRequirementsRepositoryImpl(
+        remoteDataSource: sl(),
+        networkInfo: sl(),
+      ),
+    );
+    sl.registerLazySingleton(() => GetFinancialStatementsUseCase(sl()));
+    sl.registerFactory(
+      () => FinancialRequirementsBloc(
+        getFinancialStatementsUseCase: sl(),
+      ),
+    );
   }
 }

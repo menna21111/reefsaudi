@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:reefsaudia/core/utils/app_color.dart';
+import 'package:reefsaudia/core/utils/app_theme_context.dart';
 
 class ProjectDetailsWidget extends StatelessWidget {
   final String status;
@@ -11,34 +12,36 @@ class ProjectDetailsWidget extends StatelessWidget {
   final String endDate;
 
   const ProjectDetailsWidget({
-    Key? key,
+    super.key,
     required this.status,
     this.statusColor = 'primary',
     required this.completionRate,
     required this.responsibleParty,
     required this.startDate,
     required this.endDate,
-  }) : super(key: key);
+  });
 
-  Color _getStatusColor() {
+  Color _getStatusColor(BuildContext context) {
+    final colors=context.appColors;
     switch (statusColor) {
       case 'primary':
-        return AppColor.kPrimaryColor;
+        return colors.kPrimaryColor;
       case 'gold':
-        return AppColor.kGoldColor;
+        return colors.kGoldColor;
       case 'red':
-        return AppColor.kRedColor;
+        return colors.kRedColor;
       default:
-        return AppColor.kWhiteColor;
+        return colors.kWhiteColor;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors=context.appColors;
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: AppColor.kSurfaceColor,
+        color: colors.kInputColor,
         borderRadius: BorderRadius.circular(16.r),
       ),
       child: Column(
@@ -48,14 +51,14 @@ class ProjectDetailsWidget extends StatelessWidget {
             children: [
               Icon(
                 Icons.info_outline,
-                color: AppColor.kPrimaryColor,
+                color: colors.kPrimaryColor,
                 size: 16.sp,
               ),
               SizedBox(width: 8.w),
               Text(
                 'بيانات المشروع',
                 style: TextStyle(
-                  color: AppColor.kWhiteColor,
+                  color: colors.kFontColor,
                   fontSize: 12.sp,
                   fontWeight: FontWeight.bold,
                 ),
@@ -63,17 +66,17 @@ class ProjectDetailsWidget extends StatelessWidget {
             ],
           ),
           SizedBox(height: 16.h),
-          _buildDetailRow('الحالة', status, _getStatusColor()),
+          _buildDetailRow(context, 'الحالة', status, _getStatusColor(context)),
           SizedBox(height: 12.h),
-          _buildDetailRow('نسبة الانجاز', completionRate, AppColor.kWhiteColor),
+          _buildDetailRow(context, 'نسبة الانجاز', completionRate, colors.kFontColor),
           SizedBox(height: 12.h),
-          _buildDetailRow('المسؤول', responsibleParty, AppColor.kWhiteColor),
+          _buildDetailRow(context, 'المسؤول', responsibleParty, colors.kFontColor),
           SizedBox(height: 12.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildDateColumn('تاريخ البدء', startDate),
-              _buildDateColumn('تاريخ الإنتهاء', endDate),
+              _buildDateColumn(context, 'تاريخ البدء', startDate),
+              _buildDateColumn(context, 'تاريخ الإنتهاء', endDate),
             ],
           ),
         ],
@@ -81,13 +84,14 @@ class ProjectDetailsWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, Color valueColor) {
+  Widget _buildDetailRow(BuildContext context, String label, String value, Color valueColor) {
+    final colors=context.appColors;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: TextStyle(color: AppColor.kGrayTextColor, fontSize: 11.sp),
+          style: TextStyle(color: colors.kGrayColor, fontSize: 11.sp),
         ),
         Text(
           value,
@@ -101,19 +105,20 @@ class ProjectDetailsWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildDateColumn(String label, String date) {
+  Widget _buildDateColumn(BuildContext context, String label, String date) {
+    final colors=context.appColors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: TextStyle(color: AppColor.kGrayTextColor, fontSize: 10.sp),
+          style: TextStyle(color: colors.kGrayColor, fontSize: 10.sp),
         ),
         SizedBox(height: 4.h),
         Text(
           date,
           style: TextStyle(
-            color: AppColor.kWhiteColor,
+            color: colors.kFontColor,
             fontSize: 11.sp,
             fontWeight: FontWeight.w600,
           ),

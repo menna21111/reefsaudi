@@ -9,6 +9,7 @@ class PmoEndpoints {
   static const String projectRiskListDx = 'ProjectRisk/list/dx';
   static const String createProjectRisk = 'ProjectRisk/CreateProjectRisk';
   static const String accountListDx = 'account/list/dx';
+  static const String financialStatement = 'FinancialStatement';
 
   static String projectStepById(String id) => 'projectstep/$id';
 

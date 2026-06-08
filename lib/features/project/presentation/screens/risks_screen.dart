@@ -4,9 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:reefsaudia/core/utils/app_font.dart';
 
-import '../../../../core/utils/app_color.dart';
+import '../../../../core/utils/app_string.dart';
+import '../../../../core/utils/app_theme_context.dart';
 import '../../data/models/project_api_models.dart';
 import '../cubit/project_statistics_cubit.dart';
+
+const _kStatusOpen = 'open';
+const _kStatusInTreatment = 'in_treatment';
+const _kStatusClosed = 'closed';
 
 class RisksScreen extends StatefulWidget {
   final String projectId;
@@ -29,7 +34,7 @@ class _RisksScreenState extends State<RisksScreen> {
             'title': risk.title,
             'probability': '${risk.probability}',
             'impact': '${risk.impact}',
-            'status': risk.score >= 12 ? 'مفتوح' : 'قيد المعالجة',
+            'status': risk.score >= 12 ? _kStatusOpen : _kStatusInTreatment,
             'owner': risk.responsePlan,
             'date': '',
             'score': risk.score,
@@ -38,44 +43,80 @@ class _RisksScreenState extends State<RisksScreen> {
         .toList();
   }
 
-  Color _statusColor(String status) {
+  String _statusLabel(String status) {
     switch (status) {
-      case 'مفتوح':
-        return AppColor.kRedColor;
-      case 'قيد المعالجة':
-        return AppColor.kGoldColor;
-      case 'مغلق':
-        return AppColor.kPrimaryColor;
+      case _kStatusOpen:
+        return AppString.riskStatusOpen.tr();
+      case _kStatusInTreatment:
+        return AppString.riskStatusInTreatment.tr();
+      case _kStatusClosed:
+        return AppString.riskStatusClosed.tr();
       default:
-        return AppColor.kGrayTextColor;
+        return status;
     }
   }
 
-  Color _probabilityColor(String p) {
-    switch (p) {
-      case 'عالية':
-        return AppColor.kRedColor;
-      case 'متوسطة':
-        return AppColor.kGoldColor;
+  String _probabilityLabel(String value) {
+    final level = int.tryParse(value) ?? 0;
+    switch (level) {
+      case 4:
+        return AppString.riskLevelVeryHigh.tr();
+      case 3:
+        return AppString.riskLevelHigh.tr();
+      case 2:
+        return AppString.riskLevelMedium.tr();
+      case 1:
+        return AppString.riskLevelLow.tr();
       default:
-        return AppColor.kPrimaryColor;
+        return AppString.riskLevelVeryLow.tr();
     }
+  }
+
+  Color _statusColor(BuildContext context, String status) {
+    final colors = context.appColorsRead;
+    switch (status) {
+      case _kStatusOpen:
+        return colors.kRedColor;
+      case _kStatusInTreatment:
+        return colors.kGoldColor;
+      case _kStatusClosed:
+        return colors.kPrimaryColor;
+      default:
+        return colors.kGrayColor;
+    }
+  }
+
+  Color _probabilityColor(BuildContext context, String value) {
+    final colors = context.appColorsRead;
+    final level = int.tryParse(value) ?? 0;
+    if (level >= 4) return colors.kRedColor;
+    if (level >= 3) return colors.kGoldColor;
+    return colors.kPrimaryColor;
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return BlocBuilder<ProjectRisksCubit, ProjectRisksState>(
       builder: (context, state) {
         if (state is ProjectRisksLoading || state is ProjectRisksInitial) {
           return Scaffold(
-            backgroundColor: AppColor.kBackgroundColor,
-            body: const Center(child: CircularProgressIndicator()),
+            backgroundColor: colors.kBgColor,
+            body: Center(
+              child: CircularProgressIndicator(color: colors.kPrimaryColor),
+            ),
           );
         }
         if (state is ProjectRisksError) {
           return Scaffold(
-            backgroundColor: AppColor.kBackgroundColor,
-            body: Center(child: Text(state.message.tr())),
+            backgroundColor: colors.kBgColor,
+            body: Center(
+              child: Text(
+                state.message.tr(),
+                style: TextStyle(color: colors.kRedColor),
+              ),
+            ),
           );
         }
 
@@ -89,17 +130,18 @@ class _RisksScreenState extends State<RisksScreen> {
   }
 
   Widget _buildContent(BuildContext context, List<Map<String, dynamic>> risks) {
+    final colors = context.appColors;
     _risks = risks;
+
     return Scaffold(
-      backgroundColor: AppColor.kBackgroundColor,
+      backgroundColor: colors.kBgColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: BackButton(color: AppColor.kWhiteColor),
+        leading: BackButton(color: colors.kFontColor),
         title: RobotoText(
-          text: 'إدارة المخاطر',
-
-          color: AppColor.kWhiteColor,
+          text: AppString.riskManagement.tr(),
+          color: colors.kFontColor,
           fontSize: 16.sp,
           fontWeight: FontWeight.bold,
         ),
@@ -111,15 +153,15 @@ class _RisksScreenState extends State<RisksScreen> {
               margin: EdgeInsets.only(left: 16.w),
               padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
-                color: AppColor.kSurfaceColor,
+                color: colors.kInputColor,
                 borderRadius: BorderRadius.circular(10.r),
                 border: Border.all(
-                  color: AppColor.kBorderColor.withOpacity(0.5),
+                  color: colors.kBorderColor.withValues(alpha: 0.5),
                 ),
               ),
               child: Icon(
                 isTableView ? Icons.grid_view_rounded : Icons.list_rounded,
-                color: AppColor.kPrimaryColor,
+                color: colors.kPrimaryColor,
                 size: 20.sp,
               ),
             ),
@@ -128,74 +170,82 @@ class _RisksScreenState extends State<RisksScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddRiskDialog(context),
-        backgroundColor: AppColor.kRedColor,
+        backgroundColor: colors.kRedColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(100.r),
         ),
-        child: Icon(Icons.add, color: AppColor.kWhiteColor, size: 28.sp),
+        child: Icon(Icons.add, color: colors.kFontColor, size: 28.sp),
       ),
       body: Column(
         children: [
-          // Stats summary
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
             child: Row(
               children: [
                 _buildSummaryChip(
-                  'الكل',
+                  context,
+                  AppString.all.tr(),
                   '${_risks.length}',
-                  AppColor.kGrayTextColor,
+                  colors.kGrayColor,
                 ),
                 SizedBox(width: 8.w),
                 _buildSummaryChip(
-                  'مفتوح',
-                  '${_risks.where((r) => r['status'] == 'مفتوح').length}',
-                  AppColor.kRedColor,
+                  context,
+                  AppString.riskStatusOpen.tr(),
+                  '${_risks.where((r) => r['status'] == _kStatusOpen).length}',
+                  colors.kRedColor,
                 ),
                 SizedBox(width: 8.w),
                 _buildSummaryChip(
-                  'قيد المعالجة',
-                  '${_risks.where((r) => r['status'] == 'قيد المعالجة').length}',
-                  AppColor.kGoldColor,
+                  context,
+                  AppString.riskStatusInTreatment.tr(),
+                  '${_risks.where((r) => r['status'] == _kStatusInTreatment).length}',
+                  colors.kGoldColor,
                 ),
                 SizedBox(width: 8.w),
                 _buildSummaryChip(
-                  'مغلق',
-                  '${_risks.where((r) => r['status'] == 'مغلق').length}',
-                  AppColor.kPrimaryColor,
+                  context,
+                  AppString.riskStatusClosed.tr(),
+                  '${_risks.where((r) => r['status'] == _kStatusClosed).length}',
+                  colors.kPrimaryColor,
                 ),
               ],
             ),
           ),
-
-          Expanded(child: isTableView ? _buildTableView() : _buildGridView()),
+          Expanded(child: isTableView ? _buildTableView(context) : _buildGridView(context)),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryChip(String label, String count, Color color) {
+  Widget _buildSummaryChip(
+    BuildContext context,
+    String label,
+    String count,
+    Color color,
+  ) {
+    final colors = context.appColors;
+
     return Expanded(
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 10.h),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [
             RobotoText(
               text: count,
-
               color: color,
-              fontSize: 1.sp,
+              fontSize: 16.sp,
               fontWeight: FontWeight.bold,
             ),
             SizedBox(height: 2.h),
             RobotoText(
               text: label,
-              color: AppColor.kGrayTextColor,
+              color: colors.kGrayColor,
               fontSize: 10.sp,
             ),
           ],
@@ -204,13 +254,15 @@ class _RisksScreenState extends State<RisksScreen> {
     );
   }
 
-  Widget _buildTableView() {
+  Widget _buildTableView(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: AppColor.kSurfaceColor,
+        color: colors.kInputColor,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: AppColor.kBorderColor.withOpacity(0.3)),
+        border: Border.all(color: colors.kBorderColor.withValues(alpha: 0.3)),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -218,42 +270,50 @@ class _RisksScreenState extends State<RisksScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Container(
               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: AppColor.kBorderColor.withOpacity(0.4),
+                    color: colors.kBorderColor.withValues(alpha: 0.4),
                   ),
                 ),
               ),
               child: Row(
                 children: [
-                  _headerCell('الرقم', 70.w),
-                  _headerCell('عنوان الخطر', 160.w),
-                  _headerCell('الاحتمالية', 100.w),
-                  _headerCell('التأثير', 90.w),
-                  _headerCell('الحالة', 110.w),
-                  _headerCell('المسؤول', 100.w),
-                  _headerCell('التاريخ', 110.w),
-                  _headerCell('إجراءات', 80.w, center: true),
+                  _headerCell(context, AppString.riskNumber.tr(), 70.w),
+                  _headerCell(context, AppString.riskTitle.tr(), 160.w),
+                  _headerCell(context, AppString.riskProbability.tr(), 100.w),
+                  _headerCell(context, AppString.riskImpact.tr(), 90.w),
+                  _headerCell(context, AppString.riskStatusLabel.tr(), 110.w),
+                  _headerCell(context, AppString.owner.tr(), 100.w),
+                  _headerCell(context, AppString.date.tr(), 110.w),
+                  _headerCell(
+                    context,
+                    AppString.actions.tr(),
+                    80.w,
+                    center: true,
+                  ),
                 ],
               ),
             ),
-            // Rows
             ...List.generate(_risks.length, (i) {
               final risk = _risks[i];
               final isLast = i == _risks.length - 1;
-              final statusColor = _statusColor(risk['status']);
-              final probColor = _probabilityColor(risk['probability']);
+              final statusKey = risk['status'] as String;
+              final statusColor = _statusColor(context, statusKey);
+              final probColor =
+                  _probabilityColor(context, risk['probability'] as String);
+              final probabilityLabel =
+                  _probabilityLabel(risk['probability'] as String);
+
               return Container(
                 decoration: BoxDecoration(
                   border: isLast
                       ? null
                       : Border(
                           bottom: BorderSide(
-                            color: AppColor.kBorderColor.withOpacity(0.3),
+                            color: colors.kBorderColor.withValues(alpha: 0.3),
                           ),
                         ),
                 ),
@@ -265,9 +325,10 @@ class _RisksScreenState extends State<RisksScreen> {
                   child: Row(
                     children: [
                       _dataCell(
-                        risk['id'],
+                        context,
+                        '${risk['id']}',
                         70.w,
-                        color: AppColor.kGrayTextColor,
+                        color: colors.kGrayColor,
                       ),
                       SizedBox(
                         width: 160.w,
@@ -284,9 +345,9 @@ class _RisksScreenState extends State<RisksScreen> {
                             ),
                             Expanded(
                               child: Text(
-                                risk['title'],
+                                risk['title'] as String,
                                 style: TextStyle(
-                                  color: AppColor.kWhiteColor,
+                                  color: colors.kFontColor,
                                   fontSize: 13.sp,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -304,11 +365,11 @@ class _RisksScreenState extends State<RisksScreen> {
                             vertical: 4.h,
                           ),
                           decoration: BoxDecoration(
-                            color: probColor.withOpacity(0.1),
+                            color: probColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8.r),
                           ),
                           child: Text(
-                            risk['probability'],
+                            probabilityLabel,
                             style: TextStyle(
                               color: probColor,
                               fontSize: 11.sp,
@@ -318,7 +379,7 @@ class _RisksScreenState extends State<RisksScreen> {
                           ),
                         ),
                       ),
-                      _dataCell(risk['impact'], 90.w),
+                      _dataCell(context, '${risk['impact']}', 90.w),
                       SizedBox(
                         width: 110.w,
                         child: Container(
@@ -327,14 +388,14 @@ class _RisksScreenState extends State<RisksScreen> {
                             vertical: 4.h,
                           ),
                           decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.1),
+                            color: statusColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8.r),
                             border: Border.all(
-                              color: statusColor.withOpacity(0.3),
+                              color: statusColor.withValues(alpha: 0.3),
                             ),
                           ),
                           child: Text(
-                            risk['status'],
+                            _statusLabel(statusKey),
                             style: TextStyle(
                               color: statusColor,
                               fontSize: 11.sp,
@@ -344,11 +405,12 @@ class _RisksScreenState extends State<RisksScreen> {
                           ),
                         ),
                       ),
-                      _dataCell(risk['owner'], 100.w),
+                      _dataCell(context, '${risk['owner']}', 100.w),
                       _dataCell(
-                        risk['date'],
+                        context,
+                        '${risk['date']}',
                         110.w,
-                        color: AppColor.kGrayTextColor,
+                        color: colors.kGrayColor,
                       ),
                       SizedBox(
                         width: 80.w,
@@ -359,7 +421,7 @@ class _RisksScreenState extends State<RisksScreen> {
                               onTap: () {},
                               child: Icon(
                                 Icons.edit_outlined,
-                                color: AppColor.kGrayTextColor,
+                                color: colors.kGrayColor,
                                 size: 18.sp,
                               ),
                             ),
@@ -368,7 +430,7 @@ class _RisksScreenState extends State<RisksScreen> {
                               onTap: () {},
                               child: Icon(
                                 Icons.delete_outline,
-                                color: AppColor.kRedColor,
+                                color: colors.kRedColor,
                                 size: 18.sp,
                               ),
                             ),
@@ -386,33 +448,47 @@ class _RisksScreenState extends State<RisksScreen> {
     );
   }
 
-  Widget _headerCell(String text, double width, {bool center = false}) {
+  Widget _headerCell(
+    BuildContext context,
+    String text,
+    double width, {
+    bool center = false,
+  }) {
+    final colors = context.appColors;
+
     return SizedBox(
       width: width,
       child: RobotoText(
         text: text,
-
-        color: AppColor.kGrayTextColor,
+        color: colors.kGrayColor,
         fontSize: 10.sp,
         fontWeight: FontWeight.bold,
-
         textAlign: center ? TextAlign.center : TextAlign.start,
       ),
     );
   }
 
-  Widget _dataCell(String text, double width, {Color? color}) {
+  Widget _dataCell(
+    BuildContext context,
+    String text,
+    double width, {
+    Color? color,
+  }) {
+    final colors = context.appColors;
+
     return SizedBox(
       width: width,
       child: RobotoText(
         text: text,
-        color: color ?? AppColor.kWhiteColor,
+        color: color ?? colors.kFontColor,
         fontSize: 11.sp,
       ),
     );
   }
 
-  Widget _buildGridView() {
+  Widget _buildGridView(BuildContext context) {
+    final colors = context.appColors;
+
     return GridView.builder(
       padding: EdgeInsets.all(16.w),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -424,14 +500,19 @@ class _RisksScreenState extends State<RisksScreen> {
       itemCount: _risks.length,
       itemBuilder: (context, index) {
         final risk = _risks[index];
-        final statusColor = _statusColor(risk['status']);
-        final probColor = _probabilityColor(risk['probability']);
+        final statusKey = risk['status'] as String;
+        final statusColor = _statusColor(context, statusKey);
+        final probColor =
+            _probabilityColor(context, risk['probability'] as String);
+        final probabilityLabel =
+            _probabilityLabel(risk['probability'] as String);
+
         return Container(
           padding: EdgeInsets.all(14.w),
           decoration: BoxDecoration(
-            color: AppColor.kSurfaceColor,
+            color: colors.kInputColor,
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: statusColor.withOpacity(0.3)),
+            border: Border.all(color: statusColor.withValues(alpha: 0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,11 +526,11 @@ class _RisksScreenState extends State<RisksScreen> {
                       vertical: 3.h,
                     ),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
+                      color: statusColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6.r),
                     ),
                     child: RobotoText(
-                      text: risk['status'],
+                      text: _statusLabel(statusKey),
                       color: statusColor,
                       fontSize: 10.sp,
                       fontWeight: FontWeight.bold,
@@ -464,17 +545,16 @@ class _RisksScreenState extends State<RisksScreen> {
               ),
               SizedBox(height: 8.h),
               RobotoText(
-                text: risk['id'],
-                color: AppColor.kGrayTextColor,
+                text: '${risk['id']}',
+                color: colors.kGrayColor,
                 fontSize: 11.sp,
               ),
               SizedBox(height: 4.h),
               RobotoText(
-                text: risk['title'],
-                color: AppColor.kWhiteColor,
+                text: risk['title'] as String,
+                color: colors.kFontColor,
                 fontSize: 13.sp,
                 fontWeight: FontWeight.bold,
-
                 maxLines: 2,
               ),
               const Spacer(),
@@ -486,20 +566,23 @@ class _RisksScreenState extends State<RisksScreen> {
                       vertical: 2.h,
                     ),
                     decoration: BoxDecoration(
-                      color: probColor.withOpacity(0.1),
+                      color: probColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(5.r),
                     ),
                     child: RobotoText(
-                      text: risk['probability'],
+                      text: probabilityLabel,
                       color: probColor,
                       fontSize: 10.sp,
                     ),
                   ),
                   SizedBox(width: 6.w),
-                  RobotoText(
-                    text: risk['owner'],
-                    color: AppColor.kGrayTextColor,
-                    fontSize: 10.sp,
+                  Expanded(
+                    child: RobotoText(
+                      text: '${risk['owner']}',
+                      color: colors.kGrayColor,
+                      fontSize: 10.sp,
+                      maxLines: 1,
+                    ),
                   ),
                 ],
               ),
@@ -511,9 +594,11 @@ class _RisksScreenState extends State<RisksScreen> {
   }
 
   void _showAddRiskDialog(BuildContext context) {
+    final colors = context.appColorsRead;
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColor.kSurfaceColor,
+      backgroundColor: colors.kInputColor,
       isScrollControlled: true,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
@@ -532,26 +617,25 @@ class _RisksScreenState extends State<RisksScreen> {
               width: 40.w,
               height: 4.h,
               decoration: BoxDecoration(
-                color: AppColor.kBorderColor,
+                color: colors.kBorderColor,
                 borderRadius: BorderRadius.circular(2.r),
               ),
             ),
             SizedBox(height: 16.h),
             RobotoText(
-              text: 'إضافة خطر جديد',
-              color: AppColor.kWhiteColor,
+              text: AppString.addRisk.tr(),
+              color: colors.kFontColor,
               fontSize: 16.sp,
               fontWeight: FontWeight.bold,
             ),
-
             SizedBox(height: 16.h),
             TextField(
-              style: TextStyle(color: AppColor.kWhiteColor, fontSize: 14.sp),
+              style: TextStyle(color: colors.kFontColor, fontSize: 14.sp),
               decoration: InputDecoration(
-                labelText: 'عنوان الخطر',
-                labelStyle: TextStyle(color: AppColor.kGrayTextColor),
+                labelText: AppString.riskTitle.tr(),
+                labelStyle: TextStyle(color: colors.kGrayColor),
                 filled: true,
-                fillColor: AppColor.kBackgroundColor,
+                fillColor: colors.kBgColor,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
                   borderSide: BorderSide.none,
@@ -562,15 +646,15 @@ class _RisksScreenState extends State<RisksScreen> {
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.kRedColor,
+                backgroundColor: colors.kRedColor,
                 minimumSize: Size(double.infinity, 48.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.r),
                 ),
               ),
               child: RobotoText(
-                text: 'إضافة',
-                color: AppColor.kWhiteColor,
+                text: AppString.addRisk.tr(),
+                color: colors.kFontColor,
                 fontSize: 14.sp,
                 fontWeight: FontWeight.bold,
               ),

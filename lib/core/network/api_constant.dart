@@ -1,8 +1,7 @@
 class ApiConstants {
-  // static const String _prodBaseUrl = "https://qaribapp.com/";
-  static const String _devBaseUrl = "https://api.mandoobexpress.com/api/v1/";
-  static const String reefBaseUrl = 'https://apiour.mohamedelsayed.site/api/';
-  static const String domain = "https://api.mandoobexpress.com/api/v1/";
+  static const String pmoBaseUrl = 'https://pmoapi.almanzoor.net/api/';
+  // static const String reefBaseUrl = 'https://apiour.mohamedelsayed.site/api/';
+  static const String domain = pmoBaseUrl;
 
   // TODO: Remove temporary token after auth integration.
   static const String tempAccessToken =
@@ -16,12 +15,8 @@ class ApiConstants {
   //   _useDevServer = value;
   // }
 
-  static String get baseUrl => _devBaseUrl;
-  // _useDevServer ?
+  static String get baseUrl => pmoBaseUrl;
 
-  // : _prodBaseUrl;
-
-  // Backward compatibility: places using devbaseUrl should now use the dynamic baseUrl
   static String get devbaseUrl => baseUrl;
 
   static String get imageproductUrl => "${baseUrl}uploads/productimages/";
@@ -43,5 +38,5 @@ class ApiConstants {
   static String get resetPasswordUrl => "collector/reset-password";
 
   static String get financialStatementUrl =>
-      '${reefBaseUrl}FinancialStatement';
+      '${baseUrl}FinancialStatement';
 }

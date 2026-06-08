@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:reefsaudia/core/utils/app_color.dart';
+import 'package:reefsaudia/core/utils/app_theme_context.dart';
 
 class ProjectHeaderWidget extends StatelessWidget {
   final String category;
@@ -9,35 +10,36 @@ class ProjectHeaderWidget extends StatelessWidget {
   final int daysRunning;
 
   const ProjectHeaderWidget({
-    Key? key,
+    super.key,
     required this.category,
     required this.title,
     required this.status,
     required this.daysRunning,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
+    final colors=context.appColors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: EdgeInsets.all(12.w),
           decoration: BoxDecoration(
-            color: AppColor.kPrimaryColor.withOpacity(0.1),
+            color: colors.kPrimaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(color: AppColor.kPrimaryColor.withOpacity(0.3)),
+            border: Border.all(color: colors.kPrimaryColor.withValues(alpha: 0.3)),
           ),
           child: Text(
             category,
-            style: TextStyle(color: AppColor.kPrimaryColor, fontSize: 10.sp),
+            style: TextStyle(color: colors.kPrimaryColor, fontSize: 10.sp),
           ),
         ),
         SizedBox(height: 12.h),
         Text(
           title,
           style: TextStyle(
-            color: AppColor.kWhiteColor,
+            color: colors.kFontColor,
             fontSize: 16.sp,
             fontWeight: FontWeight.bold,
             height: 1.4,
@@ -48,13 +50,13 @@ class ProjectHeaderWidget extends StatelessWidget {
           children: [
             Icon(
               Icons.calendar_today,
-              color: AppColor.kGrayTextColor,
+              color: colors.kGrayColor,
               size: 12.sp,
             ),
             SizedBox(width: 4.w),
             Text(
               '$status - منذ $daysRunning يوم',
-              style: TextStyle(color: AppColor.kGrayTextColor, fontSize: 10.sp),
+              style: TextStyle(color: colors.kGrayColor, fontSize: 10.sp),
             ),
           ],
         ),

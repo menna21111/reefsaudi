@@ -77,6 +77,14 @@ class _ProjectStatisticsScreenState extends State<ProjectStatisticsScreen>
           backgroundColor: Colors.transparent,
           elevation: 0,
           centerTitle: true,
+          title: Text(
+            AppString.projectStatisticsMenu.tr(),
+            style: TextStyle(
+              color: colors.kFontColor,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           leading: IconButton(
             icon: Icon(Icons.arrow_back_ios, color: colors.kPrimaryColor),
             onPressed: () => Navigator.pop(context),
@@ -136,15 +144,15 @@ class _ProjectStatisticsScreenState extends State<ProjectStatisticsScreen>
                     ),
                   ),
                   SizedBox(height: 24.h),
-                  _buildAnimatedSection(
-                    2,
-                    ExecutiveSummaryWidget(
-                      summary: summary.executiveSummary?.trim().isNotEmpty == true
-                          ? summary.executiveSummary!
-                          : summary.achievementTitle,
-                    ),
-                  ),
-                  SizedBox(height: 24.h),
+                  // _buildAnimatedSection(
+                  //   2,
+                  //   ExecutiveSummaryWidget(
+                  //     summary: summary.executiveSummary?.trim().isNotEmpty == true
+                  //         ? summary.executiveSummary!
+                  //         : summary.achievementTitle,
+                  //   ),
+                  // ),
+                  // SizedBox(height: 24.h),
                   _buildAnimatedSection(
                     3,
                     ProjectStagesWidget(
@@ -231,6 +239,7 @@ class _ProjectStatisticsScreenState extends State<ProjectStatisticsScreen>
   }
 
   Widget _buildAnimatedSection(int index, Widget child) {
+    final colors=context.appColors;
     return FadeTransition(
       opacity: _animations[index],
       child: SlideTransition(
@@ -260,8 +269,9 @@ class _QcSummaryCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: colors.kInputColor,
         borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: colors.kBorderColor.withValues(alpha: 0.35)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

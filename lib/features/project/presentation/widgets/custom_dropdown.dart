@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/utils/app_color.dart';
+
+import '../../../../core/utils/app_theme_context.dart';
 
 class CustomDropdown extends StatefulWidget {
   final String label;
@@ -10,13 +11,13 @@ class CustomDropdown extends StatefulWidget {
   final ValueChanged<String?>? onChanged;
 
   const CustomDropdown({
-    Key? key,
+    super.key,
     required this.label,
     required this.hintText,
     required this.items,
     this.initialValue,
     this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomDropdown> createState() => _CustomDropdownState();
@@ -33,15 +34,14 @@ class _CustomDropdownState extends State<CustomDropdown> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           widget.label,
-          style: TextStyle(
-            color: AppColor.kGrayTextColor,
-            fontSize: 12.sp,
-          ),
+          style: TextStyle(color: colors.kGrayColor, fontSize: 12.sp),
         ),
         SizedBox(height: 8.h),
         DropdownButtonFormField<String>(
@@ -59,34 +59,32 @@ class _CustomDropdownState extends State<CustomDropdown> {
                   value: item,
                   child: Text(
                     item,
-                    style: TextStyle(
-                      color: AppColor.kWhiteColor,
-                      fontSize: 14.sp,
-                    ),
+                    style: TextStyle(color: colors.kFontColor, fontSize: 14.sp),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               )
               .toList(),
-          dropdownColor: AppColor.kSurfaceColor,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColor.kGrayTextColor),
+          dropdownColor: colors.kInputColor,
+          icon: Icon(Icons.keyboard_arrow_down_rounded, color: colors.kGrayColor),
           decoration: InputDecoration(
             hintText: widget.hintText,
-            hintStyle: TextStyle(color: AppColor.kGrayTextColor, fontSize: 14.sp),
+            hintStyle: TextStyle(color: colors.kGrayColor, fontSize: 14.sp),
             filled: true,
-            fillColor: AppColor.kInputBackgroundColor,
-            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+            fillColor: colors.kInputColor,
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(color: AppColor.kInputBorderColor, width: 1),
+              borderSide: BorderSide(color: colors.kBorderColor, width: 1),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(color: AppColor.kInputBorderColor, width: 1),
+              borderSide: BorderSide(color: colors.kBorderColor, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(color: AppColor.kPrimaryColor, width: 1.5),
+              borderSide: BorderSide(color: colors.kPrimaryColor, width: 1.5),
             ),
           ),
         ),

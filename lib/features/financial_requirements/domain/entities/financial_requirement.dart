@@ -8,6 +8,7 @@ class FinancialRequirement {
   final String projectManagementStatus;
   final String startDate;
   final String endDate;
+  final double amount;
 
   const FinancialRequirement({
     required this.id,
@@ -19,5 +20,6 @@ class FinancialRequirement {
     required this.projectManagementStatus,
     required this.startDate,
     required this.endDate,
+    this.amount = 0,
   });
 }

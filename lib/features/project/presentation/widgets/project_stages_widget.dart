@@ -2,20 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:reefsaudia/core/utils/app_color.dart';
 
+import '../../../../core/utils/app_theme_context.dart';
+
 class ProjectStagesWidget extends StatelessWidget {
   final List<StageData> stages;
 
   const ProjectStagesWidget({
-    Key? key,
+    super.key,
     required this.stages,
-  }) : super(key: key);
+  }) ;
 
   @override
   Widget build(BuildContext context) {
+    final colors=context.appColors;
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: AppColor.kSurfaceColor,
+        color: colors.kInputColor,
         borderRadius: BorderRadius.circular(16.r),
       ),
       child: Column(
@@ -23,12 +26,12 @@ class ProjectStagesWidget extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.stairs, color: AppColor.kPrimaryColor, size: 16.sp),
+              Icon(Icons.stairs, color: colors.kPrimaryColor, size: 16.sp),
               SizedBox(width: 8.w),
               Text(
                 'مراحل المشروع',
                 style: TextStyle(
-                  color: AppColor.kWhiteColor,
+                  color: colors.kFontColor,
                   fontSize: 12.sp,
                   fontWeight: FontWeight.bold,
                 ),
@@ -42,6 +45,7 @@ class ProjectStagesWidget extends StatelessWidget {
                 .asMap()
                 .entries
                 .map((entry) => _buildStageBar(
+                      context,
                       entry.value.label,
                       entry.value.progress,
                       entry.key,
@@ -52,9 +56,9 @@ class ProjectStagesWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildLegend('مكتمل', AppColor.kPrimaryColor),
-              _buildLegend('قيد التنفيذ', AppColor.kGoldColor),
-              _buildLegend('مجدول', AppColor.kBorderColor),
+              _buildLegend(context, 'مكتمل', colors.kPrimaryColor),
+              _buildLegend(context, 'قيد التنفيذ', colors.kGoldColor),
+              _buildLegend(context, 'مجدول', colors.kBorderColor),
             ],
           ),
         ],
@@ -62,14 +66,15 @@ class ProjectStagesWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStageBar(String label, double progress, int delay) {
+  Widget _buildStageBar(BuildContext context, String label, double progress, int delay) {
+    final colors=context.appColors;
     return Column(
       children: [
         Container(
           width: 60.w,
           height: 100.h,
           decoration: BoxDecoration(
-            color: AppColor.kBorderColor.withOpacity(0.2),
+            color: colors.kBorderColor.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(8.r),
           ),
           alignment: Alignment.bottomCenter,
@@ -82,7 +87,7 @@ class ProjectStagesWidget extends StatelessWidget {
                 width: 60.w,
                 height: 100.h * value,
                 decoration: BoxDecoration(
-                  color: AppColor.kPrimaryColor,
+                  color: colors.kPrimaryColor,
                   borderRadius: BorderRadius.circular(8.r),
                 ),
               );
@@ -92,13 +97,14 @@ class ProjectStagesWidget extends StatelessWidget {
         SizedBox(height: 8.h),
         Text(
           label,
-          style: TextStyle(color: AppColor.kGrayTextColor, fontSize: 9.sp),
+          style: TextStyle(color: colors.kGrayColor, fontSize: 9.sp),
         ),
       ],
     );
   }
 
-  Widget _buildLegend(String label, Color color) {
+  Widget _buildLegend(BuildContext context, String label, Color color) {
+    final colors=context.appColors;
     return Row(
       children: [
         Container(
@@ -109,7 +115,7 @@ class ProjectStagesWidget extends StatelessWidget {
         SizedBox(width: 4.w),
         Text(
           label,
-          style: TextStyle(color: AppColor.kGrayTextColor, fontSize: 9.sp),
+          style: TextStyle(color: colors.kGrayColor, fontSize: 9.sp),
         ),
       ],
     );

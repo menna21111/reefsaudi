@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:reefsaudia/core/utils/app_font.dart';
 import '../../../../core/utils/app_color.dart';
+import '../../../../core/utils/app_theme_context.dart';
 
 class InfoRow extends StatelessWidget {
   final String label;
@@ -17,12 +18,13 @@ class InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors=context.appColors;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         RobotoText(
           text: label,
-          color: AppColor.kGrayTextColor,
+          color: colors.kGrayColor,
           fontSize: 11.sp,
         ),
         RobotoText(

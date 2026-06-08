@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/dashboard/presentation/screens/profile_screen.dart';
-import '../../features/financial_requirements/presentation/screens/financial_requirements_screen.dart';
+import '../../features/extracts_management/presentation/screens/extracts_management_screen.dart';
 import '../../features/tasks/presentation/screens/tasks_screen.dart';
 import '../services/service_locator.dart';
 import '../utils/app_font.dart';
@@ -41,7 +41,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
         create: (context) => sl<DashboardBloc>(),
         child: const DashboardScreen(),
       ),
-      const FinancialRequirementsScreen(),
+      const ExtractsManagementScreen(),
       const TasksScreen(),
       // const QualityPlaceholderScreen(),
       const ProfileScreen(),
@@ -55,7 +55,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
         iconData: Icons.dashboard_rounded,
       ),
       const BottomNavItem(
-        labelKey: AppString.financialRequirements,
+        labelKey: AppString.extractsManagement,
         iconData: Icons.account_balance_wallet_outlined,
       ),
       const BottomNavItem(

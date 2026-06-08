@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:reefsaudia/core/utils/app_font.dart';
-import '../../../../core/utils/app_color.dart';
+
+import '../../../../core/utils/app_theme_context.dart';
 
 class LegendItem extends StatelessWidget {
   final String label;
@@ -11,6 +12,8 @@ class LegendItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Row(
       children: [
         Container(
@@ -24,7 +27,7 @@ class LegendItem extends StatelessWidget {
         SizedBox(width: 8.w),
         RobotoText(
           text: label,
-          color: AppColor.kGrayTextColor,
+          color: colors.kGrayColor,
           fontSize: 12.sp,
         ),
       ],

@@ -13,10 +13,9 @@ import '../../domain/entities/project.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
-import '../widgets/actions_row.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/dashboard_header.dart';
-import '../widgets/dashboard_search_bar.dart';
+import '../widgets/dashboard_search_actions_row.dart';
 import '../widgets/filter_chips.dart';
 import '../widgets/project_card.dart';
 import '../widgets/project_table.dart';
@@ -31,6 +30,8 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   bool isTableView = false;
+  bool _tableLoadingMore = false;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -38,6 +39,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final bloc = context.read<DashboardBloc>();
     bloc.add(const LoadDashboardStats());
     bloc.pagingController.refresh();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!isTableView || !_scrollController.hasClients || _tableLoadingMore) {
+      return;
+    }
+
+    final bloc = context.read<DashboardBloc>();
+    if (!bloc.canLoadMore) return;
+
+    final position = _scrollController.position;
+    if (position.pixels < position.maxScrollExtent - 280) return;
+
+    _loadMoreTable();
+  }
+
+  Future<void> _loadMoreTable() async {
+    setState(() => _tableLoadingMore = true);
+    await context.read<DashboardBloc>().loadMoreIfAvailable();
+    if (mounted) setState(() => _tableLoadingMore = false);
   }
 
   @override
@@ -67,6 +96,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             color: colors.kPrimaryColor,
             backgroundColor: Theme.of(context).colorScheme.surface,
             child: CustomScrollView(
+              controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(
                 parent: BouncingScrollPhysics(),
               ),
@@ -74,8 +104,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 SliverPadding(
                   padding:
                       EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                  sliver:
-                      const SliverToBoxAdapter(child: DashboardHeader()),
+                  sliver: const SliverToBoxAdapter(child: DashboardHeader()),
                 ),
                 BlocBuilder<DashboardBloc, DashboardState>(
                   builder: (context, state) {
@@ -139,17 +168,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     );
                   },
                 ),
-                SliverPadding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  sliver: const SliverToBoxAdapter(child: DashboardSearchBar()),
-                ),
                 SliverToBoxAdapter(child: SizedBox(height: 12.h)),
                 const SliverToBoxAdapter(child: FilterChipsSection()),
                 SliverToBoxAdapter(child: SizedBox(height: 12.h)),
                 SliverPadding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   sliver: SliverToBoxAdapter(
-                    child: ActionsRow(
+                    child: DashboardSearchActionsRow(
                       isTableView: isTableView,
                       onViewToggle: () {
                         setState(() => isTableView = !isTableView);
@@ -178,8 +203,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         );
                       }
-                      return SliverToBoxAdapter(
-                        child: ProjectTable(projects: items),
+                      return SliverPadding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        sliver: SliverToBoxAdapter(
+                          child: ProjectTable(
+                            projects: items,
+                            showBottomLoader: _tableLoadingMore,
+                          ),
+                        ),
                       );
                     },
                   )

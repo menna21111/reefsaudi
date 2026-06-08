@@ -1,11 +1,23 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:easy_localization/easy_localization.dart';
+
 import '../../../../core/utils/app_color.dart';
 import 'extracts_summary_card.dart';
 
 class ExtractsSummaryCards extends StatelessWidget {
-  const ExtractsSummaryCards({super.key});
+  const ExtractsSummaryCards({
+    super.key,
+    required this.totalCount,
+    required this.pageValueLabel,
+    required this.completedCount,
+    required this.inProcessCount,
+  });
+
+  final int totalCount;
+  final String pageValueLabel;
+  final int completedCount;
+  final int inProcessCount;
 
   @override
   Widget build(BuildContext context) {
@@ -14,9 +26,9 @@ class ExtractsSummaryCards extends StatelessWidget {
         Expanded(
           child: ExtractsSummaryCard(
             title: 'extracts_value'.tr(),
-            mainValue: '34.4M',
-            disbursedValue: '285.6M',
-            inProcessValue: '46.8M',
+            mainValue: pageValueLabel,
+            disbursedValue: '$completedCount',
+            inProcessValue: '$inProcessCount',
             inProcessColor: AppColor.kRedColor,
           ),
         ),
@@ -24,9 +36,9 @@ class ExtractsSummaryCards extends StatelessWidget {
         Expanded(
           child: ExtractsSummaryCard(
             title: 'extracts_count'.tr(),
-            mainValue: '292',
-            disbursedValue: '255',
-            inProcessValue: '37',
+            mainValue: '$totalCount',
+            disbursedValue: '$completedCount',
+            inProcessValue: '$inProcessCount',
             inProcessColor: AppColor.kGoldColor,
           ),
         ),

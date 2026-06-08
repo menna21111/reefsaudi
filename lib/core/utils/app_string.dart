@@ -252,11 +252,11 @@ class AppString {
   static const String achievement95Projects = 'achievement_95_projects';
   static const String achievement25Projects = 'achievement_25_projects';
   static const String otherProjects = 'other_projects';
-  static const String retry = 'retry';
+
   static const String tapRegionOnMap = 'tap_region_on_map';
   static const String metric = 'metric';
   static const String region = 'region';
-  static const String sector = 'sector';
+
   static const String category = 'category';
   static const String statements = 'statements';
   static const String executionSummary = 'execution_summary';
@@ -273,7 +273,7 @@ class AppString {
   static const String projectRisks = 'project_risks';
   static const String addRisk = 'add_risk';
   static const String riskTitle = 'risk_title';
-  static const String projectName = 'project_name';
+
   static const String description = 'description';
   static const String responsePlan = 'response_plan';
   static const String contingencyPlan = 'contingency_plan';
@@ -304,6 +304,39 @@ class AppString {
   static const String riskCreatedSuccess = 'risk_created_success';
   static const String riskCreateFailed = 'risk_create_failed';
   static const String select = 'select';
+  static const String projectOptions = 'project_options';
+  static const String projectStatisticsMenu = 'project_statistics_menu';
+  static const String projectDocuments = 'project_documents';
+  static const String projectFinance = 'project_finance';
+  static const String projectTasksBoard = 'project_tasks_board';
+  static const String projectChartStatus = 'project_chart_status';
+  static const String projectCompletionPercent = 'project_completion_percent';
+  static const String editProject = 'edit_project';
+  static const String projectDataSection = 'project_data_section';
+  static const String supervisionManagementSection =
+      'supervision_management_section';
+  static const String projectManagementSection = 'project_management_section';
+  static const String projectActive = 'project_active';
+  static const String projectInactive = 'project_inactive';
+  static const String saveChanges = 'save_changes';
+  static const String changesSavedSuccessfully = 'changes_saved_successfully';
+  static const String enterProjectName = 'enter_project_name';
+  static const String selectOption = 'select_option';
+  static const String projectResponsible = 'project_responsible';
+  static const String generalConsultant = 'general_consultant';
+  static const String consultingOffice = 'consulting_office';
+  static const String consultingEngineer = 'consulting_engineer';
+  static const String civilEngineer = 'civil_engineer';
+  static const String architecturalEngineer = 'architectural_engineer';
+  static const String electricalEngineer = 'electrical_engineer';
+  static const String mechanicalEngineer = 'mechanical_engineer';
+  static const String projectBudgetLabel = 'project_budget_label';
+  static const String riskStatusInTreatment = 'risk_status_in_treatment';
+  static const String riskNumber = 'risk_number';
+  static const String actions = 'actions';
+  static const String owner = 'owner';
+  static const String projectBlueprintProgress = 'project_blueprint_progress';
+  static const String enterEngineerName = 'enter_engineer_name';
 
   // ==================== Details ====================
   static const String date = 'date';

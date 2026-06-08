@@ -30,6 +30,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   String? _query;
   String _selectedStatus = 'all';
   List<int> _projectStatus = [];
+  bool _isLoadingMore = false;
 
   void _initPaging() {
     pagingController.addPageRequestListener(_fetchProjectsPage);
@@ -114,15 +115,32 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     pagingController.refresh();
   }
 
+  bool get isLoadingMore => _isLoadingMore;
+
+  bool get canLoadMore => pagingController.nextPageKey != null;
+
+  Future<void> loadMoreIfAvailable() async {
+    if (_isLoadingMore) return;
+    final nextKey = pagingController.nextPageKey;
+    if (nextKey == null) return;
+
+    _isLoadingMore = true;
+    try {
+      await _fetchProjectsPage(nextKey);
+    } finally {
+      _isLoadingMore = false;
+    }
+  }
+
   Future<void> _fetchProjectsPage(int pageKey) async {
     final request = _baseRequest().copyWith(
-      page: pageKey,
-      size: pageSize,
-      includeAggs: false,
-      aggsOnly: false,
-    );
+        page: pageKey,
+        size: pageSize,
+        includeAggs: false,
+        aggsOnly: false,
+      );
 
-    final result = await getProjectsUseCase(request);
+      final result = await getProjectsUseCase(request);
 
     result.fold(
       (failure) {

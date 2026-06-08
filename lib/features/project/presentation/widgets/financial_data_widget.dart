@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:reefsaudia/core/utils/app_color.dart';
+import 'package:reefsaudia/core/utils/app_theme_context.dart';
 
 class FinancialDataWidget extends StatelessWidget {
   final double totalBudget;
@@ -11,33 +12,35 @@ class FinancialDataWidget extends StatelessWidget {
   final String budgetStatusColor;
 
   const FinancialDataWidget({
-    Key? key,
+    super.key,
     required this.totalBudget,
     required this.actualExpenses,
     required this.remaining,
     required this.budgetStatus,
     this.budgetStatusColor = 'red',
-  }) : super(key: key);
+  });
 
-  Color _getStatusColor() {
+  Color _getStatusColor(BuildContext context) {
+    final colors =context.appColors;
     switch (budgetStatusColor) {
       case 'primary':
-        return AppColor.kPrimaryColor;
+        return colors.kPrimaryColor;
       case 'gold':
-        return AppColor.kGoldColor;
+        return colors.kGoldColor;
       case 'red':
-        return AppColor.kRedColor;
+        return colors.kRedColor;
       default:
-        return AppColor.kRedColor;
+        return colors.kRedColor;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors=context.appColors;
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: AppColor.kSurfaceColor,
+        color: colors.kInputColor,
         borderRadius: BorderRadius.circular(16.r),
       ),
       child: Column(
@@ -47,14 +50,14 @@ class FinancialDataWidget extends StatelessWidget {
             children: [
               Icon(
                 Icons.monetization_on,
-                color: AppColor.kPrimaryColor,
+                color: colors.kPrimaryColor,
                 size: 16.sp,
               ),
               SizedBox(width: 8.w),
               Text(
                 'البيانات المالية',
                 style: TextStyle(
-                  color: AppColor.kWhiteColor,
+                  color: colors.kFontColor,
                   fontSize: 12.sp,
                   fontWeight: FontWeight.bold,
                 ),
@@ -81,13 +84,13 @@ class FinancialDataWidget extends StatelessWidget {
                           startDegreeOffset: -90,
                           sections: [
                             PieChartSectionData(
-                              color: AppColor.kPrimaryColor,
+                              color: colors.kPrimaryColor,
                               value: actualExpenses * value,
                               title: '',
                               radius: 20.r,
                             ),
                             PieChartSectionData(
-                              color: AppColor.kBorderColor.withOpacity(0.3),
+                              color: colors.kBorderColor.withValues(alpha: 0.3),
                               value: remaining * value,
                               title: '',
                               radius: 20.r,
@@ -108,7 +111,7 @@ class FinancialDataWidget extends StatelessWidget {
                           return Text(
                             '${value.toStringAsFixed(1)}M',
                             style: TextStyle(
-                              color: AppColor.kWhiteColor,
+                              color: colors.kFontColor,
                               fontSize: 24.sp,
                               fontWeight: FontWeight.bold,
                             ),
@@ -118,7 +121,7 @@ class FinancialDataWidget extends StatelessWidget {
                       Text(
                         'إجمالي الميزانية',
                         style: TextStyle(
-                          color: AppColor.kGrayTextColor,
+                          color: colors.kGrayColor,
                           fontSize: 10.sp,
                         ),
                       ),
@@ -132,21 +135,21 @@ class FinancialDataWidget extends StatelessWidget {
           _buildFinancialItem(
             '${actualExpenses}M SAR',
             'المصروفات الفعلية',
-            AppColor.kPrimaryColor,
+            colors.kPrimaryColor,
           ),
           SizedBox(height: 12.h),
           _buildFinancialItem(
             '${remaining}M SAR',
             'المتبقي',
-            AppColor.kGrayTextColor,
+            colors.kGrayColor,
           ),
           SizedBox(height: 12.h),
-          Divider(color: AppColor.kBorderColor.withOpacity(0.2)),
+          Divider(color: colors.kBorderColor.withValues(alpha: 0.2)),
           SizedBox(height: 12.h),
           _buildFinancialItem(
             budgetStatus,
             'حالة الميزانية',
-            _getStatusColor(),
+            _getStatusColor(context),
           ),
         ],
       ),

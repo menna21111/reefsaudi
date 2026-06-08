@@ -59,6 +59,7 @@ class FinancialStatementModel {
       projectManagementStatus: pmStatus?.title ?? '-',
       startDate: _formatDate(startDate),
       endDate: _formatDate(endDate),
+      amount: amount ?? 0,
     );
   }
 
