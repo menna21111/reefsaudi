@@ -8,7 +8,12 @@ abstract class FinancialRequirementsEvent extends Equatable {
 }
 
 class LoadFinancialRequirements extends FinancialRequirementsEvent {
-  const LoadFinancialRequirements();
+  final int pageSize;
+
+  const LoadFinancialRequirements({this.pageSize = 10});
+
+  @override
+  List<Object?> get props => [pageSize];
 }
 
 class ChangeFinancialRequirementsPage extends FinancialRequirementsEvent {

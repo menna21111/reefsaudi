@@ -33,14 +33,29 @@ class FinancialStatementsResponseModel {
     );
   }
 
-  PaginatedFinancialRequirements toEntity() {
+  PaginatedFinancialRequirements toEntity({required int pageSize}) {
+    final count = totalCount ?? items.length;
+    final currentPage = pageNumber ?? 1;
+    final received = items.length;
+
+    // When the API returns the full dataset in one response, keep all rows visible.
+    final allLoadedInOneResponse = received >= count ||
+        (hasNextPage == false && received > pageSize);
+
+    final pages = totalPages ??
+        (allLoadedInOneResponse ? 1 : (count / pageSize).ceil().clamp(1, 999999));
+
     return PaginatedFinancialRequirements(
       items: items.map((item) => item.toEntity()).toList(),
-      pageNumber: pageNumber ?? 1,
-      totalPages: totalPages ?? 1,
-      totalCount: totalCount ?? items.length,
-      hasPreviousPage: hasPreviousPage ?? false,
-      hasNextPage: hasNextPage ?? false,
+      pageNumber: currentPage,
+      totalPages: pages,
+      totalCount: count,
+      hasPreviousPage: allLoadedInOneResponse
+          ? false
+          : (hasPreviousPage ?? currentPage > 1),
+      hasNextPage: allLoadedInOneResponse
+          ? false
+          : (hasNextPage ?? currentPage < pages),
     );
   }
 }

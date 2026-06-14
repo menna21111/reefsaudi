@@ -1,5 +1,6 @@
 class PmoEndpoints {
   static const String login = 'account/login';
+  static const String refreshToken = 'account/refresh-token';
   static const String account = 'account';
   static const String projectSearch = 'project/search';
   static const String projectDxList = 'Project/dx/list';
@@ -10,6 +11,9 @@ class PmoEndpoints {
   static const String createProjectRisk = 'ProjectRisk/CreateProjectRisk';
   static const String accountListDx = 'account/list/dx';
   static const String financialStatement = 'FinancialStatement';
+  static const String createFinancialStatement = 'FinancialStatus/Create';
+  static const String financialStatusListDx = 'FinancialStatus/list/dx';
+  static const String pmStatusListDx = 'PMStatus/list/dx';
 
   static String projectStepById(String id) => 'projectstep/$id';
 
@@ -47,6 +51,10 @@ class PmoEndpoints {
       'project-statistics/sector-projects';
   static const String projectStatisticsQcTechnical =
       'project-statistics/qc-technical';
+  static const String projectStatisticsCountByType =
+      'project-statistics/count-by-type';
+  static const String projectStatisticsProjectStatusCounts =
+      'project-statistics/project-status-counts';
   static const String financialProjectExecutionSummary =
       'financial-statistics/project-execution-summary';
 
@@ -62,7 +70,17 @@ class PmoEndpoints {
         normalized.contains('/$login');
   }
 
-  static bool requiresAuth(String path) => !isLoginPath(path);
+  static bool isRefreshTokenPath(String path) {
+    final normalized = _normalizePath(path);
+    return normalized == refreshToken ||
+        normalized.endsWith('/$refreshToken') ||
+        normalized.contains('/$refreshToken');
+  }
+
+  static bool isPublicAuthPath(String path) =>
+      isLoginPath(path) || isRefreshTokenPath(path);
+
+  static bool requiresAuth(String path) => !isPublicAuthPath(path);
 
   static String _normalizePath(String path) {
     var value = path.trim().toLowerCase();

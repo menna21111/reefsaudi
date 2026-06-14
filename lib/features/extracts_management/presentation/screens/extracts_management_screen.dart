@@ -4,14 +4,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/services/service_locator.dart';
+import '../../../../core/utils/app_font.dart';
 import '../../../../core/utils/app_string.dart';
 import '../../../../core/utils/app_theme_context.dart';
+import '../../../financial_requirements/domain/entities/financial_requirement.dart';
 import '../../../financial_requirements/presentation/bloc/financial_requirements_bloc.dart';
 import '../../../financial_requirements/presentation/bloc/financial_requirements_event.dart';
 import '../../../financial_requirements/presentation/bloc/financial_requirements_state.dart';
-import '../../../financial_requirements/presentation/widgets/table_pagination_widget.dart';
+import '../../../financial_requirements/presentation/screens/financial_requirement_edit_screen.dart';
+import '../../../financial_requirements/presentation/widgets/delete_confirmation_dialog.dart';
 import '../../domain/models/extract_item.dart';
 import '../../domain/models/financial_requirement_mapper.dart';
+import '../../../dashboard/presentation/screens/statistics_screen.dart';
 import '../widgets/extracts_management_header.dart';
 import '../widgets/extracts_page_title_row.dart';
 import '../widgets/extracts_search_action_row.dart';
@@ -26,7 +30,7 @@ class ExtractsManagementScreen extends StatelessWidget {
     return BlocProvider(
       create: (_) =>
           sl<FinancialRequirementsBloc>()
-            ..add(const LoadFinancialRequirements()),
+            ..add(const LoadFinancialRequirements(pageSize: 100)),
       child: const _ExtractsManagementView(),
     );
   }
@@ -53,6 +57,66 @@ class _ExtractsManagementViewState extends State<_ExtractsManagementView> {
     context.read<FinancialRequirementsBloc>().add(
           SearchFinancialRequirements(_searchController.text.trim()),
         );
+  }
+
+  void _onMapTap() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const StatisticsScreen()),
+    );
+  }
+
+  Future<void> _onAdd() async {
+    final created = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FinancialRequirementEditScreen(item: null),
+      ),
+    );
+
+    if (created == true && mounted) {
+      context.read<FinancialRequirementsBloc>().add(
+            const LoadFinancialRequirements(pageSize: 100),
+          );
+    }
+  }
+
+  Future<void> _onEdit(FinancialRequirement item) async {
+    final updated = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FinancialRequirementEditScreen(item: item),
+      ),
+    );
+
+    if (updated == true && mounted) {
+      context.read<FinancialRequirementsBloc>().add(
+            const LoadFinancialRequirements(pageSize: 100),
+          );
+    }
+  }
+
+  void _onDelete(FinancialRequirement item) {
+    final colors = context.appColorsRead;
+
+    showDialog(
+      context: context,
+      builder: (context) => DeleteConfirmationDialog(
+        onConfirm: () {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: RobotoText(
+                text: AppString.deletedSuccessfully.tr(),
+                fontSize: 14.sp,
+                color: colors.kWhiteColor,
+              ),
+              backgroundColor: colors.kPrimaryColor,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   List<ExtractItem> _mapItems(FinancialRequirementsLoaded state) {
@@ -129,8 +193,8 @@ class _ExtractsManagementViewState extends State<_ExtractsManagementView> {
                 SliverToBoxAdapter(child: SizedBox(height: 16.h)),
                 SliverPadding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  sliver: const SliverToBoxAdapter(
-                    child: ExtractsPageTitleRow(),
+                  sliver: SliverToBoxAdapter(
+                    child: ExtractsPageTitleRow(onMapTap: _onMapTap),
                   ),
                 ),
                 SliverToBoxAdapter(child: SizedBox(height: 20.h)),
@@ -155,6 +219,7 @@ class _ExtractsManagementViewState extends State<_ExtractsManagementView> {
                     child: ExtractsSearchActionRow(
                       searchController: _searchController,
                       onSearchSubmitted: _submitSearch,
+                      onAddTap: _onAdd,
                     ),
                   ),
                 ),
@@ -164,31 +229,25 @@ class _ExtractsManagementViewState extends State<_ExtractsManagementView> {
                   sliver: SliverToBoxAdapter(
                     child: loaded == null
                         ? const SizedBox.shrink()
-                        : Column(
-                            children: [
-                              ExtractsTable(items: items),
-                              if (loaded.totalPages > 1)
-                                TablePaginationWidget(
-                                  currentPage: loaded.pageNumber,
-                                  totalPages: loaded.totalPages,
-                                  pageSize: loaded.pageSize,
-                                  hasPreviousPage: loaded.hasPreviousPage,
-                                  hasNextPage: loaded.hasNextPage,
-                                  isLoading: loaded.isPageLoading,
-                                  onPageChanged: (page) => context
-                                      .read<FinancialRequirementsBloc>()
-                                      .add(
-                                        ChangeFinancialRequirementsPage(page),
-                                      ),
-                                  onPageSizeChanged: (size) => context
-                                      .read<FinancialRequirementsBloc>()
-                                      .add(
-                                        ChangeFinancialRequirementsPageSize(
-                                          size,
-                                        ),
-                                      ),
+                        : ExtractsTable(
+                            items: loaded.filteredItems,
+                            onEdit: _onEdit,
+                            onDelete: _onDelete,
+                            currentPage: loaded.pageNumber,
+                            totalPages: loaded.totalPages,
+                            pageSize: loaded.pageSize,
+                            totalCount: loaded.totalCount,
+                            hasPreviousPage: loaded.hasPreviousPage,
+                            hasNextPage: loaded.hasNextPage,
+                            isPageLoading: loaded.isPageLoading,
+                            onPageChanged: (page) => context
+                                .read<FinancialRequirementsBloc>()
+                                .add(ChangeFinancialRequirementsPage(page)),
+                            onPageSizeChanged: (size) => context
+                                .read<FinancialRequirementsBloc>()
+                                .add(
+                                  ChangeFinancialRequirementsPageSize(size),
                                 ),
-                            ],
                           ),
                   ),
                 ),

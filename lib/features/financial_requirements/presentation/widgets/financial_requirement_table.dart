@@ -14,6 +14,7 @@ class FinancialRequirementTable extends StatelessWidget {
   final int currentPage;
   final int totalPages;
   final int pageSize;
+  final int totalCount;
   final bool hasPreviousPage;
   final bool hasNextPage;
   final bool isPageLoading;
@@ -28,6 +29,7 @@ class FinancialRequirementTable extends StatelessWidget {
     required this.currentPage,
     required this.totalPages,
     required this.pageSize,
+    required this.totalCount,
     required this.hasPreviousPage,
     required this.hasNextPage,
     required this.isPageLoading,
@@ -89,6 +91,7 @@ class FinancialRequirementTable extends StatelessWidget {
             currentPage: currentPage,
             totalPages: totalPages,
             pageSize: pageSize,
+            totalCount: totalCount,
             hasPreviousPage: hasPreviousPage,
             hasNextPage: hasNextPage,
             isLoading: isPageLoading,

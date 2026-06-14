@@ -4,11 +4,15 @@ import 'extract_item.dart';
 class FinancialRequirementMapper {
   static ExtractItem toExtractItem(FinancialRequirement item) {
     return ExtractItem(
+      projectName: item.projectName,
       sector: item.sector,
       extractNumber: item.extractNumber,
       value: item.extractValue,
-      status: _mapStatus(item.extractStatus),
+      extractStatus: item.extractStatus,
       managementStatus: item.projectManagementStatus,
+      startDate: item.startDate,
+      endDate: item.endDate,
+      status: _mapStatus(item.extractStatus),
     );
   }
 

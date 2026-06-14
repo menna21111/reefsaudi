@@ -35,6 +35,18 @@ class TokenFlutterSecureStorageService implements TokenStorage {
   }
 
   @override
+  Future<DateTime?> getTokenExpiresAt() async {
+    final value = await _preferences.read(key: 'tokenExpiresAt');
+    if (value == null || value.isEmpty) return null;
+    return DateTime.tryParse(value);
+  }
+
+  @override
+  Future<void> storeTokenExpiresAt(String expiresIn) async {
+    await _preferences.write(key: 'tokenExpiresAt', value: expiresIn);
+  }
+
+  @override
   Future<String?> getUserId() async {
     return _preferences.read(key: 'userId');
   }
@@ -59,6 +71,7 @@ class TokenFlutterSecureStorageService implements TokenStorage {
   Future<void> clearToken() async {
     await _preferences.delete(key: 'token');
     await _preferences.delete(key: 'refreshToken');
+    await _preferences.delete(key: 'tokenExpiresAt');
     await _preferences.delete(key: 'userId');
     await _preferences.delete(key: 'legacyUserId');
   }

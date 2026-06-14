@@ -1,7 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:easy_localization/easy_localization.dart';
-import '../../../../core/utils/app_color.dart';
+
+import '../../../../core/utils/app_theme_context.dart';
 
 class ExtractsSearchField extends StatelessWidget {
   final TextEditingController controller;
@@ -17,6 +18,8 @@ class ExtractsSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return TextField(
       controller: controller,
       textAlign: TextAlign.right,
@@ -24,22 +27,22 @@ class ExtractsSearchField extends StatelessWidget {
       onSubmitted: onSubmitted,
       textInputAction: TextInputAction.search,
       style: TextStyle(
-        color: Theme.of(context).textTheme.displayLarge?.color,
+        color: colors.kFontColor,
         fontSize: 13.sp,
         fontFamily: 'Almarai',
       ),
       decoration: InputDecoration(
         hintText: 'search_placeholder'.tr(),
         hintStyle: TextStyle(
-          color: Theme.of(context).textTheme.bodyMedium?.color,
+          color: colors.kGrayColor,
           fontSize: 13.sp,
           fontFamily: 'Almarai',
         ),
         filled: true,
-        fillColor: Theme.of(context).colorScheme.surface,
+        fillColor: colors.kInputColor,
         prefixIcon: Icon(
           Icons.search_rounded,
-          color: Theme.of(context).textTheme.bodyMedium?.color,
+          color: colors.kGrayColor,
           size: 20.sp,
         ),
         border: OutlineInputBorder(
@@ -48,16 +51,13 @@ class ExtractsSearchField extends StatelessWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(
-            color: Theme.of(context).dividerColor.withOpacity(0.5),
-          ),
+          borderSide: BorderSide(color: colors.kBorderColor.withOpacity(0.5)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+          borderSide: BorderSide(color: colors.kPrimaryColor),
         ),
-        contentPadding:
-            EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       ),
     );
   }

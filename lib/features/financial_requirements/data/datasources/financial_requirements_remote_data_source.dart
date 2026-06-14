@@ -2,6 +2,9 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/network/dio_helper.dart';
 import '../../../../core/network/pmo_endpoints.dart';
+import '../../../project/data/models/project_api_models.dart';
+import '../models/create_financial_statement_request.dart';
+import '../models/dx_title_item_dto.dart';
 import '../models/financial_statements_response_model.dart';
 
 abstract class FinancialRequirementsRemoteDataSource {
@@ -9,6 +12,14 @@ abstract class FinancialRequirementsRemoteDataSource {
     required int pageNumber,
     required int pageSize,
   });
+
+  Future<List<ProjectDxItemDto>> getProjectsDx();
+
+  Future<List<DxTitleItemDto>> getFinancialStatusesDx();
+
+  Future<List<DxTitleItemDto>> getPmStatusesDx();
+
+  Future<void> createFinancialStatement(CreateFinancialStatementRequest request);
 }
 
 class FinancialRequirementsRemoteDataSourceImpl
@@ -37,5 +48,37 @@ class FinancialRequirementsRemoteDataSourceImpl
     } on DioException {
       rethrow;
     }
+  }
+
+  @override
+  Future<List<ProjectDxItemDto>> getProjectsDx() async {
+    final response = await DioHelper.getData(url: PmoEndpoints.projectDxList);
+    final body = response.data as Map<String, dynamic>;
+    return parseProjectDxItems(body['data']);
+  }
+
+  @override
+  Future<List<DxTitleItemDto>> getFinancialStatusesDx() async {
+    final response =
+        await DioHelper.getData(url: PmoEndpoints.financialStatusListDx);
+    final body = response.data as Map<String, dynamic>;
+    return parseDxTitleItems(body['data']);
+  }
+
+  @override
+  Future<List<DxTitleItemDto>> getPmStatusesDx() async {
+    final response = await DioHelper.getData(url: PmoEndpoints.pmStatusListDx);
+    final body = response.data as Map<String, dynamic>;
+    return parseDxTitleItems(body['data']);
+  }
+
+  @override
+  Future<void> createFinancialStatement(
+    CreateFinancialStatementRequest request,
+  ) async {
+    await DioHelper.postData(
+      url: PmoEndpoints.createFinancialStatement,
+      data: request.toJson(),
+    );
   }
 }

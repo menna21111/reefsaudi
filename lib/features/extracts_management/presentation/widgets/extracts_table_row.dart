@@ -1,35 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/utils/app_color.dart';
-import '../../domain/models/extract_item.dart';
-import 'extract_status_badge.dart';
+
+import '../../../../core/utils/app_theme_context.dart';
+import '../../../financial_requirements/domain/entities/financial_requirement.dart';
+import '../../../financial_requirements/presentation/widgets/action_buttons.dart';
+import '../../../financial_requirements/presentation/widgets/status_badge.dart';
 import 'extracts_table_data_cell.dart';
+import 'extracts_table_header.dart';
 
 class ExtractsTableRow extends StatelessWidget {
-  final ExtractItem item;
+  final FinancialRequirement item;
   final bool isEven;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   const ExtractsTableRow({
     super.key,
     required this.item,
     required this.isEven,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+    final colors = context.appColors;
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
       decoration: BoxDecoration(
-        color: isEven
-            ? (isDark 
-                ? AppColor.kBackgroundColor.withOpacity(0.35)
-                : AppColor.kLightSurfaceColor.withOpacity(0.5))
-            : Colors.transparent,
+        color: isEven ? colors.kBgColor.withOpacity(0.35) : Colors.transparent,
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).dividerColor.withOpacity(0.3),
+            color: colors.kBorderColor.withOpacity(0.3),
             width: 0.5,
           ),
         ),
@@ -37,32 +40,51 @@ class ExtractsTableRow extends StatelessWidget {
       child: Row(
         children: [
           ExtractsTableDataCell(
-            text: item.sector,
-            flex: 2,
+            text: item.projectName,
+            width: ExtractsTableHeader.projectNameWidth.w,
             align: TextAlign.right,
+            fontWeight: FontWeight.w600,
+            maxLines: 2,
+          ),
+          ExtractsTableDataCell(
+            text: item.sector,
+            width: ExtractsTableHeader.sectorWidth.w,
+            align: TextAlign.center,
             fontWeight: FontWeight.bold,
           ),
           ExtractsTableDataCell(
             text: item.extractNumber,
-            flex: 3,
+            width: ExtractsTableHeader.extractNumberWidth.w,
             align: TextAlign.center,
           ),
           ExtractsTableDataCell(
-            text: item.value,
-            flex: 2,
+            text: item.extractValue,
+            width: ExtractsTableHeader.valueWidth.w,
             align: TextAlign.center,
-            color: Theme.of(context).colorScheme.primary,
+            color: colors.kPrimaryColor,
             fontWeight: FontWeight.bold,
           ),
-          Expanded(
-            flex: 2,
-            child: Center(child: ExtractStatusBadge(status: item.status)),
+          SizedBox(
+            width: ExtractsTableHeader.statusWidth.w,
+            child: StatusBadge(label: item.extractStatus),
+          ),
+          SizedBox(
+            width: ExtractsTableHeader.managementWidth.w,
+            child: StatusBadge(label: item.projectManagementStatus),
           ),
           ExtractsTableDataCell(
-            text: item.managementStatus,
-            flex: 2,
-            align: TextAlign.left,
+            text: item.startDate,
+            width: ExtractsTableHeader.dateWidth.w,
+            align: TextAlign.center,
+            color: colors.kGrayColor,
           ),
+          ExtractsTableDataCell(
+            text: item.endDate,
+            width: ExtractsTableHeader.dateWidth.w,
+            align: TextAlign.center,
+            color: colors.kGrayColor,
+          ),
+          ActionButtons(onEdit: onEdit, onDelete: onDelete),
         ],
       ),
     );

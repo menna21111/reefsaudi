@@ -236,6 +236,24 @@ class AppString {
   static const String page = 'page';
   static const String noData = 'no_data';
   static const String statistics = 'statistics';
+  static const String projectStatisticsTitle = 'project_statistics_title';
+  static const String generalStatistics = 'general_statistics';
+  static const String projectAreas = 'project_areas';
+  static const String projectSectors = 'project_sectors';
+  static const String statisticsOnProjectStatus = 'statistics_on_project_status';
+  static const String qualityControlStatistical = 'quality_control_statistical';
+  static const String statusGood = 'status_good';
+  static const String statusCritical = 'status_critical';
+  static const String projectTypeStarted = 'project_type_started';
+  static const String projectTypeAwarded = 'project_type_awarded';
+  static const String projectTypeSigned = 'project_type_signed';
+  static const String projectTypeReviewCommittee = 'project_type_review_committee';
+  static const String projectTypeAccreditation = 'project_type_accreditation';
+  static const String projectTypeTender = 'project_type_tender';
+  static const String totalLabel = 'total_label';
+  static const String qcCategoryUnderStudy = 'qc_category_under_study';
+  static const String qcCategoryResubmission = 'qc_category_resubmission';
+  static const String qcCategoryApproved = 'qc_category_approved';
   static const String projectStatus = 'project_status';
   static const String performanceOverview = 'performance_overview';
   static const String financialOverview = 'financial_overview';
@@ -254,6 +272,7 @@ class AppString {
   static const String otherProjects = 'other_projects';
 
   static const String tapRegionOnMap = 'tap_region_on_map';
+  static const String tapRegionToFilterTable = 'tap_region_to_filter_table';
   static const String metric = 'metric';
   static const String region = 'region';
 

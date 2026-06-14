@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/utils/app_color.dart';
+
 import '../../../../core/utils/app_font.dart';
+import '../../../../core/utils/app_theme_context.dart';
 
 class ExtractsSummarySubStat extends StatelessWidget {
   final String label;
@@ -17,13 +18,15 @@ class ExtractsSummarySubStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         RobotoText(
           text: label,
           fontSize: 9.sp,
-          color: AppColor.kGrayTextColor,
+          color: colors.kGrayColor,
           textAlign: TextAlign.right,
         ),
         SizedBox(height: 2.h),
