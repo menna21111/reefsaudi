@@ -9,9 +9,15 @@ abstract class StatisticsRemoteDataSource {
 
   Future<List<AreaProjectDto>> getAreaProjects();
 
-  Future<List<SectorProjectDto>> getSectorProjects({required String regionId});
+  Future<List<SectorProjectDto>> getSectorProjects({String? regionId});
 
-  Future<List<GlobalQcCategoryDto>> getQcTechnical({required String regionId});
+  Future<List<GlobalQcCategoryDto>> getQcTechnical({String? regionId});
+
+  Future<List<StatisticsKeyValueDto>> getProjectStatusCounts({
+    String? regionId,
+  });
+
+  Future<List<StatisticsKeyValueDto>> getCountByType({String? regionId});
 }
 
 class StatisticsRemoteDataSourceImpl implements StatisticsRemoteDataSource {
@@ -54,9 +60,7 @@ class StatisticsRemoteDataSourceImpl implements StatisticsRemoteDataSource {
   }
 
   @override
-  Future<List<SectorProjectDto>> getSectorProjects({
-    required String regionId,
-  }) async {
+  Future<List<SectorProjectDto>> getSectorProjects({String? regionId}) async {
     final response = await DioHelper.getData(
       url: PmoEndpoints.projectStatisticsSectorProjects,
       query: PmoEndpoints.regionQuery(regionId),
@@ -65,13 +69,31 @@ class StatisticsRemoteDataSourceImpl implements StatisticsRemoteDataSource {
   }
 
   @override
-  Future<List<GlobalQcCategoryDto>> getQcTechnical({
-    required String regionId,
-  }) async {
+  Future<List<GlobalQcCategoryDto>> getQcTechnical({String? regionId}) async {
     final response = await DioHelper.getData(
       url: PmoEndpoints.projectStatisticsQcTechnical,
       query: PmoEndpoints.regionQuery(regionId),
     );
     return parseGlobalQcCategories(response.data);
+  }
+
+  @override
+  Future<List<StatisticsKeyValueDto>> getProjectStatusCounts({
+    String? regionId,
+  }) async {
+    final response = await DioHelper.getData(
+      url: PmoEndpoints.projectStatisticsProjectStatusCounts,
+      query: PmoEndpoints.regionQuery(regionId),
+    );
+    return parseStatisticsKeyValues(response.data);
+  }
+
+  @override
+  Future<List<StatisticsKeyValueDto>> getCountByType({String? regionId}) async {
+    final response = await DioHelper.getData(
+      url: PmoEndpoints.projectStatisticsCountByType,
+      query: PmoEndpoints.regionQuery(regionId),
+    );
+    return parseStatisticsKeyValues(response.data);
   }
 }

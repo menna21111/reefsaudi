@@ -26,7 +26,7 @@ class FinancialRequirementsBloc
     await _fetchPage(
       emit,
       pageNumber: 1,
-      pageSize: defaultPageSize,
+      pageSize: event.pageSize,
       searchQuery: '',
       isInitial: true,
     );

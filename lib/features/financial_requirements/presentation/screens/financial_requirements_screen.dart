@@ -52,13 +52,19 @@ class _FinancialRequirementsViewState
     super.dispose();
   }
 
-  void _onAddProject() {
-    Navigator.push(
+  Future<void> _onAddProject() async {
+    final created = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (context) => const FinancialRequirementEditScreen(item: null),
       ),
     );
+
+    if (created == true && mounted) {
+      context.read<FinancialRequirementsBloc>().add(
+            const LoadFinancialRequirements(),
+          );
+    }
   }
 
   void _onEditItem(FinancialRequirement item) {
@@ -239,6 +245,7 @@ class _FinancialRequirementsViewState
                         currentPage: loadedState.pageNumber,
                         totalPages: loadedState.totalPages,
                         pageSize: loadedState.pageSize,
+                        totalCount: loadedState.totalCount,
                         hasPreviousPage: loadedState.hasPreviousPage,
                         hasNextPage: loadedState.hasNextPage,
                         isPageLoading: loadedState.isPageLoading,

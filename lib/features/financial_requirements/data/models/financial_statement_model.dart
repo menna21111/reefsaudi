@@ -60,6 +60,8 @@ class FinancialStatementModel {
       startDate: _formatDate(startDate),
       endDate: _formatDate(endDate),
       amount: amount ?? 0,
+      regionTitle: project?.areaTitle?.trim() ?? '',
+      regionId: project?.regionId?.trim() ?? '',
     );
   }
 

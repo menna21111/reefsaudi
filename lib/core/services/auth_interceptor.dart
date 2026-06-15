@@ -10,17 +10,31 @@ import '../network/pmo_endpoints.dart';
 import '../utils/app_color.dart';
 import '../../features/auth/presination/screans/login_screan.dart';
 import 'service_locator.dart';
+import 'token_service/token_refresh_service.dart';
 import 'token_service/token_storage.dart';
 
 class AuthInterceptor extends Interceptor {
   static bool _isHandlingAuthError = false;
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
+    if (!PmoEndpoints.isPublicAuthPath(AuthorizationHeader.requestPath(options))) {
+      final refreshService = sl<TokenRefreshService>();
+      if (await refreshService.shouldRefreshProactively()) {
+        await refreshService.refreshAccessToken();
+        final auth = AuthorizationHeader.bearerValue(
+          await sl<TokenStorage>().getToken(),
+        );
+        if (auth != null) {
+          options.headers[AuthorizationHeader.headerKey] = auth;
+        }
+      }
+    }
+
     log('AuthInterceptor - Request sending: ${options.method} ${options.uri}');
-    log(
-      'AuthInterceptor - Authorization: ${options.headers['Authorization'] ?? '(none)'}',
-    );
     super.onRequest(options, handler);
   }
 
@@ -59,18 +73,70 @@ class AuthInterceptor extends Interceptor {
     super.onError(err, handler);
   }
 
-  bool _isInvalidTokenResponse(dynamic responseData) {
-    log('AuthInterceptor - Checking response data: $responseData');
+  bool _shouldAttemptRefresh(DioException err) {
+    final path = AuthorizationHeader.requestPath(err.requestOptions);
+    if (PmoEndpoints.isPublicAuthPath(path)) {
+      return false;
+    }
+    if (err.requestOptions.extra['authRetried'] == true) {
+      return false;
+    }
 
+    if (err.response?.statusCode == 401) {
+      return true;
+    }
+
+    return err.response?.data != null &&
+        _isInvalidTokenResponse(err.response!.data);
+  }
+
+  Future<Response<dynamic>?> _retryAfterRefresh(
+    RequestOptions requestOptions,
+  ) async {
+    if (PmoEndpoints.isPublicAuthPath(
+      AuthorizationHeader.requestPath(requestOptions),
+    )) {
+      return null;
+    }
+    if (requestOptions.extra['authRetried'] == true) {
+      return null;
+    }
+
+    log('AuthInterceptor - Attempting token refresh');
+    final refreshed = await sl<TokenRefreshService>().refreshAccessToken();
+    if (!refreshed) {
+      return null;
+    }
+
+    try {
+      final updatedOptions = requestOptions.copyWith(
+        extra: Map<String, dynamic>.from(requestOptions.extra)
+          ..['authRetried'] = true,
+      );
+      final auth = AuthorizationHeader.bearerValue(
+        await sl<TokenStorage>().getToken(),
+      );
+      if (auth != null) {
+        updatedOptions.headers[AuthorizationHeader.headerKey] = auth;
+      } else {
+        updatedOptions.headers.remove(AuthorizationHeader.headerKey);
+      }
+
+      return await _dio.fetch<dynamic>(updatedOptions);
+    } catch (e, stackTrace) {
+      log('AuthInterceptor - Retry failed: $e', stackTrace: stackTrace);
+      return null;
+    }
+  }
+
+  bool _isInvalidTokenResponse(dynamic responseData) {
     if (responseData is String) {
       try {
-        // Try to parse JSON string
         final Map<String, dynamic> jsonData = const JsonDecoder().convert(
           responseData,
         );
         return _checkInvalidTokenInMap(jsonData);
-      } catch (e) {
-        log('AuthInterceptor - Failed to parse JSON string: $e');
+      } catch (_) {
         return false;
       }
     } else if (responseData is Map<String, dynamic>) {
@@ -83,11 +149,7 @@ class AuthInterceptor extends Interceptor {
     final message = data['message'];
     final status = data['status'];
 
-    log('AuthInterceptor - Checking: status=$status, message=$message');
-
-    // Check for exact match with the message you provided
     if (message == 'Invalid token.' && status == 'fail') {
-      log('AuthInterceptor - Exact match found!');
       return true;
     }
 

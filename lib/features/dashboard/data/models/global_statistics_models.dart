@@ -127,7 +127,7 @@ class SectorProjectDto {
 
 class GlobalQcCategoryDto {
   final String category;
-  final int statementsCount;
+  final double statementsCount;
 
   const GlobalQcCategoryDto({
     required this.category,
@@ -137,9 +137,36 @@ class GlobalQcCategoryDto {
   factory GlobalQcCategoryDto.fromJson(Map<String, dynamic> json) {
     return GlobalQcCategoryDto(
       category: json['category']?.toString() ?? '',
-      statementsCount: _toInt(json['statementsCount']),
+      statementsCount: _toDouble(json['statementsCount']),
     );
   }
+}
+
+class StatisticsKeyValueDto {
+  final String key;
+  final int value;
+
+  const StatisticsKeyValueDto({
+    required this.key,
+    required this.value,
+  });
+
+  factory StatisticsKeyValueDto.fromJson(Map<String, dynamic> json) {
+    return StatisticsKeyValueDto(
+      key: json['key']?.toString() ?? '',
+      value: _toInt(json['value']),
+    );
+  }
+}
+
+List<StatisticsKeyValueDto> parseStatisticsKeyValues(dynamic data) {
+  if (data is! Map<String, dynamic>) return const [];
+  final values = data['values'];
+  if (values is! List) return const [];
+  return values
+      .whereType<Map<String, dynamic>>()
+      .map(StatisticsKeyValueDto.fromJson)
+      .toList();
 }
 
 class GlobalStatisticsBundle {
@@ -148,6 +175,8 @@ class GlobalStatisticsBundle {
   final List<AreaProjectDto> areas;
   final List<SectorProjectDto> sectors;
   final List<GlobalQcCategoryDto> qcTechnical;
+  final List<StatisticsKeyValueDto> projectStatusCounts;
+  final List<StatisticsKeyValueDto> countByType;
   final String? selectedRegionId;
   final String? selectedRegionTitle;
 
@@ -157,6 +186,8 @@ class GlobalStatisticsBundle {
     required this.areas,
     this.sectors = const [],
     this.qcTechnical = const [],
+    this.projectStatusCounts = const [],
+    this.countByType = const [],
     this.selectedRegionId,
     this.selectedRegionTitle,
   });
@@ -175,6 +206,8 @@ class GlobalStatisticsBundle {
     List<AreaProjectDto>? areas,
     List<SectorProjectDto>? sectors,
     List<GlobalQcCategoryDto>? qcTechnical,
+    List<StatisticsKeyValueDto>? projectStatusCounts,
+    List<StatisticsKeyValueDto>? countByType,
     String? selectedRegionId,
     String? selectedRegionTitle,
     bool clearRegion = false,
@@ -185,6 +218,8 @@ class GlobalStatisticsBundle {
       areas: areas ?? this.areas,
       sectors: sectors ?? this.sectors,
       qcTechnical: qcTechnical ?? this.qcTechnical,
+      projectStatusCounts: projectStatusCounts ?? this.projectStatusCounts,
+      countByType: countByType ?? this.countByType,
       selectedRegionId:
           clearRegion ? null : (selectedRegionId ?? this.selectedRegionId),
       selectedRegionTitle: clearRegion

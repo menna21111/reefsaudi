@@ -1,28 +1,31 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:easy_localization/easy_localization.dart';
-import '../../../../core/utils/app_color.dart';
+
 import '../../../../core/utils/app_font.dart';
-import 'extracts_filter_button.dart';
+import '../../../../core/utils/app_theme_context.dart';
+import 'extracts_map_button.dart';
 
 class ExtractsPageTitleRow extends StatelessWidget {
-  final VoidCallback? onFilterTap;
+  final VoidCallback? onMapTap;
 
-  const ExtractsPageTitleRow({super.key, this.onFilterTap});
+  const ExtractsPageTitleRow({super.key, this.onMapTap});
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         RobotoText(
           text: 'extracts_management'.tr(),
-          fontSize: 22.sp,
+          fontSize: 17.sp,
           fontWeight: FontWeight.bold,
-          color: AppColor.kWhiteColor,
+          color: colors.kFontColor,
           textAlign: TextAlign.right,
         ),
-        ExtractsFilterButton(onTap: onFilterTap),
+        ExtractsMapButton(onTap: onMapTap),
       ],
     );
   }

@@ -16,15 +16,16 @@ class DioHelper {
   static TokenStorage get _tokenStorage => sl<TokenStorage>();
 
   static Future<void> init() async {
-    dio = Dio(
+    final client = Dio(
       BaseOptions(
-        baseUrl: ApiConstants.baseUrl,
+        baseUrl: ApiConstants.reefBaseUrl,
         receiveDataWhenStatusError: true,
         headers: AuthorizationHeader.defaultBaseHeaders(),
       ),
     );
+    dio = client;
 
-    dio?.interceptors.add(
+    client.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           await AuthorizationHeader.applyStandard(options, _tokenStorage);
@@ -38,10 +39,10 @@ class DioHelper {
       ),
     );
 
-    dio?.interceptors.add(AuthInterceptor());
+    client.interceptors.add(AuthInterceptor(client));
 
     if (!kReleaseMode) {
-      dio?.interceptors.add(
+      client.interceptors.add(
         PrettyDioLogger(
           requestHeader: true,
           requestBody: true,

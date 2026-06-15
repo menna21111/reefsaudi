@@ -1,8 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:easy_localization/easy_localization.dart';
-import '../../../../core/utils/app_color.dart';
+
 import '../../../../core/utils/app_font.dart';
+import '../../../../core/utils/app_theme_context.dart';
 import 'extracts_summary_sub_stat.dart';
 
 class ExtractsSummaryCard extends StatelessWidget {
@@ -18,19 +19,19 @@ class ExtractsSummaryCard extends StatelessWidget {
     required this.mainValue,
     required this.disbursedValue,
     required this.inProcessValue,
-    this.inProcessColor = AppColor.kGoldColor,
+    required this.inProcessColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: colors.kInputColor,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.5),
-        ),
+        border: Border.all(color: colors.kBorderColor.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -38,7 +39,7 @@ class ExtractsSummaryCard extends StatelessWidget {
           RobotoText(
             text: title,
             fontSize: 11.sp,
-            color: Theme.of(context).textTheme.bodyMedium?.color ?? AppColor.kGrayTextColor,
+            color: colors.kGrayColor,
             fontWeight: FontWeight.w500,
             textAlign: TextAlign.right,
           ),
@@ -47,7 +48,7 @@ class ExtractsSummaryCard extends StatelessWidget {
             text: mainValue,
             fontSize: 26.sp,
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
+            color: colors.kPrimaryColor,
             textAlign: TextAlign.right,
           ),
           SizedBox(height: 12.h),
@@ -57,7 +58,7 @@ class ExtractsSummaryCard extends StatelessWidget {
               ExtractsSummarySubStat(
                 label: 'disbursed'.tr(),
                 value: disbursedValue,
-                valueColor: Theme.of(context).colorScheme.primary,
+                valueColor: colors.kPrimaryColor,
               ),
               ExtractsSummarySubStat(
                 label: 'in_process'.tr(),

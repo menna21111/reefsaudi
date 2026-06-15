@@ -4,9 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/presination/screans/login_screan.dart';
 import '../funcation.dart';
-import '../permissions/permission_cubit.dart';
 import '../services/service_locator.dart';
-import '../services/token_service/token_storage.dart';
 import '../utils/app_theme_context.dart';
 import '../widgets/applogo.dart';
 import 'navigation.dart';
@@ -71,18 +69,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<bool> _restoreSession() async {
-    final token = await sl<TokenStorage>().getToken();
-    final hasToken = token != null && token.isNotEmpty;
-
-    if (!hasToken) {
-      await sl<PermissionCubit>().clear();
-      return false;
-    }
-
-    await sl<PermissionCubit>().loadCached();
-    final refresh = await sl<AuthRepositoryImpl>().refreshProfile();
-    refresh.fold((_) {}, (_) {});
-    return true;
+    return sl<AuthRepositoryImpl>().restoreSession();
   }
 
   @override

@@ -5,13 +5,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/services/service_locator.dart';
 import '../../../../core/utils/app_color_scheme.dart';
+import '../../../../core/utils/app_font.dart';
 import '../../../../core/utils/app_string.dart';
 import '../../../../core/utils/app_theme_context.dart';
 import '../../data/models/global_statistics_models.dart';
 import '../cubit/global_statistics_cubit.dart';
 import '../widgets/custom_progress_bar.dart';
+import '../widgets/project_statistics_charts.dart';
 import '../widgets/saudi_statistics_map.dart';
-import '../widgets/statistics_table.dart';
+import '../widgets/statistics_style.dart';
 
 class StatisticsScreen extends StatelessWidget {
   const StatisticsScreen({super.key});
@@ -30,7 +32,7 @@ class _StatisticsView extends StatelessWidget {
 
   String _formatMoney(double value) {
     if (value >= 1000000000) {
-      return '${(value / 1000000000).toStringAsFixed(2)}B';
+      return '${(value / 1000000000).toStringAsFixed(1)}B';
     }
     if (value >= 1000000) {
       return '${(value / 1000000).toStringAsFixed(1)}M';
@@ -46,19 +48,14 @@ class _StatisticsView extends StatelessWidget {
       backgroundColor: colors.kBgColor,
       appBar: AppBar(
         backgroundColor: colors.kInputColor,
+        foregroundColor: colors.kFontColor,
         elevation: 0,
         centerTitle: true,
-        title: Text(
-          AppString.statistics.tr(),
-          style: TextStyle(
-            color: colors.kPrimaryColor,
-            fontSize: 18.sp,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: colors.kPrimaryColor),
-          onPressed: () => Navigator.pop(context),
+        title: RobotoText(
+          text: AppString.projectStatisticsTitle,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: colors.kPrimaryColor,
         ),
       ),
       body: BlocBuilder<GlobalStatisticsCubit, GlobalStatisticsState>(
@@ -77,16 +74,25 @@ class _StatisticsView extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      state.message.tr(),
+                    RobotoText(
+                      text: state.message,
+                      fontSize: 14,
+                      color: colors.kRedColor,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: colors.kRedColor, fontSize: 14.sp),
                     ),
                     SizedBox(height: 16.h),
                     FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: colors.kPrimaryColor,
+                        foregroundColor: StatisticsStyle.textOnAccent,
+                      ),
                       onPressed: () =>
                           context.read<GlobalStatisticsCubit>().refresh(),
-                      child: Text(AppString.retry.tr()),
+                      child: RobotoText(
+                        text: AppString.retry,
+                        fontSize: 14,
+                        color: StatisticsStyle.textOnAccent,
+                      ),
                     ),
                   ],
                 ),
@@ -112,156 +118,103 @@ class _StatisticsView extends StatelessWidget {
               ),
               padding: EdgeInsets.all(16.w),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (bundle.selectedRegionTitle != null) ...[
                     _RegionFilterBanner(title: bundle.selectedRegionTitle!),
                     SizedBox(height: 16.h),
                   ],
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _SummaryCard(
-                          title: AppString.totalBudget.tr(),
-                          value:
-                              '${_formatMoney(general.totalBudget)} ${AppString.sar.tr()}',
-                          valueColor: colors.kPrimaryColor,
+                  StatisticsSectionCard(
+                    titleKey: AppString.generalStatistics,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _SummaryCard(
+                            titleKey: AppString.totalBudget,
+                            value:
+                                '${_formatMoney(general.totalBudget)} ${AppString.sar.tr()}',
+                            valueColor: colors.kPrimaryColor,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: _SummaryCard(
-                          title: AppString.totalProjects.tr(),
-                          value: '${general.projectsCount}',
-                          valueColor: colors.kGoldColor,
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: _SummaryCard(
+                            titleKey: AppString.totalProjects,
+                            value: '${general.projectsCount}',
+                            valueColor: colors.kGoldColor,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 24.h),
-                  _SectionTitle(title: AppString.regionalDistribution.tr()),
-                  SizedBox(height: 12.h),
-                  SaudiStatisticsMap(
-                    areas: bundle.areas,
-                    selectedRegionCode: bundle.selectedRegionCode,
-                    onRegionSelected: cubit.selectRegion,
-                    onUnknownRegionTapped: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(AppString.regionHasNoProjects.tr()),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
+                      ],
+                    ),
                   ),
                   SizedBox(height: 16.h),
-                  StatisticsTable(
-                    columns: [
-                      StatisticsTableColumn(
-                        label: AppString.region.tr(),
-                        flex: 3,
-                      ),
-                      StatisticsTableColumn(
-                        label: AppString.projects.tr(),
-                        flex: 1,
-                      ),
-                    ],
-                    rows: _buildRegionalTableRows(bundle.areas, colors),
-                  ),
-                  SizedBox(height: 24.h),
-                  _SectionTitle(title: AppString.executionSummary.tr()),
-                  SizedBox(height: 12.h),
-                  StatisticsTable(
-                    columns: [
-                      StatisticsTableColumn(
-                        label: AppString.metric.tr(),
-                        flex: 3,
-                      ),
-                      StatisticsTableColumn(
-                        label: AppString.projects.tr(),
-                        flex: 1,
-                      ),
-                      StatisticsTableColumn(
-                        label: AppString.completionPercentage.tr(),
-                        flex: 2,
-                      ),
-                    ],
-                    rows: _buildExecutionTableRows(execution, colors),
-                  ),
-                  SizedBox(height: 24.h),
-                  _SectionTitle(title: AppString.projectStatus.tr()),
-                  SizedBox(height: 12.h),
-                  _ProjectStatusCard(execution: execution),
-                  SizedBox(height: 24.h),
-                  _SectionTitle(title: AppString.performanceOverview.tr()),
-                  SizedBox(height: 12.h),
-                  _PerformanceCard(execution: execution, colors: colors),
-                  SizedBox(height: 24.h),
-                  _SectionTitle(title: AppString.financialOverview.tr()),
-                  SizedBox(height: 12.h),
-                  StatisticsTable(
-                    columns: [
-                      StatisticsTableColumn(
-                        label: AppString.metric.tr(),
-                        flex: 2,
-                      ),
-                      StatisticsTableColumn(
-                        label: AppString.amount.tr(),
-                        flex: 3,
-                      ),
-                    ],
-                    rows: _buildFinancialTableRows(
-                      general,
-                      _formatMoney,
-                      colors,
-                    ),
-                  ),
-                  if (bundle.selectedRegionId != null) ...[
-                    SizedBox(height: 24.h),
-                    _SectionTitle(title: AppString.sectorDistribution.tr()),
-                    SizedBox(height: 12.h),
-                    StatisticsTable(
-                      columns: [
-                        StatisticsTableColumn(
-                          label: AppString.sector.tr(),
-                          flex: 3,
+                  StatisticsSectionCard(
+                    titleKey: AppString.projectAreas,
+                    child: Column(
+                      children: [
+                        SaudiStatisticsMap(
+                          areas: bundle.areas,
+                          selectedRegionCode: bundle.selectedRegionCode,
+                          onRegionSelected: cubit.selectRegion,
+                          onUnknownRegionTapped: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: RobotoText(
+                                  text: AppString.regionHasNoProjects,
+                                  fontSize: 14,
+                                  color: StatisticsStyle.textOnAccent,
+                                ),
+                                backgroundColor: colors.kPrimaryColor,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
                         ),
-                        StatisticsTableColumn(
-                          label: AppString.projects.tr(),
-                          flex: 1,
-                        ),
+                        SizedBox(height: 16.h),
+                        StatisticsRegionalBars(areas: bundle.areas),
                       ],
-                      rows: bundle.sectors
-                          .map(
-                            (s) => StatisticsTableRow(
-                              cells: [s.title, '${s.count}'],
-                            ),
-                          )
-                          .toList(),
                     ),
-                    SizedBox(height: 24.h),
-                    _SectionTitle(title: AppString.qualityManagement.tr()),
-                    SizedBox(height: 12.h),
-                    StatisticsTable(
-                      columns: [
-                        StatisticsTableColumn(
-                          label: AppString.category.tr(),
-                          flex: 3,
-                        ),
-                        StatisticsTableColumn(
-                          label: AppString.statements.tr(),
-                          flex: 1,
-                        ),
-                      ],
-                      rows: bundle.qcTechnical
-                          .map(
-                            (q) => StatisticsTableRow(
-                              cells: [q.category, '${q.statementsCount}'],
-                            ),
-                          )
-                          .toList(),
+                  ),
+                  SizedBox(height: 16.h),
+                  StatisticsSectionCard(
+                    titleKey: AppString.projectSectors,
+                    height: 220.h,
+                    child: StatisticsSectorBarChart(sectors: bundle.sectors),
+                  ),
+                  SizedBox(height: 16.h),
+                  StatisticsSectionCard(
+                    titleKey: AppString.statisticsOnProjectStatus,
+                    child: StatisticsProjectStatusBar(
+                      items: bundle.projectStatusCounts,
                     ),
-                  ],
+                  ),
+                  SizedBox(height: 16.h),
+                  StatisticsSectionCard(
+                    titleKey: AppString.projectStatus,
+                    child: StatisticsCountByTypePieChart(items: bundle.countByType),
+                  ),
+                  SizedBox(height: 16.h),
+                  StatisticsSectionCard(
+                    titleKey: AppString.qualityControlStatistical,
+                    child: StatisticsQcDonutChart(items: bundle.qcTechnical),
+                  ),
+                  SizedBox(height: 16.h),
+                  StatisticsSectionCard(
+                    titleKey: AppString.executionSummary,
+                    child: _ExecutionSummaryCard(
+                      execution: execution,
+                      colors: colors,
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  StatisticsSectionCard(
+                    titleKey: AppString.financialOverview,
+                    child: _FinancialOverview(
+                      general: general,
+                      formatMoney: _formatMoney,
+                      colors: colors,
+                    ),
+                  ),
                   SizedBox(height: 32.h),
                 ],
               ),
@@ -275,7 +228,7 @@ class _StatisticsView extends StatelessWidget {
               content,
               Positioned.fill(
                 child: Container(
-                  color: colors.kBgColor.withOpacity(0.55),
+                  color: colors.kBgColor.withValues(alpha: 0.55),
                   child: Center(
                     child: CircularProgressIndicator(color: colors.kPrimaryColor),
                   ),
@@ -286,117 +239,6 @@ class _StatisticsView extends StatelessWidget {
         },
       ),
     );
-  }
-
-  List<StatisticsTableRow> _buildRegionalTableRows(
-    List<AreaProjectDto> areas,
-    AppColorScheme colors,
-  ) {
-    final sorted = List<AreaProjectDto>.from(areas)
-      ..sort((a, b) => b.count.compareTo(a.count));
-
-    return sorted
-        .map(
-          (area) => StatisticsTableRow(
-            cells: [area.title, '${area.count}'],
-            highlightColor: area.regionCode == null
-                ? colors.kGoldColor
-                : colors.kWhiteColor,
-          ),
-        )
-        .toList();
-  }
-
-  List<StatisticsTableRow> _buildExecutionTableRows(
-    ProjectExecutionSummaryDto execution,
-    AppColorScheme colors,
-  ) {
-    return [
-      StatisticsTableRow(
-        cells: [
-          AppString.totalProjects.tr(),
-          '${execution.totalProjects}',
-          '100%',
-        ],
-      ),
-      StatisticsTableRow(
-        cells: [
-          AppString.finished.tr(),
-          '${execution.finishedProjects}',
-          '${execution.finishedPercentage.toStringAsFixed(1)}%',
-        ],
-        highlightColor: const Color(0xFF6A8EAE),
-      ),
-      StatisticsTableRow(
-        cells: [
-          AppString.achievement95Projects.tr(),
-          '${execution.achievement95Projects}',
-          '${execution.achievement95Percentage.toStringAsFixed(1)}%',
-        ],
-        highlightColor: colors.kPrimaryColor,
-      ),
-      StatisticsTableRow(
-        cells: [
-          AppString.achievement25Projects.tr(),
-          '${execution.achievement25Projects}',
-          '${execution.achievement25Percentage.toStringAsFixed(1)}%',
-        ],
-        highlightColor: colors.kGoldColor,
-      ),
-      if (execution.otherProjects > 0)
-        StatisticsTableRow(
-          cells: [
-            AppString.otherProjects.tr(),
-            '${execution.otherProjects}',
-            '-',
-          ],
-          highlightColor: colors.kRedColor,
-        ),
-    ];
-  }
-
-  List<StatisticsTableRow> _buildFinancialTableRows(
-    GeneralStatisticsDto general,
-    String Function(double) formatMoney,
-    AppColorScheme colors,
-  ) {
-    final sar = AppString.sar.tr();
-    return [
-      StatisticsTableRow(
-        cells: [
-          AppString.totalBudget.tr(),
-          '${formatMoney(general.totalBudget)} $sar',
-        ],
-        highlightColor: colors.kPrimaryColor,
-      ),
-      StatisticsTableRow(
-        cells: [
-          AppString.paidAmount.tr(),
-          '${formatMoney(general.paidAmount)} $sar',
-        ],
-        highlightColor: colors.kPrimaryColor,
-      ),
-      StatisticsTableRow(
-        cells: [
-          AppString.inProgressAmount.tr(),
-          '${formatMoney(general.inProgressAmount)} $sar',
-        ],
-        highlightColor: colors.kGoldColor,
-      ),
-      StatisticsTableRow(
-        cells: [
-          AppString.contractualBudget.tr(),
-          '${formatMoney(general.contractualBudget)} $sar',
-        ],
-      ),
-      StatisticsTableRow(
-        cells: [
-          AppString.remainingBudget.tr(),
-          '${formatMoney(general.remaining)} $sar',
-        ],
-        highlightColor: colors.kRedColor,
-      ),
-    ];
   }
 }
 
@@ -412,9 +254,9 @@ class _RegionFilterBanner extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
       decoration: BoxDecoration(
-        color: colors.kPrimaryColor.withOpacity(0.12),
+        color: colors.kPrimaryColor.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: colors.kPrimaryColor.withOpacity(0.35)),
+        border: Border.all(color: colors.kPrimaryColor.withValues(alpha: 0.35)),
       ),
       child: Row(
         children: [
@@ -423,19 +265,21 @@ class _RegionFilterBanner extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: TextStyle(
-                color: colors.kWhiteColor,
-                fontSize: 13.sp,
-                fontWeight: FontWeight.w600,
+              style: StatisticsStyle.label(
+                context,
+                color: colors.kFontColor,
+                size: 13,
+                weight: FontWeight.w600,
               ),
             ),
           ),
           TextButton(
             onPressed: () =>
                 context.read<GlobalStatisticsCubit>().clearRegionFilter(),
-            child: Text(
-              AppString.allRegions.tr(),
-              style: TextStyle(color: colors.kPrimaryColor, fontSize: 12.sp),
+            child: RobotoText(
+              text: AppString.allRegions,
+              fontSize: 12,
+              color: colors.kPrimaryColor,
             ),
           ),
         ],
@@ -445,12 +289,12 @@ class _RegionFilterBanner extends StatelessWidget {
 }
 
 class _SummaryCard extends StatelessWidget {
-  final String title;
+  final String titleKey;
   final String value;
   final Color valueColor;
 
   const _SummaryCard({
-    required this.title,
+    required this.titleKey,
     required this.value,
     required this.valueColor,
   });
@@ -460,26 +304,30 @@ class _SummaryCard extends StatelessWidget {
     final colors = context.appColors;
 
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
-        color: colors.kInputColor,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.kBorderColor.withOpacity(0.3)),
+        color: colors.kBgColor,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: colors.kBorderColor.withValues(alpha: 0.25)),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            title,
-            style: TextStyle(color: colors.kGrayColor, fontSize: 11.sp),
+          RobotoText(
+            text: titleKey,
+            fontSize: 11,
+            color: colors.kGrayColor,
+            fontWeight: FontWeight.w500,
+            textAlign: TextAlign.right,
           ),
           SizedBox(height: 8.h),
           Text(
             value,
-            style: TextStyle(
+            textAlign: TextAlign.right,
+            style: StatisticsStyle.value(
+              context,
               color: valueColor,
-              fontSize: 15.sp,
-              fontWeight: FontWeight.bold,
+              size: 15,
             ),
           ),
         ],
@@ -488,213 +336,107 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  final String title;
-
-  const _SectionTitle({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return Text(
-      title,
-      style: TextStyle(
-        color: colors.kWhiteColor,
-        fontSize: 16.sp,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-}
-
-class _ProjectStatusCard extends StatelessWidget {
+class _ExecutionSummaryCard extends StatelessWidget {
   final ProjectExecutionSummaryDto execution;
+  final AppColorScheme colors;
 
-  const _ProjectStatusCard({required this.execution});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final total = execution.totalProjects > 0 ? execution.totalProjects : 1;
-
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: colors.kInputColor,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.kBorderColor.withOpacity(0.3)),
-      ),
-      child: Column(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8.r),
-            child: Row(
-              children: [
-                if (execution.finishedProjects > 0)
-                  Expanded(
-                    flex: execution.finishedProjects,
-                    child: Container(
-                      height: 16.h,
-                      color: const Color(0xFF6A8EAE),
-                    ),
-                  ),
-                if (execution.achievement95Projects > 0)
-                  Expanded(
-                    flex: execution.achievement95Projects,
-                    child: Container(
-                      height: 16.h,
-                      color: colors.kPrimaryColor,
-                    ),
-                  ),
-                if (execution.achievement25Projects > 0)
-                  Expanded(
-                    flex: execution.achievement25Projects,
-                    child: Container(
-                      height: 16.h,
-                      color: colors.kGoldColor,
-                    ),
-                  ),
-                if (execution.otherProjects > 0)
-                  Expanded(
-                    flex: execution.otherProjects,
-                    child: Container(
-                      height: 16.h,
-                      color: colors.kRedColor.withOpacity(0.7),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          SizedBox(height: 20.h),
-          Wrap(
-            spacing: 16.w,
-            runSpacing: 12.h,
-            children: [
-              _StatusLegend(
-                title: AppString.finished.tr(),
-                subtitle: '${execution.finishedProjects} / $total',
-                color: const Color(0xFF6A8EAE),
-              ),
-              _StatusLegend(
-                title: AppString.achievement95Projects.tr(),
-                subtitle: '${execution.achievement95Projects} / $total',
-                color: colors.kPrimaryColor,
-              ),
-              _StatusLegend(
-                title: AppString.achievement25Projects.tr(),
-                subtitle: '${execution.achievement25Projects} / $total',
-                color: colors.kGoldColor,
-              ),
-              if (execution.otherProjects > 0)
-                _StatusLegend(
-                  title: AppString.otherProjects.tr(),
-                  subtitle: '${execution.otherProjects} / $total',
-                  color: colors.kRedColor,
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusLegend extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final Color color;
-
-  const _StatusLegend({
-    required this.title,
-    required this.subtitle,
-    required this.color,
+  const _ExecutionSummaryCard({
+    required this.execution,
+    required this.colors,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return Column(
       children: [
-        Container(
-          width: 8.w,
-          height: 8.w,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        CustomProgressBar(
+          label: AppString.finishedPercentage.tr(),
+          percentageText: '${execution.finishedPercentage.toStringAsFixed(1)}%',
+          percentage: (execution.finishedPercentage / 100).clamp(0.0, 1.0),
+          color: StatisticsStyle.statusFinished(colors),
+          backgroundColor: colors.kBorderColor.withValues(alpha: 0.3),
+          labelColor: colors.kGrayColor,
         ),
-        SizedBox(width: 6.w),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                color: colors.kWhiteColor,
-                fontSize: 11.sp,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              subtitle,
-              style: TextStyle(color: colors.kGrayColor, fontSize: 10.sp),
-            ),
-          ],
+        SizedBox(height: 16.h),
+        CustomProgressBar(
+          label: AppString.achievement95Percentage.tr(),
+          percentageText:
+              '${execution.achievement95Percentage.toStringAsFixed(1)}%',
+          percentage:
+              (execution.achievement95Percentage / 100).clamp(0.0, 1.0),
+          color: colors.kPrimaryColor,
+          backgroundColor: colors.kBorderColor.withValues(alpha: 0.3),
+          labelColor: colors.kGrayColor,
+        ),
+        SizedBox(height: 16.h),
+        CustomProgressBar(
+          label: AppString.achievement25Percentage.tr(),
+          percentageText:
+              '${execution.achievement25Percentage.toStringAsFixed(1)}%',
+          percentage:
+              (execution.achievement25Percentage / 100).clamp(0.0, 1.0),
+          color: colors.kGoldColor,
+          backgroundColor: colors.kBorderColor.withValues(alpha: 0.3),
+          labelColor: colors.kGrayColor,
         ),
       ],
     );
   }
 }
 
-class _PerformanceCard extends StatelessWidget {
-  final ProjectExecutionSummaryDto execution;
+class _FinancialOverview extends StatelessWidget {
+  final GeneralStatisticsDto general;
+  final String Function(double) formatMoney;
   final AppColorScheme colors;
 
-  const _PerformanceCard({required this.execution, required this.colors});
+  const _FinancialOverview({
+    required this.general,
+    required this.formatMoney,
+    required this.colors,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: colors.kInputColor,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.kBorderColor.withOpacity(0.3)),
+    final sar = AppString.sar.tr();
+    final rows = [
+      (AppString.paidAmount.tr(), general.paidAmount, colors.kPrimaryColor),
+      (
+        AppString.inProgressAmount.tr(),
+        general.inProgressAmount,
+        colors.kGoldColor,
       ),
-      child: Column(
-        children: [
-          CustomProgressBar(
-            label: AppString.finishedPercentage.tr(),
-            percentageText: '${execution.finishedPercentage.toStringAsFixed(1)}%',
-            percentage: (execution.finishedPercentage / 100).clamp(0.0, 1.0),
-            color: const Color(0xFF6A8EAE),
-            backgroundColor: colors.kBorderColor.withOpacity(0.3),
-            labelColor: colors.kGrayColor,
-          ),
-          SizedBox(height: 16.h),
-          CustomProgressBar(
-            label: AppString.achievement95Percentage.tr(),
-            percentageText:
-                '${execution.achievement95Percentage.toStringAsFixed(1)}%',
-            percentage:
-                (execution.achievement95Percentage / 100).clamp(0.0, 1.0),
-            color: colors.kPrimaryColor,
-            backgroundColor: colors.kBorderColor.withOpacity(0.3),
-            labelColor: colors.kGrayColor,
-          ),
-          SizedBox(height: 16.h),
-          CustomProgressBar(
-            label: AppString.achievement25Percentage.tr(),
-            percentageText:
-                '${execution.achievement25Percentage.toStringAsFixed(1)}%',
-            percentage:
-                (execution.achievement25Percentage / 100).clamp(0.0, 1.0),
-            color: colors.kGoldColor,
-            backgroundColor: colors.kBorderColor.withOpacity(0.3),
-            labelColor: colors.kGrayColor,
-          ),
-        ],
+      (
+        AppString.contractualBudget.tr(),
+        general.contractualBudget,
+        colors.kFontColor,
       ),
+      (AppString.remainingBudget.tr(), general.remaining, colors.kRedColor),
+    ];
+
+    return Column(
+      children: rows.map((row) {
+        return Padding(
+          padding: EdgeInsets.only(bottom: 10.h),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  row.$1,
+                  style: StatisticsStyle.label(context, size: 12),
+                ),
+              ),
+              Text(
+                '${formatMoney(row.$2)} $sar',
+                style: StatisticsStyle.value(
+                  context,
+                  color: row.$3,
+                  size: 13,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 }

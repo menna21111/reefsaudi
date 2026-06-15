@@ -15,6 +15,7 @@ import 'storage_service/storage_impl.dart';
 
 import 'storage_service/storage_operations.dart';
 import 'pmo_device_service.dart';
+import 'token_service/token_refresh_service.dart';
 import 'token_service/token_secure_storage.dart';
 import 'token_service/token_storage.dart';
 
@@ -51,6 +52,7 @@ import '../../features/financial_requirements/data/repositories/financial_requir
 import '../../features/financial_requirements/domain/repositories/financial_requirements_repository.dart';
 import '../../features/financial_requirements/domain/usecases/get_financial_statements.dart';
 import '../../features/financial_requirements/presentation/bloc/financial_requirements_bloc.dart';
+import '../../features/financial_requirements/presentation/cubit/financial_statement_form_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -77,7 +79,7 @@ class ServiceLocator {
           },
         ),
       );
-      dio.interceptors.add(AuthInterceptor());
+      dio.interceptors.add(AuthInterceptor(dio));
       return dio;
     });
     sl.registerLazySingleton<InternetConnectionChecker>(
@@ -89,6 +91,12 @@ class ServiceLocator {
     );
     sl.registerLazySingleton<TokenStorage>(
       () => TokenFlutterSecureStorageService(sl()),
+    );
+    sl.registerLazySingleton<TokenRefreshService>(
+      () => TokenRefreshService(
+        tokenStorage: sl(),
+        deviceService: sl(),
+      ),
     );
     sl.registerLazySingleton<StorageOperations>(() => StorageServiceImpl(sl()));
     sl.registerLazySingleton<StorageService>(() => StorageService(sl()));
@@ -126,6 +134,7 @@ class ServiceLocator {
         remoteDataSource: sl(),
         networkInfo: sl(),
         tokenStorage: sl(),
+        tokenRefreshService: sl(),
         deviceService: sl(),
         permissionCubit: sl(),
       ),
@@ -183,6 +192,9 @@ class ServiceLocator {
       () => FinancialRequirementsBloc(
         getFinancialStatementsUseCase: sl(),
       ),
+    );
+    sl.registerFactory(
+      () => FinancialStatementFormCubit(repository: sl()),
     );
   }
 }

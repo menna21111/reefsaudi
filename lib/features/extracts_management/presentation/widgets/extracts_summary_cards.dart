@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../core/utils/app_color.dart';
+import '../../../../core/utils/app_theme_context.dart';
 import 'extracts_summary_card.dart';
 
 class ExtractsSummaryCards extends StatelessWidget {
@@ -21,6 +21,8 @@ class ExtractsSummaryCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Row(
       children: [
         Expanded(
@@ -29,7 +31,7 @@ class ExtractsSummaryCards extends StatelessWidget {
             mainValue: pageValueLabel,
             disbursedValue: '$completedCount',
             inProcessValue: '$inProcessCount',
-            inProcessColor: AppColor.kRedColor,
+            inProcessColor: colors.kRedColor,
           ),
         ),
         SizedBox(width: 12.w),
@@ -39,7 +41,7 @@ class ExtractsSummaryCards extends StatelessWidget {
             mainValue: '$totalCount',
             disbursedValue: '$completedCount',
             inProcessValue: '$inProcessCount',
-            inProcessColor: AppColor.kGoldColor,
+            inProcessColor: colors.kGoldColor,
           ),
         ),
       ],

@@ -33,48 +33,25 @@ extension ExtractStatusX on ExtractStatus {
 }
 
 class ExtractItem {
+  final String projectName;
   final String sector;
   final String extractNumber;
   final String value;
-  final ExtractStatus status;
+  final String extractStatus;
   final String managementStatus;
+  final String startDate;
+  final String endDate;
+  final ExtractStatus status;
 
   const ExtractItem({
+    required this.projectName,
     required this.sector,
     required this.extractNumber,
     required this.value,
-    required this.status,
+    required this.extractStatus,
     required this.managementStatus,
+    required this.startDate,
+    required this.endDate,
+    required this.status,
   });
 }
-
-const mockExtractItems = [
-  ExtractItem(
-    sector: 'الفاكهة',
-    extractNumber: 'EXT-2024-001',
-    value: '12.4M',
-    status: ExtractStatus.completed,
-    managementStatus: 'معتمد',
-  ),
-  ExtractItem(
-    sector: 'الخضروات',
-    extractNumber: 'EXT-2024-015',
-    value: '5.2M',
-    status: ExtractStatus.underReview,
-    managementStatus: 'تحت الإجراء',
-  ),
-  ExtractItem(
-    sector: 'التمور',
-    extractNumber: 'EXT-2024-042',
-    value: '8.8M',
-    status: ExtractStatus.delayed,
-    managementStatus: 'مرفوض',
-  ),
-  ExtractItem(
-    sector: 'الماشية',
-    extractNumber: 'EXT-2024-089',
-    value: '15.1M',
-    status: ExtractStatus.completed,
-    managementStatus: 'معتمد',
-  ),
-];

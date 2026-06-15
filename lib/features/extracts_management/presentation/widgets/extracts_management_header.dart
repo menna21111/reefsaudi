@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
-import 'extracts_brand_row.dart';
-import 'extracts_profile_avatar.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../../../core/widgets/applogo.dart';
 
 class ExtractsManagementHeader extends StatelessWidget {
   const ExtractsManagementHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        ExtractsBrandRow(),
-        ExtractsProfileAvatar(),
-      ],
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Applogo(height: 40.h, width: 40.w),
     );
   }
 }

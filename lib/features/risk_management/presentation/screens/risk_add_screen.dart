@@ -12,7 +12,7 @@ import '../../data/models/project_risk_models.dart';
 import '../constants/risk_enums.dart';
 import '../cubit/risk_management_cubit.dart';
 
-import '../widgets/styled_popup_dropdown.dart';
+import '../../../../core/widgets/styled_popup_dropdown.dart';
 
 class RiskAddScreen extends StatefulWidget {
   const RiskAddScreen({super.key});

@@ -40,7 +40,7 @@ class AuthorizationHeader {
       'Accept-Language': lang,
     };
 
-    if (!includeAuth || PmoEndpoints.isLoginPath(path)) {
+    if (!includeAuth || PmoEndpoints.isPublicAuthPath(path)) {
       return headers;
     }
 
@@ -63,7 +63,7 @@ class AuthorizationHeader {
     options.headers['Accept-Language'] = lang;
     options.headers.remove(headerKey);
 
-    if (PmoEndpoints.isLoginPath(path)) {
+    if (PmoEndpoints.isPublicAuthPath(path)) {
       return;
     }
 

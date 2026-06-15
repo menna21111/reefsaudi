@@ -33,8 +33,10 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
         remoteDataSource.getGeneralStatistics(regionId: regionId),
         remoteDataSource.getExecutionSummary(regionId: regionId),
         if (cachedAreas == null) remoteDataSource.getAreaProjects(),
-        if (hasRegion) remoteDataSource.getSectorProjects(regionId: regionId),
-        if (hasRegion) remoteDataSource.getQcTechnical(regionId: regionId),
+        remoteDataSource.getSectorProjects(regionId: regionId),
+        remoteDataSource.getQcTechnical(regionId: regionId),
+        remoteDataSource.getProjectStatusCounts(regionId: regionId),
+        remoteDataSource.getCountByType(regionId: regionId),
       ];
 
       final results = await Future.wait(futures);
@@ -50,12 +52,11 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
         areas = results[index++] as List<AreaProjectDto>;
       }
 
-      List<SectorProjectDto> sectors = const [];
-      List<GlobalQcCategoryDto> qcTechnical = const [];
-      if (hasRegion) {
-        sectors = results[index++] as List<SectorProjectDto>;
-        qcTechnical = results[index++] as List<GlobalQcCategoryDto>;
-      }
+      final sectors = results[index++] as List<SectorProjectDto>;
+      final qcTechnical = results[index++] as List<GlobalQcCategoryDto>;
+      final projectStatusCounts =
+          results[index++] as List<StatisticsKeyValueDto>;
+      final countByType = results[index++] as List<StatisticsKeyValueDto>;
 
       return Right(
         GlobalStatisticsBundle(
@@ -64,6 +65,8 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
           areas: areas,
           sectors: sectors,
           qcTechnical: qcTechnical,
+          projectStatusCounts: projectStatusCounts,
+          countByType: countByType,
           selectedRegionId: hasRegion ? regionId : null,
           selectedRegionTitle: hasRegion ? regionTitle : null,
         ),

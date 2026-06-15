@@ -3,16 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
 
+import '../../../../core/utils/app_font.dart';
 import '../../../../core/utils/app_string.dart';
 import '../../../../core/utils/app_theme_context.dart';
 import '../../data/models/global_statistics_models.dart';
-import '../../../../core/sa_region_map_constants.dart';
+import '../constants/sa_region_map_constants.dart';
+import 'statistics_style.dart';
 
 class SaudiStatisticsMap extends StatefulWidget {
   final List<AreaProjectDto> areas;
   final String? selectedRegionCode;
   final ValueChanged<AreaProjectDto> onRegionSelected;
   final VoidCallback? onUnknownRegionTapped;
+  final String? hintText;
 
   const SaudiStatisticsMap({
     super.key,
@@ -20,6 +23,7 @@ class SaudiStatisticsMap extends StatefulWidget {
     required this.onRegionSelected,
     this.selectedRegionCode,
     this.onUnknownRegionTapped,
+    this.hintText,
   });
 
   @override
@@ -53,11 +57,11 @@ class _SaudiStatisticsMapState extends State<SaudiStatisticsMap> {
         MapColorMapper(value: 'selected', color: colors.kPrimaryColor),
         MapColorMapper(
           value: 'active',
-          color: colors.kPrimaryColor.withOpacity(0.55),
+          color: colors.kPrimaryColor.withValues(alpha: 0.55),
         ),
         MapColorMapper(
           value: 'inactive',
-          color: colors.kDarkGrayColor.withOpacity(0.65),
+          color: colors.kDarkGrayColor.withValues(alpha: 0.65),
         ),
       ],
     );
@@ -100,16 +104,18 @@ class _SaudiStatisticsMapState extends State<SaudiStatisticsMap> {
       height: 280.h,
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: colors.kInputColor,
+        color: colors.kBgColor,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.kBorderColor.withOpacity(0.3)),
+        border: Border.all(color: colors.kBorderColor.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            AppString.tapRegionOnMap.tr(),
-            style: TextStyle(color: colors.kGrayColor, fontSize: 11.sp),
+          RobotoText(
+            text: widget.hintText ?? AppString.tapRegionOnMap,
+            fontSize: 11,
+            color: colors.kGrayColor,
+            textAlign: TextAlign.start,
           ),
           SizedBox(height: 8.h),
           Expanded(
@@ -121,16 +127,16 @@ class _SaudiStatisticsMapState extends State<SaudiStatisticsMap> {
                     source: mapSource,
                     strokeColor: colors.kBgColor,
                     strokeWidth: 1.2,
-                    color: colors.kDarkGrayColor.withOpacity(0.4),
+                    color: colors.kDarkGrayColor.withValues(alpha: 0.4),
                     selectedIndex: _selectedIndex,
                     selectionSettings: MapSelectionSettings(
-                      color: colors.kGoldColor.withOpacity(0.85),
-                      strokeColor: colors.kWhiteColor,
+                      color: colors.kGoldColor.withValues(alpha: 0.85),
+                      strokeColor: colors.kPrimaryColor,
                       strokeWidth: 1.5,
                     ),
                     onSelectionChanged: _handleSelection,
                     tooltipSettings: MapTooltipSettings(
-                      color: colors.kDarkGrayColor.withOpacity(0.95),
+                      color: colors.kDarkGrayColor.withValues(alpha: 0.95),
                       strokeColor: colors.kPrimaryColor,
                     ),
                     shapeTooltipBuilder: (BuildContext context, int index) {
@@ -147,9 +153,10 @@ class _SaudiStatisticsMapState extends State<SaudiStatisticsMap> {
                         padding: EdgeInsets.all(8.w),
                         child: Text(
                           '$title\n${AppString.projects.tr()}: $count',
-                          style: TextStyle(
-                            color: colors.kWhiteColor,
-                            fontSize: 11.sp,
+                          style: StatisticsStyle.label(
+                            context,
+                            color: StatisticsStyle.textOnAccent,
+                            size: 11,
                           ),
                         ),
                       );

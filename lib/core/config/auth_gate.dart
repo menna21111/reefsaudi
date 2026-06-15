@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../features/auth/presination/screans/login_screan.dart';
-import '../permissions/permission_cubit.dart';
 import '../services/service_locator.dart';
-import '../services/token_service/token_storage.dart';
 import '../utils/app_theme_context.dart';
 import 'navigation.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -26,18 +24,7 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<bool> _restoreSession() async {
-    final token = await sl<TokenStorage>().getToken();
-    final hasToken = token != null && token.isNotEmpty;
-
-    if (!hasToken) {
-      await sl<PermissionCubit>().clear();
-      return false;
-    }
-
-    await sl<PermissionCubit>().loadCached();
-    final refresh = await sl<AuthRepositoryImpl>().refreshProfile();
-    refresh.fold((_) {}, (_) {});
-    return true;
+    return sl<AuthRepositoryImpl>().restoreSession();
   }
 
   @override
