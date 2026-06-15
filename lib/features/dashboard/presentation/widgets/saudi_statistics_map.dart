@@ -6,7 +6,7 @@ import 'package:syncfusion_flutter_maps/maps.dart';
 import '../../../../core/utils/app_string.dart';
 import '../../../../core/utils/app_theme_context.dart';
 import '../../data/models/global_statistics_models.dart';
-import '../constants/sa_region_map_constants.dart';
+import '../../../../core/sa_region_map_constants.dart';
 
 class SaudiStatisticsMap extends StatefulWidget {
   final List<AreaProjectDto> areas;
@@ -33,9 +33,8 @@ class _SaudiStatisticsMapState extends State<SaudiStatisticsMap> {
   void didUpdateWidget(SaudiStatisticsMap oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedRegionCode != widget.selectedRegionCode) {
-      _selectedIndex = SaRegionMapConstants.indexForRegionCode(
-            widget.selectedRegionCode,
-          ) ??
+      _selectedIndex =
+          SaRegionMapConstants.indexForRegionCode(widget.selectedRegionCode) ??
           -1;
     }
   }
@@ -51,10 +50,7 @@ class _SaudiStatisticsMapState extends State<SaudiStatisticsMap> {
           SaRegionMapConstants.regionCodesByIndex[index],
       shapeColorValueMapper: (int index) => _colorKeyForIndex(index),
       shapeColorMappers: [
-        MapColorMapper(
-          value: 'selected',
-          color: colors.kPrimaryColor,
-        ),
+        MapColorMapper(value: 'selected', color: colors.kPrimaryColor),
         MapColorMapper(
           value: 'active',
           color: colors.kPrimaryColor.withOpacity(0.55),
@@ -95,9 +91,8 @@ class _SaudiStatisticsMapState extends State<SaudiStatisticsMap> {
     final mapSource = _buildMapSource(context);
 
     if (_selectedIndex == -1 && widget.selectedRegionCode != null) {
-      _selectedIndex = SaRegionMapConstants.indexForRegionCode(
-            widget.selectedRegionCode,
-          ) ??
+      _selectedIndex =
+          SaRegionMapConstants.indexForRegionCode(widget.selectedRegionCode) ??
           -1;
     }
 

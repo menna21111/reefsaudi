@@ -6,11 +6,15 @@ import 'package:flutter/material.dart';
 
 import '../../main.dart';
 import '../funcation.dart';
+import '../network/pmo_endpoints.dart';
 import '../utils/app_color.dart';
+import '../../features/auth/presination/screans/login_screan.dart';
 import 'service_locator.dart';
 import 'token_service/token_storage.dart';
 
 class AuthInterceptor extends Interceptor {
+  static bool _isHandlingAuthError = false;
+
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     log('AuthInterceptor - Request sending: ${options.method} ${options.uri}');
@@ -23,22 +27,34 @@ class AuthInterceptor extends Interceptor {
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     // log('AuthInterceptor - Response received: ${response.data}');
-    // Check if response indicates invalid token
     if (_isInvalidTokenResponse(response.data)) {
       log('Invalid token detected, redirecting to login');
-      _handleInvalidToken();
-      return; // Don't continue with the response
+      _handleInvalidToken(response.requestOptions);
+      return handler.reject(
+        DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          error: 'Invalid token detected',
+        ),
+      );
     }
     super.onResponse(response, handler);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    // Check if error response indicates invalid token
-    if (err.response?.data != null &&
+    final path = err.requestOptions.path;
+    final isLoginRequest = PmoEndpoints.isLoginPath(path);
+
+    if (err.response?.statusCode == 401 && !isLoginRequest) {
+      log('401 Unauthorized detected on non-login request, redirecting to login');
+      _handleInvalidToken(err.requestOptions);
+    } else if (err.response?.data != null &&
         _isInvalidTokenResponse(err.response!.data)) {
-      log('Invalid token detected in error, redirecting to login');
-      _handleInvalidToken();
+      log('Invalid token detected in error body, redirecting to login');
+      if (!isLoginRequest) {
+        _handleInvalidToken(err.requestOptions);
+      }
     }
     super.onError(err, handler);
   }
@@ -86,20 +102,22 @@ class AuthInterceptor extends Interceptor {
     return false;
   }
 
-  void _handleInvalidToken() async {
+  void _handleInvalidToken(RequestOptions options) async {
+    if (_isHandlingAuthError) return;
+    _isHandlingAuthError = true;
+
+    log('AuthInterceptor - handling invalid token from path: ${options.path}');
+
     try {
-      // Clear stored token
       await sl<TokenStorage>().clearToken();
 
-      // Navigate to login screen using the global navigator key
       final context = navigatorKey.currentContext;
       if (context != null) {
-        // Clear all routes and navigate to login
-        Navigator.of(
-          context,
-        ).pushNamedAndRemoveUntil('/login', (route) => false);
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginScrean()),
+          (route) => false,
+        );
 
-        // Show a message to user
         AppFunctions.showsToast(
           'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى',
           AppColor.kRedColor,
@@ -108,6 +126,10 @@ class AuthInterceptor extends Interceptor {
       }
     } catch (e) {
       log('Error handling invalid token: $e');
+    } finally {
+      Future.delayed(const Duration(seconds: 3), () {
+        _isHandlingAuthError = false;
+      });
     }
   }
 }

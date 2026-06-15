@@ -1,4 +1,4 @@
-import '../../data/models/global_statistics_models.dart';
+import '../features/dashboard/data/models/global_statistics_models.dart';
 
 /// Region order matches [assets/map/sa.json] feature order (Syncfusion index).
 class SaRegionMapConstants {
@@ -46,10 +46,7 @@ class SaRegionMapConstants {
     return regionCodesByIndex.indexOf(regionCode);
   }
 
-  static AreaProjectDto? areaForIndex(
-    int index,
-    List<AreaProjectDto> areas,
-  ) {
+  static AreaProjectDto? areaForIndex(int index, List<AreaProjectDto> areas) {
     final code = regionCodeAt(index);
     if (code == null) return null;
     return areaForRegionCode(code, areas);
