@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
 
+import '../../../../core/sa_region_map_constants.dart';
 import '../../../../core/utils/app_font.dart';
 import '../../../../core/utils/app_string.dart';
 import '../../../../core/utils/app_theme_context.dart';
 import '../../data/models/global_statistics_models.dart';
-import '../constants/sa_region_map_constants.dart';
+
 import 'statistics_style.dart';
 
 class SaudiStatisticsMap extends StatefulWidget {
@@ -112,7 +113,7 @@ class _SaudiStatisticsMapState extends State<SaudiStatisticsMap> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           RobotoText(
-            text: widget.hintText ?? AppString.tapRegionOnMap,
+            text: (widget.hintText ?? AppString.tapRegionOnMap).tr(),
             fontSize: 11,
             color: colors.kGrayColor,
             textAlign: TextAlign.start,
@@ -139,7 +140,7 @@ class _SaudiStatisticsMapState extends State<SaudiStatisticsMap> {
                       color: colors.kDarkGrayColor.withValues(alpha: 0.95),
                       strokeColor: colors.kPrimaryColor,
                     ),
-                    shapeTooltipBuilder: (BuildContext context, int index) {
+                    shapeTooltipBuilder: (BuildContext tooltipContext, int index) {
                       final code = SaRegionMapConstants.regionCodeAt(index);
                       final area = SaRegionMapConstants.areaForIndex(
                         index,
@@ -153,10 +154,11 @@ class _SaudiStatisticsMapState extends State<SaudiStatisticsMap> {
                         padding: EdgeInsets.all(8.w),
                         child: Text(
                           '$title\n${AppString.projects.tr()}: $count',
-                          style: StatisticsStyle.label(
-                            context,
+                          style: TextStyle(
+                            fontFamily: 'Almarai',
                             color: StatisticsStyle.textOnAccent,
-                            size: 11,
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       );

@@ -10,6 +10,7 @@ class AppString {
   static const String password = 'password';
   static const String forgotYourPassword = 'forgot_your_password';
   static const String login = 'login';
+  static const String sessionExpired = 'session_expired';
   static const String orLoginWith = 'or_login_with';
   static const String excellenceInManagingProjects =
       'excellence_in_managing_projects';
@@ -328,6 +329,12 @@ class AppString {
   static const String projectDocuments = 'project_documents';
   static const String projectFinance = 'project_finance';
   static const String projectTasksBoard = 'project_tasks_board';
+  static const String requestDate = 'request_date';
+  static const String serialNumber = 'serial_number';
+  static const String revisionNumber = 'revision_number';
+  static const String currentTasks = 'current_tasks';
+  static const String specialization = 'specialization';
+  static const String deliveryStatus = 'delivery_status';
   static const String projectChartStatus = 'project_chart_status';
   static const String projectCompletionPercent = 'project_completion_percent';
   static const String editProject = 'edit_project';
@@ -356,6 +363,33 @@ class AppString {
   static const String owner = 'owner';
   static const String projectBlueprintProgress = 'project_blueprint_progress';
   static const String enterEngineerName = 'enter_engineer_name';
+  static const String addNewProject = 'add_new_project';
+  static const String basicProjectDataSection = 'basic_project_data_section';
+  static const String timelineBudgetSection = 'timeline_budget_section';
+  static const String locationClassificationSection =
+      'location_classification_section';
+  static const String formsManagementSection = 'forms_management_section';
+  static const String projectTitleLabel = 'project_title_label';
+  static const String fullProjectNameHint = 'full_project_name_hint';
+  static const String contractor = 'contractor';
+  static const String modelType = 'model_type';
+  static const String projectDescriptionHint = 'project_description_hint';
+  static const String projectStartDate = 'project_start_date';
+  static const String expectedProjectEndDate = 'expected_project_end_date';
+  static const String approvedBudget = 'approved_budget';
+  static const String estimatedBudget = 'estimated_budget';
+  static const String projectTypeLabel = 'project_type_label';
+  static const String projectCode = 'project_code';
+  static const String fieldResponsible = 'field_responsible';
+  static const String financialResponsible = 'financial_responsible';
+  static const String pmConsultant = 'pm_consultant';
+  static const String morningResponsible = 'morning_responsible';
+  static const String empty = 'empty';
+  static const String standard = 'standard';
+  static const String advanced = 'advanced';
+  static const String agriculture = 'agriculture';
+  static const String industrial = 'industrial';
+  static const String services = 'services';
 
   // ==================== Details ====================
   static const String date = 'date';

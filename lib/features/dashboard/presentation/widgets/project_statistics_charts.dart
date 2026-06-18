@@ -38,7 +38,7 @@ class StatisticsSectionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           RobotoText(
-            text: titleKey,
+            text: titleKey.tr(),
             fontSize: 15,
             fontWeight: FontWeight.bold,
             color: colors.kFontColor,
@@ -138,7 +138,7 @@ class StatisticsSectorBarChart extends StatelessWidget {
     if (sectors.isEmpty) {
       return Center(
         child: RobotoText(
-          text: AppString.noData,
+          text: AppString.noData.tr(),
           fontSize: 12,
           color: colors.kGrayColor,
         ),
@@ -350,7 +350,7 @@ class StatisticsCountByTypePieChart extends StatelessWidget {
     if (items.isEmpty) {
       return Center(
         child: RobotoText(
-          text: AppString.noData,
+          text: AppString.noData.tr(),
           fontSize: 12,
           color: colors.kGrayColor,
         ),
@@ -438,7 +438,7 @@ class StatisticsQcDonutChart extends StatelessWidget {
     if (items.isEmpty) {
       return Center(
         child: RobotoText(
-          text: AppString.noData,
+          text: AppString.noData.tr(),
           fontSize: 12,
           color: colors.kGrayColor,
         ),
@@ -475,7 +475,7 @@ class StatisticsQcDonutChart extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RobotoText(
-                    text: AppString.totalLabel,
+                    text: AppString.totalLabel.tr(),
                     fontSize: 10,
                     color: colors.kGrayColor,
                   ),

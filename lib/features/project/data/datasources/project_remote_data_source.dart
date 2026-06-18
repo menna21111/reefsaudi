@@ -2,9 +2,15 @@ import '../../../../core/network/dio_helper.dart';
 import '../../../../core/network/pmo_endpoints.dart';
 import '../models/project_api_models.dart';
 
+Map<String, dynamic>? _responseAsMap(dynamic data) {
+  if (data is Map<String, dynamic>) return data;
+  if (data is Map) return Map<String, dynamic>.from(data);
+  return null;
+}
+
 abstract class ProjectRemoteDataSource {
   Future<ProjectDataDto> getProjectData(String projectId);
-  Future<ProjectExecutiveSummaryDto> getExecutiveSummary(String projectId);
+  Future<ProjectExecutiveSummaryDto?> getExecutiveSummary(String projectId);
   Future<List<ProjectStageDto>> getStages(String projectId);
   Future<ProjectStatementsDto> getProjectStatements(String projectId);
   Future<List<ProjectAchievementPointDto>> getProjectAchievement(String projectId);
@@ -28,17 +34,26 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
     final response = await DioHelper.getData(
       url: PmoEndpoints.projectData(projectId),
     );
-    return ProjectDataDto.fromJson(response.data as Map<String, dynamic>);
+    final body = _responseAsMap(response.data);
+    if (body == null) {
+      throw FormatException('Unexpected project-data response: ${response.data}');
+    }
+    return ProjectDataDto.fromJson(body);
   }
 
   @override
-  Future<ProjectExecutiveSummaryDto> getExecutiveSummary(String projectId) async {
+  Future<ProjectExecutiveSummaryDto?> getExecutiveSummary(
+    String projectId,
+  ) async {
     final response = await DioHelper.getData(
       url: PmoEndpoints.projectExecutiveSummary(projectId),
     );
-    return ProjectExecutiveSummaryDto.fromJson(
-      response.data as Map<String, dynamic>,
-    );
+    if (response.statusCode == 204) return null;
+
+    final body = _responseAsMap(response.data);
+    if (body == null) return null;
+
+    return ProjectExecutiveSummaryDto.fromJson(body);
   }
 
   @override
@@ -54,7 +69,12 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
     final response = await DioHelper.getData(
       url: PmoEndpoints.projectStatements(projectId),
     );
-    return ProjectStatementsDto.fromJson(response.data as Map<String, dynamic>);
+    if (response.statusCode == 204) return ProjectStatementsDto.empty();
+
+    final body = _responseAsMap(response.data);
+    if (body == null) return ProjectStatementsDto.empty();
+
+    return ProjectStatementsDto.fromJson(body);
   }
 
   @override
@@ -108,8 +128,8 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
       },
     );
 
-    final body = response.data;
-    if (body is! Map<String, dynamic>) {
+    final body = _responseAsMap(response.data);
+    if (body == null) {
       throw const FormatException('Unexpected achievement manual response');
     }
     return AchievementManualListResponse.fromJson(body);
@@ -118,7 +138,10 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
   @override
   Future<DxListResponse<ProjectDxItemDto>> getProjectDxList() async {
     final response = await DioHelper.getData(url: PmoEndpoints.projectDxList);
-    final body = response.data as Map<String, dynamic>;
+    final body = _responseAsMap(response.data);
+    if (body == null) {
+      return const DxListResponse(data: [], totalCount: 0);
+    }
     return DxListResponse(
       data: parseProjectDxItems(body['data']),
       totalCount: _toInt(body['totalCount']),
@@ -130,7 +153,10 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
     final response = await DioHelper.getData(
       url: PmoEndpoints.projectStepListDx,
     );
-    final body = response.data as Map<String, dynamic>;
+    final body = _responseAsMap(response.data);
+    if (body == null) {
+      return const DxListResponse(data: [], totalCount: 0);
+    }
     return DxListResponse(
       data: parseProjectStepItems(body['data']),
       totalCount: _toInt(body['totalCount']),
@@ -145,9 +171,11 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
       url: PmoEndpoints.projectSteps,
       query: {'pageNumber': pageNumber},
     );
-    return PaginatedProjectStepsDto.fromJson(
-      response.data as Map<String, dynamic>,
-    );
+    final body = _responseAsMap(response.data);
+    if (body == null) {
+      throw FormatException('Unexpected project steps response: ${response.data}');
+    }
+    return PaginatedProjectStepsDto.fromJson(body);
   }
 
   @override
@@ -155,7 +183,10 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
     final response = await DioHelper.getData(
       url: PmoEndpoints.projectStepById(id),
     );
-    final body = response.data as Map<String, dynamic>;
+    final body = _responseAsMap(response.data);
+    if (body == null) {
+      throw FormatException('Unexpected project step response: ${response.data}');
+    }
     final items = parseProjectStepItems(body['items']);
     if (items.isEmpty) {
       throw FormatException('Project step not found: $id');

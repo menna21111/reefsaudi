@@ -2,18 +2,24 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../main.dart';
 import '../funcation.dart';
+import '../network/authorization_header.dart';
 import '../network/pmo_endpoints.dart';
 import '../utils/app_color.dart';
+import '../utils/app_string.dart';
 import '../../features/auth/presination/screans/login_screan.dart';
 import 'service_locator.dart';
 import 'token_service/token_refresh_service.dart';
 import 'token_service/token_storage.dart';
 
 class AuthInterceptor extends Interceptor {
+  AuthInterceptor(this._dio);
+
+  final Dio _dio;
   static bool _isHandlingAuthError = false;
 
   @override
@@ -56,21 +62,33 @@ class AuthInterceptor extends Interceptor {
   }
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     final path = err.requestOptions.path;
     final isLoginRequest = PmoEndpoints.isLoginPath(path);
 
-    if (err.response?.statusCode == 401 && !isLoginRequest) {
-      log('401 Unauthorized detected on non-login request, redirecting to login');
-      _handleInvalidToken(err.requestOptions);
-    } else if (err.response?.data != null &&
-        _isInvalidTokenResponse(err.response!.data)) {
-      log('Invalid token detected in error body, redirecting to login');
+    if (_shouldAttemptRefresh(err)) {
+      final response = await _retryAfterRefresh(err.requestOptions);
+      if (response != null) {
+        return handler.resolve(response);
+      }
       if (!isLoginRequest) {
+        log('401 Unauthorized after refresh failed, redirecting to login');
         _handleInvalidToken(err.requestOptions);
       }
+      return handler.reject(err);
     }
-    super.onError(err, handler);
+
+    if (err.response?.data != null &&
+        _isInvalidTokenResponse(err.response!.data) &&
+        !isLoginRequest) {
+      log('Invalid token detected in error body, redirecting to login');
+      _handleInvalidToken(err.requestOptions);
+    }
+
+    return handler.next(err);
   }
 
   bool _shouldAttemptRefresh(DioException err) {
@@ -174,18 +192,24 @@ class AuthInterceptor extends Interceptor {
       await sl<TokenStorage>().clearToken();
 
       final context = navigatorKey.currentContext;
-      if (context != null) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const LoginScrean()),
-          (route) => false,
-        );
+      if (context == null || !context.mounted) return;
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScrean()),
+        (route) => false,
+      );
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final loginContext = navigatorKey.currentContext;
+        if (loginContext == null || !loginContext.mounted) return;
 
         AppFunctions.showsToast(
-          'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى',
+          AppString.sessionExpired.tr(),
           AppColor.kRedColor,
-          context,
+          loginContext,
+          seconds: 4,
         );
-      }
+      });
     } catch (e) {
       log('Error handling invalid token: $e');
     } finally {

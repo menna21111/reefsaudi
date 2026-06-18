@@ -29,7 +29,7 @@ class InfoRow extends StatelessWidget {
         ),
         RobotoText(
           text: value,
-          color: valueColor,
+          color: colors.kGrayColor,
           fontSize: 12.sp,
           fontWeight: FontWeight.bold,
         ),

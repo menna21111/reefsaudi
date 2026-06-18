@@ -108,6 +108,24 @@ class ProjectExecutiveSummaryDto {
       statusColor: json['statusColor']?.toString() ?? '',
     );
   }
+
+  factory ProjectExecutiveSummaryDto.fromProjectData(ProjectDataDto data) {
+    return ProjectExecutiveSummaryDto(
+      executiveSummary: null,
+      actual: 0,
+      planned: 0,
+      diffraction: 0,
+      achievementTitle: '',
+      projectId: data.projectId,
+      stepTitle: data.stepTitle,
+      isFinal: false,
+      assignedDate: '',
+      completionPercent: 0,
+      statusCode: 0,
+      stepStatus: data.stepStatus,
+      statusColor: data.statusColor,
+    );
+  }
 }
 
 class ProjectStageDto {
@@ -163,6 +181,18 @@ class ProjectStatementsDto {
       disbursedAmount: _toDouble(json['disbursedAmount']),
       pendingAmount: _toDouble(json['pendingAmount']),
       maxActual: _toDouble(json['maxActual']),
+    );
+  }
+
+  factory ProjectStatementsDto.empty() {
+    return const ProjectStatementsDto(
+      budget: 0,
+      totalContracts: 0,
+      financialStatementsCount: 0,
+      remainingBudget: 0,
+      disbursedAmount: 0,
+      pendingAmount: 0,
+      maxActual: 0,
     );
   }
 }

@@ -27,7 +27,7 @@ class RobotoText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      context.tr(text),
+      text,
       overflow: textOverflow,
       maxLines: maxLines,
       softWrap: true,

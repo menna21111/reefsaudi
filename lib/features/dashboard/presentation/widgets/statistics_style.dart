@@ -8,7 +8,7 @@ import '../../../../core/utils/app_theme_context.dart';
 
 abstract final class StatisticsStyle {
   static TextStyle title(BuildContext context) {
-    final colors = context.appColors;
+    final colors = context.appColorsRead;
     return TextStyle(
       fontFamily: 'Almarai',
       color: colors.kFontColor,
@@ -23,7 +23,7 @@ abstract final class StatisticsStyle {
     double size = 12,
     FontWeight weight = FontWeight.w500,
   }) {
-    final colors = context.appColors;
+    final colors = context.appColorsRead;
     return TextStyle(
       fontFamily: 'Almarai',
       color: color ?? colors.kGrayColor,

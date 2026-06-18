@@ -29,14 +29,23 @@ class ProjectRepositoryImpl implements ProjectRepository {
     }
   }
 
+  Future<ProjectExecutiveSummaryDto> _loadExecutiveSummary(
+    String projectId,
+    ProjectDataDto projectData,
+  ) async {
+    final summary = await remoteDataSource.getExecutiveSummary(projectId);
+    return summary ?? ProjectExecutiveSummaryDto.fromProjectData(projectData);
+  }
+
   @override
   Future<Either<Failure, ProjectStatisticsBundle>> getStatisticsBundle(
     String projectId,
   ) async {
     return _guard(() async {
+      final projectData = await remoteDataSource.getProjectData(projectId);
+      final executiveSummary = await _loadExecutiveSummary(projectId, projectData);
+
       final results = await Future.wait([
-        remoteDataSource.getProjectData(projectId),
-        remoteDataSource.getExecutiveSummary(projectId),
         remoteDataSource.getStages(projectId),
         remoteDataSource.getProjectStatements(projectId),
         remoteDataSource.getProjectAchievement(projectId),
@@ -46,14 +55,14 @@ class ProjectRepositoryImpl implements ProjectRepository {
       ]);
 
       return ProjectStatisticsBundle(
-        projectData: results[0] as ProjectDataDto,
-        executiveSummary: results[1] as ProjectExecutiveSummaryDto,
-        stages: results[2] as List<ProjectStageDto>,
-        statements: results[3] as ProjectStatementsDto,
-        achievement: results[4] as List<ProjectAchievementPointDto>,
-        risks: results[5] as List<RiskMatrixItemDto>,
-        qcTechnical: results[6] as List<QcCategoryDto>,
-        qcAcceptedWork: results[7] as List<QcCategoryDto>,
+        projectData: projectData,
+        executiveSummary: executiveSummary,
+        stages: results[0] as List<ProjectStageDto>,
+        statements: results[1] as ProjectStatementsDto,
+        achievement: results[2] as List<ProjectAchievementPointDto>,
+        risks: results[3] as List<RiskMatrixItemDto>,
+        qcTechnical: results[4] as List<QcCategoryDto>,
+        qcAcceptedWork: results[5] as List<QcCategoryDto>,
       );
     });
   }
@@ -63,18 +72,19 @@ class ProjectRepositoryImpl implements ProjectRepository {
     String projectId,
   ) async {
     return _guard(() async {
+      final projectData = await remoteDataSource.getProjectData(projectId);
+      final executiveSummary = await _loadExecutiveSummary(projectId, projectData);
+
       final results = await Future.wait([
-        remoteDataSource.getProjectData(projectId),
-        remoteDataSource.getExecutiveSummary(projectId),
         remoteDataSource.getRiskMatrix(projectId),
         remoteDataSource.getProjectAchievement(projectId),
       ]);
 
       return ProjectDetailsBundle(
-        projectData: results[0] as ProjectDataDto,
-        executiveSummary: results[1] as ProjectExecutiveSummaryDto,
-        risks: results[2] as List<RiskMatrixItemDto>,
-        achievement: results[3] as List<ProjectAchievementPointDto>,
+        projectData: projectData,
+        executiveSummary: executiveSummary,
+        risks: results[0] as List<RiskMatrixItemDto>,
+        achievement: results[1] as List<ProjectAchievementPointDto>,
       );
     });
   }

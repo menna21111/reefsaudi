@@ -7,6 +7,7 @@ import '../../../../core/permissions/permission_gate.dart';
 import '../../../../core/utils/app_string.dart';
 import '../../../../core/utils/app_theme_context.dart';
 import '../../../achievement_rates_management/presentation/screens/achievement_rates_management_screen.dart';
+import '../../../project/presentation/screens/add_project_screen.dart';
 import '../../../extracts_management/presentation/screens/extracts_management_screen.dart';
 
 class CustomDrawer extends StatelessWidget {
@@ -91,9 +92,12 @@ class CustomDrawer extends StatelessWidget {
                   permission: AppPermissions.projectCreate,
                   child: _buildDrawerItem(
                     context,
-                    icon: Icons.model_training_rounded,
-                    title: AppString.formsBuilder.tr(),
-                    onTap: () => Navigator.pop(context),
+                    icon: Icons.add_business_rounded,
+                    title: AppString.addProject.tr(),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, AddProjectScreen.route());
+                    },
                   ),
                 ),
               ],

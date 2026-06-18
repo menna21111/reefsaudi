@@ -46,6 +46,9 @@ import '../../features/risk_management/data/repositories/risk_repository_impl.da
 import '../../features/risk_management/domain/repositories/risk_repository.dart';
 import '../../features/risk_management/presentation/cubit/risk_management_cubit.dart';
 
+import '../../features/project/data/datasources/add_project_remote_data_source.dart';
+import '../../features/project/presentation/cubit/add_project_cubit.dart';
+
 // Financial Requirements Imports
 import '../../features/financial_requirements/data/datasources/financial_requirements_remote_data_source.dart';
 import '../../features/financial_requirements/data/repositories/financial_requirements_repository_impl.dart';
@@ -166,6 +169,13 @@ class ServiceLocator {
     sl.registerFactory(() => ProjectDetailsCubit(repository: sl()));
     sl.registerFactory(() => ProjectRisksCubit(repository: sl()));
     sl.registerFactory(() => ProjectBlueprintCubit(repository: sl()));
+
+    sl.registerLazySingleton<AddProjectRemoteDataSource>(
+      () => AddProjectRemoteDataSourceImpl(),
+    );
+    sl.registerFactory(
+      () => AddProjectCubit(dataSource: sl()),
+    );
 
     sl.registerLazySingleton<RiskRemoteDataSource>(
       () => RiskRemoteDataSourceImpl(),

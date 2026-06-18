@@ -1,14 +1,17 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/utils/app_color.dart';
+
+import '../../../../core/utils/app_string.dart';
+import '../../../../core/utils/app_theme_context.dart';
 import '../../domain/models/task_board_mock_data.dart';
 import '../../domain/models/task_item.dart';
 import '../widgets/tasks_board_app_bar.dart';
 import '../widgets/tasks_change_status_sheet.dart';
-import '../widgets/tasks_kanban_board.dart';
 import '../widgets/tasks_search_field.dart';
+import '../widgets/tasks_task_card.dart';
 
-/// شاشة المهام — لوحة Kanban للمهام (تبويب التنقل أو من تفاصيل المشروع).
+/// شاشة المهام — قائمة بطاقات للموبايل (تبويب التنقل أو من تفاصيل المشروع).
 class TasksScreen extends StatefulWidget {
   const TasksScreen({
     super.key,
@@ -46,14 +49,13 @@ class _TasksScreenState extends State<TasksScreen> {
     if (_searchQuery.isEmpty) return _tasks;
 
     final query = _searchQuery.trim().toLowerCase();
-    return _tasks
-        .where(
-          (task) =>
-              task.title.toLowerCase().contains(query) ||
-              task.owner.toLowerCase().contains(query) ||
-              task.id.toLowerCase().contains(query),
-        )
-        .toList();
+    return _tasks.where((task) {
+      return task.title.toLowerCase().contains(query) ||
+          task.category.toLowerCase().contains(query) ||
+          task.owner.toLowerCase().contains(query) ||
+          task.contractor.toLowerCase().contains(query) ||
+          task.id.toLowerCase().contains(query);
+    }).toList();
   }
 
   void _onTaskTap(TaskItem task) {
@@ -70,8 +72,11 @@ class _TasksScreenState extends State<TasksScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final tasks = _filteredTasks;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: colors.kBgColor,
       appBar: TasksBoardAppBar(
         showBackButton: widget.showBackButton,
         projectSubtitle: widget.projectSubtitle,
@@ -80,7 +85,7 @@ class _TasksScreenState extends State<TasksScreen> {
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+            padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
             child: TasksSearchField(
               controller: _searchController,
               focusNode: _searchFocusNode,
@@ -90,10 +95,29 @@ class _TasksScreenState extends State<TasksScreen> {
             ),
           ),
           Expanded(
-            child: TasksKanbanBoard(
-              tasks: _filteredTasks,
-              onTaskTap: _onTaskTap,
-            ),
+            child: tasks.isEmpty
+                ? Center(
+                    child: Text(
+                      AppString.noData.tr(),
+                      style: TextStyle(
+                        color: colors.kGrayColor,
+                        fontSize: 14.sp,
+                        fontFamily: 'Almarai',
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 24.h),
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: tasks.length,
+                    itemBuilder: (context, index) {
+                      final task = tasks[index];
+                      return TasksTaskCard(
+                        task: task,
+                        onTap: () => _onTaskTap(task),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

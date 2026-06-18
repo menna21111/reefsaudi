@@ -52,7 +52,7 @@ class _StatisticsView extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         title: RobotoText(
-          text: AppString.projectStatisticsTitle,
+          text: AppString.projectStatisticsTitle.tr(),
           fontSize: 18,
           fontWeight: FontWeight.bold,
           color: colors.kPrimaryColor,
@@ -89,7 +89,7 @@ class _StatisticsView extends StatelessWidget {
                       onPressed: () =>
                           context.read<GlobalStatisticsCubit>().refresh(),
                       child: RobotoText(
-                        text: AppString.retry,
+                        text: AppString.retry.tr(),
                         fontSize: 14,
                         color: StatisticsStyle.textOnAccent,
                       ),
@@ -160,7 +160,7 @@ class _StatisticsView extends StatelessWidget {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: RobotoText(
-                                  text: AppString.regionHasNoProjects,
+                                  text: AppString.regionHasNoProjects.tr(),
                                   fontSize: 14,
                                   color: StatisticsStyle.textOnAccent,
                                 ),
@@ -277,7 +277,7 @@ class _RegionFilterBanner extends StatelessWidget {
             onPressed: () =>
                 context.read<GlobalStatisticsCubit>().clearRegionFilter(),
             child: RobotoText(
-              text: AppString.allRegions,
+              text: AppString.allRegions.tr(),
               fontSize: 12,
               color: colors.kPrimaryColor,
             ),

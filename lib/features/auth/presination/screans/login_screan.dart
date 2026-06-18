@@ -211,18 +211,18 @@ class _LoginScreanState extends State<LoginScrean>
                 ),
               ),
             ),
-            SizedBox(height: 12.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                RobotoText(
-                  text: AppString.forgotYourPassword.tr(),
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w500,
-                  color: colorScheme.primary,
-                ),
-              ],
-            ),
+            // SizedBox(height: 12.h),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.end,
+            //   children: [
+            //     RobotoText(
+            //       text: AppString.forgotYourPassword.tr(),
+            //       fontSize: 12.sp,
+            //       fontWeight: FontWeight.w500,
+            //       color: colorScheme.primary,
+            //     ),
+            //   ],
+            // ),
             SizedBox(height: 28.h),
             _buildLoginButton(context),
             SizedBox(height: 24.h),

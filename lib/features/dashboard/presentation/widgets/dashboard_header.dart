@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../core/permissions/app_permissions.dart';
+import '../../../../core/permissions/permission_gate.dart';
 import '../../../../core/utils/app_color_scheme.dart';
 import '../../../../core/utils/app_theme_context.dart';
 
 import '../../../risk_management/presentation/screens/risk_management_screen.dart';
+import '../../../project/presentation/screens/add_project_screen.dart';
+import '../screens/statices_homescrean.dart';
 import '../screens/statistics_screen.dart';
 
 class DashboardHeader extends StatelessWidget {
@@ -29,6 +33,17 @@ class DashboardHeader extends StatelessWidget {
         ),
         Row(
           children: [
+            PermissionGate(
+              permission: AppPermissions.projectCreate,
+              child: _ActionIcon(
+                icon: Icons.add_rounded,
+                colors: colors,
+                onTap: () {
+                  Navigator.push(context, AddProjectScreen.route());
+                },
+              ),
+            ),
+            SizedBox(width: 8.w),
             _ActionIcon(
               icon: Icons.warning_amber_outlined,
               colors: colors,
@@ -49,7 +64,7 @@ class DashboardHeader extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const StatisticsScreen(),
+                    builder: (_) => const StatisticsHomeScrean(),
                   ),
                 );
               },

@@ -10,6 +10,7 @@ class PmoEndpoints {
   static const String projectRiskListDx = 'ProjectRisk/list/dx';
   static const String createProjectRisk = 'ProjectRisk/CreateProjectRisk';
   static const String accountListDx = 'account/list/dx';
+  static const String supplierListDx = 'Supplier/list/dx';
   static const String financialStatement = 'FinancialStatement';
   static const String createFinancialStatement = 'FinancialStatus/Create';
   static const String financialStatusListDx = 'FinancialStatus/list/dx';

@@ -1,6 +1,10 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/utils/app_color.dart';
+
+import '../../../../core/utils/app_color_scheme.dart';
+import '../../../../core/utils/app_string.dart';
+import '../../../../core/utils/app_theme_context.dart';
 import '../../domain/models/task_item.dart';
 
 class TasksTaskCard extends StatelessWidget {
@@ -13,149 +17,239 @@ class TasksTaskCard extends StatelessWidget {
     required this.onTap,
   });
 
+  String _display(String value) {
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? AppString.notAvailable.tr() : trimmed;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: EdgeInsets.only(bottom: 12.h),
-        padding: EdgeInsets.all(14.w),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+    final colors = context.appColors;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: 14.h),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: Theme.of(context).dividerColor.withOpacity(0.5),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 3.w,
-                  height: 36.h,
-                  decoration: BoxDecoration(
-                    color: task.indicatorColor,
-                    borderRadius: BorderRadius.circular(2.r),
-                  ),
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: Text(
-                    task.title,
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.displayLarge?.color,
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: colors.kInputColor,
+              borderRadius: BorderRadius.circular(16.r),
+              border: Border.all(
+                color: colors.kBorderColor.withOpacity(0.35),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.kBlackColor.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
-            if (task.hasImage) ...[
-              SizedBox(height: 12.h),
-              Container(
-                height: 70.h,
-                padding: EdgeInsets.all(8.w),
-                decoration: BoxDecoration(
-                  color: isDark 
-                      ? AppColor.kBackgroundColor 
-                      : AppColor.kLightSurfaceColor,
-                  borderRadius: BorderRadius.circular(8.r),
-                  border: Border.all(
-                    color: Theme.of(context).dividerColor.withOpacity(0.5),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (task.category.isNotEmpty)
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 14.w,
+                      vertical: 10.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: task.indicatorColor,
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(15.r),
+                      ),
+                    ),
+                    child: Text(
+                      task.category,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: colors.kWhiteColor,
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'Almarai',
+                      ),
+                    ),
                   ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                Padding(
+                  padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 16.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            height: 6.h,
-                            width: 80.w,
-                            decoration: BoxDecoration(
-                              color: AppColor.kPrimaryColor.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(3.r),
+                          Expanded(
+                            child: Text(
+                              task.title,
+                              style: TextStyle(
+                                color: colors.kFontColor,
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w700,
+                                height: 1.45,
+                                fontFamily: 'Almarai',
+                              ),
                             ),
                           ),
-                          SizedBox(height: 6.h),
+                          SizedBox(width: 8.w),
                           Container(
-                            height: 6.h,
-                            width: 50.w,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 4.h,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppColor.kGoldColor.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(3.r),
+                              color: task.badgeColor,
+                              borderRadius: BorderRadius.circular(20.r),
+                            ),
+                            child: Text(
+                              task.statusLabel,
+                              style: TextStyle(
+                                color: task.badgeTextColor,
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: 'Almarai',
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    Icon(
-                      Icons.insert_chart_outlined_rounded,
-                      color: AppColor.kPrimaryColor,
-                      size: 36.sp,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            SizedBox(height: 12.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 10.r,
-                      backgroundColor: AppColor.kPrimaryColor.withOpacity(0.2),
-                      child: Text(
-                        task.owner[0],
-                        style: TextStyle(
-                          color: AppColor.kPrimaryColor,
-                          fontSize: 8.sp,
-                          fontWeight: FontWeight.bold,
+                      SizedBox(height: 14.h),
+                      Divider(
+                        height: 1,
+                        color: colors.kBorderColor.withOpacity(0.35),
+                      ),
+                      SizedBox(height: 14.h),
+                      _InfoRow(
+                        colors: colors,
+                        leftLabel: AppString.requestDate.tr(),
+                        leftValue: _display(task.requestDate),
+                        rightLabel: AppString.contractor.tr(),
+                        rightValue: _display(task.contractor),
+                      ),
+                      SizedBox(height: 12.h),
+                      _InfoRow(
+                        colors: colors,
+                        leftLabel: AppString.serialNumber.tr(),
+                        leftValue: _display(task.serialNumber),
+                        rightLabel: AppString.revisionNumber.tr(),
+                        rightValue: _display(task.revisionNumber),
+                      ),
+                      SizedBox(height: 12.h),
+                      _InfoRow(
+                        colors: colors,
+                        leftLabel: AppString.currentTasks.tr(),
+                        leftValue: _display(task.currentTask),
+                        rightLabel: AppString.assignedTo.tr(),
+                        rightValue: _display(task.owner),
+                      ),
+                      SizedBox(height: 12.h),
+                      _InfoRow(
+                        colors: colors,
+                        leftLabel: AppString.specialization.tr(),
+                        leftValue: _display(task.specialization),
+                        rightLabel: AppString.deliveryStatus.tr(),
+                        rightValue: _display(task.deliveryStatus),
+                      ),
+                      if (task.description.trim().isNotEmpty) ...[
+                        SizedBox(height: 12.h),
+                        _InfoCell(
+                          colors: colors,
+                          label: AppString.description.tr(),
+                          value: _display(task.description),
                         ),
-                      ),
-                    ),
-                    SizedBox(width: 6.w),
-                    Text(
-                      task.owner,
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                        fontSize: 10.sp,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-                  decoration: BoxDecoration(
-                    color: task.badgeColor,
-                    borderRadius: BorderRadius.circular(6.r),
-                  ),
-                  child: Text(
-                    task.statusLabel,
-                    style: TextStyle(
-                      color: task.badgeTextColor,
-                      fontSize: 8.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
+                      ],
+                    ],
                   ),
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.colors,
+    required this.leftLabel,
+    required this.leftValue,
+    required this.rightLabel,
+    required this.rightValue,
+  });
+
+  final AppColorScheme colors;
+  final String leftLabel;
+  final String leftValue;
+  final String rightLabel;
+  final String rightValue;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: _InfoCell(
+            colors: colors,
+            label: leftLabel,
+            value: leftValue,
+          ),
+        ),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: _InfoCell(
+            colors: colors,
+            label: rightLabel,
+            value: rightValue,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _InfoCell extends StatelessWidget {
+  const _InfoCell({
+    required this.colors,
+    required this.label,
+    required this.value,
+  });
+
+  final AppColorScheme colors;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: colors.kGrayColor,
+            fontSize: 11.sp,
+            fontWeight: FontWeight.w500,
+            fontFamily: 'Almarai',
+          ),
+        ),
+        SizedBox(height: 4.h),
+        Text(
+          value,
+          style: TextStyle(
+            color: colors.kFontColor,
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w600,
+            height: 1.35,
+            fontFamily: 'Almarai',
+          ),
+        ),
+      ],
     );
   }
 }

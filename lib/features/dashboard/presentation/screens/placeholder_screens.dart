@@ -30,7 +30,7 @@ class ProjectsPlaceholderScreen extends StatelessWidget {
             ),
             SizedBox(height: 16.h),
             LamaSansText(
-              text: AppString.projects,
+              text: AppString.projects.tr(),
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColor.kWhiteColor,
@@ -72,7 +72,7 @@ class TasksPlaceholderScreen extends StatelessWidget {
             ),
             SizedBox(height: 16.h),
             LamaSansText(
-              text: AppString.tasks,
+              text: AppString.tasks.tr(),
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColor.kWhiteColor,
@@ -114,7 +114,7 @@ class QualityPlaceholderScreen extends StatelessWidget {
             ),
             SizedBox(height: 16.h),
             LamaSansText(
-              text: AppString.qualityManagement,
+              text: AppString.qualityManagement.tr(),
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColor.kWhiteColor,

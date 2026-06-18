@@ -74,13 +74,13 @@ class ProjectDetailsScreen extends StatelessWidget {
                   screen: const EditProjectScreen(),
                 ),
                 SizedBox(height: 12.h),
-                _buildMenuOption(
-                  context,
-                  title: AppString.projectFinance.tr(),
-                  icon: Icons.account_balance_wallet_outlined,
-                  screen: const ExtractsManagementScreen(),
-                ),
-                SizedBox(height: 12.h),
+                // _buildMenuOption(
+                //   context,
+                //   title: AppString.projectFinance.tr(),
+                //   icon: Icons.account_balance_wallet_outlined,
+                //   screen: const ExtractsManagementScreen(),
+                // ),
+                // SizedBox(height: 12.h),
                 _buildMenuOption(
                   context,
                   title: AppString.projectBlueprintProgress.tr(),
@@ -90,13 +90,13 @@ class ProjectDetailsScreen extends StatelessWidget {
                     child: ProjectBlueprintScreen(projectId: projectId),
                   ),
                 ),
-                SizedBox(height: 12.h),
-                _buildMenuOption(
-                  context,
-                  title: AppString.projectTasksBoard.tr(),
-                  icon: Icons.assignment_turned_in_outlined,
-                  screen: const ProjectBoardScreen(),
-                ),
+                // SizedBox(height: 12.h),
+                // _buildMenuOption(
+                //   context,
+                //   title: AppString.projectTasksBoard.tr(),
+                //   icon: Icons.assignment_turned_in_outlined,
+                //   screen: const ProjectBoardScreen(),
+                // ),
                 SizedBox(height: 24.h),
                 OutlinedButton(
                   onPressed: () => Navigator.pop(context),
@@ -225,28 +225,28 @@ class ProjectDetailsScreen extends StatelessWidget {
                   category: data.categoryLabel,
                   status: data.stepTitle,
                 ),
-                SizedBox(height: 16.h),
-                ProjectChartCard(
-                  completionPercent: summary.completionPercent,
-                  achievementPoints: bundle.achievement,
-                ),
-                SizedBox(height: 16.h),
-                StatsRow(
-                  projectId: projectId,
-                  completionPercent: summary.completionPercent,
-                  executionPercent: summary.actual,
-                  risksCount: bundle.risks.length,
-                ),
-                SizedBox(height: 24.h),
-                const ProjectImageCard(),
-                SizedBox(height: 24.h),
-                ProjectInfoCard(
+                SizedBox(height: 16.h),  ProjectInfoCard(
                   consultant: data.consultantTitle,
                   contractor: data.contractorTitle,
                   startDate: data.startDate,
                   endDate: data.endDate,
                   budget: data.contractualBudget,
+                ),   SizedBox(height: 24.h),   StatsRow(
+                  projectId: projectId,
+                  completionPercent: summary.completionPercent,
+                  executionPercent: summary.actual,
+                  risksCount: bundle.risks.length,
+                ), SizedBox(height: 16.h),
+                ProjectChartCard(
+                  completionPercent: summary.completionPercent,
+                  achievementPoints: bundle.achievement,
                 ),
+               
+             
+                // SizedBox(height: 24.h),
+                // const ProjectImageCard(),
+             
+              
               ],
             ),
           );
