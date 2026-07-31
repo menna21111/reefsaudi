@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../features/auth/data/models/profile_model.dart';
 import '../../features/auth/presination/screans/login_screan.dart';
+import '../permissions/permission_cubit.dart';
 import '../services/service_locator.dart';
 import '../utils/app_theme_context.dart';
 import 'navigation.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 
+/// Restores session + cached permissions, then routes to home or login.
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
 
@@ -24,7 +27,11 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<bool> _restoreSession() async {
-    return sl<AuthRepositoryImpl>().restoreSession();
+    try {
+      return await sl<AuthRepositoryImpl>().restoreSession();
+    } catch (_) {
+      return false;
+    }
   }
 
   @override
@@ -43,9 +50,20 @@ class _AuthGateState extends State<AuthGate> {
           );
         }
 
-        return snapshot.data == true
-            ? LoginScrean()
-            : const LoginScrean();
+        final isLoggedIn = snapshot.data == true;
+        if (!isLoggedIn) {
+          return const LoginScrean();
+        }
+
+        return BlocBuilder<PermissionCubit, ProfileModel?>(
+          builder: (context, profile) {
+            if (profile == null) {
+              return const LoginScrean();
+            }
+
+            return const BottomNavigation();
+          },
+        );
       },
     );
   }

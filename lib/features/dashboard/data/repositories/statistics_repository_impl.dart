@@ -6,6 +6,7 @@ import '../../../../core/network/network_info.dart';
 import '../../domain/repositories/statistics_repository.dart';
 import '../datasources/statistics_remote_data_source.dart';
 import '../models/global_statistics_models.dart';
+import '../models/portfolio_overview_models.dart';
 
 class StatisticsRepositoryImpl implements StatisticsRepository {
   StatisticsRepositoryImpl({
@@ -16,59 +17,104 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
   final StatisticsRemoteDataSource remoteDataSource;
   final NetworkInfo networkInfo;
 
+  Future<Either<Failure, T>> _guard<T>(Future<T> Function() call) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure('no_internet_error'));
+    }
+    try {
+      return Right(await call());
+    } on DioException catch (e) {
+      return Left(ServerFailure.fromDioError(e));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
   @override
-  Future<Either<Failure, GlobalStatisticsBundle>> loadStatistics({
+  Future<Either<Failure, GeneralStatisticsDto>> getGeneralStatistics({
     String? regionId,
-    String? regionTitle,
-    List<AreaProjectDto>? cachedAreas,
+  }) =>
+      _guard(() => remoteDataSource.getGeneralStatistics(regionId: regionId));
+
+  @override
+  Future<Either<Failure, ProjectExecutionSummaryDto>> getExecutionSummary({
+    String? regionId,
+  }) =>
+      _guard(() => remoteDataSource.getExecutionSummary(regionId: regionId));
+
+  @override
+  Future<Either<Failure, List<AreaProjectDto>>> getAreaProjects() =>
+      _guard(remoteDataSource.getAreaProjects);
+
+  @override
+  Future<Either<Failure, List<SectorProjectDto>>> getSectorProjects({
+    String? regionId,
+  }) =>
+      _guard(() => remoteDataSource.getSectorProjects(regionId: regionId));
+
+  @override
+  Future<Either<Failure, List<GlobalQcCategoryDto>>> getQcTechnical({
+    String? regionId,
+  }) =>
+      _guard(() => remoteDataSource.getQcTechnical(regionId: regionId));
+
+  @override
+  Future<Either<Failure, List<StatisticsKeyValueDto>>> getProjectStatusCounts({
+    String? regionId,
+  }) =>
+      _guard(
+        () => remoteDataSource.getProjectStatusCounts(regionId: regionId),
+      );
+
+  @override
+  Future<Either<Failure, List<StatisticsKeyValueDto>>> getCountByType({
+    String? regionId,
+  }) =>
+      _guard(() => remoteDataSource.getCountByType(regionId: regionId));
+
+  @override
+  Future<Either<Failure, PortfolioOverviewBundle>> loadPortfolioOverview({
+    String? brandId,
+    String? brandTitle,
+    List<BrandDto>? cachedBrands,
   }) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure('no_internet_error'));
     }
 
     try {
-      final hasRegion = regionId != null && regionId != 'null';
+      final hasBrand = brandId != null && brandId.isNotEmpty;
 
       final futures = <Future<dynamic>>[
-        remoteDataSource.getGeneralStatistics(regionId: regionId),
-        remoteDataSource.getExecutionSummary(regionId: regionId),
-        if (cachedAreas == null) remoteDataSource.getAreaProjects(),
-        remoteDataSource.getSectorProjects(regionId: regionId),
-        remoteDataSource.getQcTechnical(regionId: regionId),
-        remoteDataSource.getProjectStatusCounts(regionId: regionId),
-        remoteDataSource.getCountByType(regionId: regionId),
+        remoteDataSource.getProjectsFinancialSectors(brandId: brandId),
+        remoteDataSource.getProjectsStatusCountsSectors(brandId: brandId),
+        remoteDataSource.getFinancialStatementProjects(brandId: brandId),
+        if (cachedBrands == null) remoteDataSource.getBrands(),
       ];
 
       final results = await Future.wait(futures);
 
       var index = 0;
-      final general = results[index++] as GeneralStatisticsDto;
-      final execution = results[index++] as ProjectExecutionSummaryDto;
+      final sectors = results[index++] as ProjectsFinancialSectorsDto;
+      final statusCounts = results[index++] as ProjectStatusCountsDto;
+      final financial = results[index++] as FinancialStatementProjectsDto;
 
-      List<AreaProjectDto> areas;
-      if (cachedAreas != null) {
-        areas = cachedAreas;
+      List<BrandDto> brands;
+      if (cachedBrands != null) {
+        brands = cachedBrands;
       } else {
-        areas = results[index++] as List<AreaProjectDto>;
+        final brandsPage = results[index++] as BrandsPageDto;
+        brands = brandsPage.items;
       }
 
-      final sectors = results[index++] as List<SectorProjectDto>;
-      final qcTechnical = results[index++] as List<GlobalQcCategoryDto>;
-      final projectStatusCounts =
-          results[index++] as List<StatisticsKeyValueDto>;
-      final countByType = results[index++] as List<StatisticsKeyValueDto>;
-
       return Right(
-        GlobalStatisticsBundle(
-          general: general,
-          execution: execution,
-          areas: areas,
+        PortfolioOverviewBundle(
           sectors: sectors,
-          qcTechnical: qcTechnical,
-          projectStatusCounts: projectStatusCounts,
-          countByType: countByType,
-          selectedRegionId: hasRegion ? regionId : null,
-          selectedRegionTitle: hasRegion ? regionTitle : null,
+          statusCounts: statusCounts,
+          financial: financial,
+          brands: brands,
+          selectedBrandId: hasBrand ? brandId : null,
+          selectedBrandTitle: hasBrand ? brandTitle : null,
         ),
       );
     } on DioException catch (e) {

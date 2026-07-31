@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/network/account_user_type.dart';
 import '../../data/datasources/add_project_remote_data_source.dart';
 import 'add_project_state.dart';
 
@@ -13,8 +14,10 @@ class AddProjectCubit extends Cubit<AddProjectState> {
   Future<void> loadLookups() async {
     emit(AddProjectLoading());
     try {
-      final contractors = await _dataSource.getSuppliers(type: 1);
-      final consultants = await _dataSource.getSuppliers(type: 2);
+      final contractors =
+          await _dataSource.getAccountsByUserType(AccountUserType.contractor);
+      final consultants =
+          await _dataSource.getAccountsByUserType(AccountUserType.consultant);
       final accounts = await _dataSource.getAccounts();
 
       emit(

@@ -1,10 +1,18 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:page_transition/page_transition.dart';
 
+import '../../../../core/funcation.dart';
+import '../../../../core/services/service_locator.dart';
 import '../../../../core/utils/app_color_scheme.dart';
 import '../../../../core/utils/app_string.dart';
+import '../../../project/presentation/cubit/edit_project_cubit.dart';
+import '../../../project/presentation/cubit/project_statistics_cubit.dart';
+import '../../../project/presentation/screens/edit_project_screen.dart';
+import '../../../project/presentation/screens/project_details_screen.dart';
 import '../../domain/entities/project.dart';
 
 class TableRowWidget extends StatelessWidget {
@@ -20,11 +28,32 @@ class TableRowWidget extends StatelessWidget {
   final AppColorScheme colors;
 
   Map<String, String> get _locationParts {
-    final parts = project.title.split(' - ');
-    if (parts.length >= 3) {
-      return {'sector': parts[0], 'region': parts[1]};
-    }
-    return {'sector': project.entityName, 'region': '—'};
+    return {
+      'sector': project.brandTitle.isNotEmpty ? project.brandTitle : '—',
+      'region': project.product.isNotEmpty ? project.product : '—',
+    };
+  }
+
+  void _openDetails(BuildContext context) {
+    AppFunctions.navigateTo(
+      context,
+      BlocProvider(
+        create: (_) => sl<ProjectDetailsCubit>()..load(project.id),
+        child: ProjectDetailsScreen(projectId: project.id),
+      ),
+      PageTransitionType.leftToRight,
+    );
+  }
+
+  void _openEdit(BuildContext context) {
+    AppFunctions.navigateTo(
+      context,
+      BlocProvider(
+        create: (_) => sl<EditProjectCubit>()..loadProject(project.id),
+        child: EditProjectScreen(projectId: project.id),
+      ),
+      PageTransitionType.leftToRight,
+    );
   }
 
   @override
@@ -50,7 +79,7 @@ class TableRowWidget extends StatelessWidget {
             _buildTextColumn(_locationParts['region']!),
             _buildValueColumn(),
             _buildProgressColumn(statusData),
-            _buildActionsColumn(),
+            _buildActionsColumn(context),
           ],
         ),
       ),
@@ -208,7 +237,7 @@ class TableRowWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildActionsColumn() {
+  Widget _buildActionsColumn(BuildContext context) {
     return SizedBox(
       width: 100.w,
       child: Row(
@@ -217,10 +246,11 @@ class TableRowWidget extends StatelessWidget {
           IconButton(
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
-            onPressed: () {},
+            tooltip: AppString.viewDetails.tr(),
+            onPressed: () => _openDetails(context),
             icon: Icon(
               Icons.remove_red_eye_outlined,
-              color: colors.kGrayColor,
+              color: colors.kPrimaryColor,
               size: 18.sp,
             ),
           ),
@@ -228,9 +258,10 @@ class TableRowWidget extends StatelessWidget {
           IconButton(
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
-            onPressed: () {},
+            tooltip: AppString.editProject.tr(),
+            onPressed: () => _openEdit(context),
             icon: Icon(
-              Icons.description_outlined,
+              Icons.edit_outlined,
               color: colors.kGrayColor,
               size: 18.sp,
             ),

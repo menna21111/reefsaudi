@@ -8,7 +8,6 @@ import '../../../../core/utils/app_font.dart';
 import '../../../../core/utils/app_string.dart';
 import '../../../../core/utils/app_theme_context.dart';
 import '../../data/models/global_statistics_models.dart';
-
 import 'statistics_style.dart';
 
 class SaudiStatisticsMap extends StatefulWidget {
@@ -35,12 +34,20 @@ class _SaudiStatisticsMapState extends State<SaudiStatisticsMap> {
   int _selectedIndex = -1;
 
   @override
+  void initState() {
+    super.initState();
+    _selectedIndex =
+        SaRegionMapConstants.indexForRegionCode(widget.selectedRegionCode) ??
+            -1;
+  }
+
+  @override
   void didUpdateWidget(SaudiStatisticsMap oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedRegionCode != widget.selectedRegionCode) {
       _selectedIndex =
           SaRegionMapConstants.indexForRegionCode(widget.selectedRegionCode) ??
-          -1;
+              -1;
     }
   }
 
@@ -95,12 +102,6 @@ class _SaudiStatisticsMapState extends State<SaudiStatisticsMap> {
     final colors = context.appColors;
     final mapSource = _buildMapSource(context);
 
-    if (_selectedIndex == -1 && widget.selectedRegionCode != null) {
-      _selectedIndex =
-          SaRegionMapConstants.indexForRegionCode(widget.selectedRegionCode) ??
-          -1;
-    }
-
     return Container(
       height: 280.h,
       padding: EdgeInsets.all(12.w),
@@ -140,14 +141,16 @@ class _SaudiStatisticsMapState extends State<SaudiStatisticsMap> {
                       color: colors.kDarkGrayColor.withValues(alpha: 0.95),
                       strokeColor: colors.kPrimaryColor,
                     ),
-                    shapeTooltipBuilder: (BuildContext tooltipContext, int index) {
+                    shapeTooltipBuilder:
+                        (BuildContext tooltipContext, int index) {
                       final code = SaRegionMapConstants.regionCodeAt(index);
                       final area = SaRegionMapConstants.areaForIndex(
                         index,
                         widget.areas,
                       );
                       final englishName =
-                          SaRegionMapConstants.englishNamesByCode[code] ?? code;
+                          SaRegionMapConstants.englishNamesByCode[code] ??
+                              code;
                       final title = area?.title ?? englishName ?? '';
                       final count = area?.count ?? 0;
                       return Padding(

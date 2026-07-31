@@ -23,7 +23,7 @@ class AchievementAddMonthButton extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             RobotoText(
-              text: 'add_month'.tr(),
+              text: 'add'.tr(),
               fontSize: 12.sp,
               fontWeight: FontWeight.bold,
               color: AppColor.kBackgroundColor,

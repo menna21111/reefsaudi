@@ -20,6 +20,7 @@ class RiskManagementLoaded extends RiskManagementState {
   final int totalCount;
   final int skip;
   final int take;
+  final String searchText;
   final bool isLoadingMore;
   final bool isRefreshing;
   final List<ProjectDxItemDto> projects;
@@ -32,6 +33,7 @@ class RiskManagementLoaded extends RiskManagementState {
     required this.totalCount,
     required this.skip,
     required this.take,
+    this.searchText = '',
     this.isLoadingMore = false,
     this.isRefreshing = false,
     this.projects = const [],
@@ -47,6 +49,7 @@ class RiskManagementLoaded extends RiskManagementState {
     int? totalCount,
     int? skip,
     int? take,
+    String? searchText,
     bool? isLoadingMore,
     bool? isRefreshing,
     List<ProjectDxItemDto>? projects,
@@ -59,6 +62,7 @@ class RiskManagementLoaded extends RiskManagementState {
       totalCount: totalCount ?? this.totalCount,
       skip: skip ?? this.skip,
       take: take ?? this.take,
+      searchText: searchText ?? this.searchText,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       isRefreshing: isRefreshing ?? this.isRefreshing,
       projects: projects ?? this.projects,
@@ -74,6 +78,7 @@ class RiskManagementLoaded extends RiskManagementState {
         totalCount,
         skip,
         take,
+        searchText,
         isLoadingMore,
         isRefreshing,
         projects,

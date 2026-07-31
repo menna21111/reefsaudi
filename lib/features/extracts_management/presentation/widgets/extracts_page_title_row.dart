@@ -18,6 +18,9 @@ class ExtractsPageTitleRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        GestureDetector(onTap: () {
+          Navigator.pop(context);
+        }, child: Icon(Icons.arrow_back_ios,color: colors.kFontColor,)),
         RobotoText(
           text: 'extracts_management'.tr(),
           fontSize: 17.sp,

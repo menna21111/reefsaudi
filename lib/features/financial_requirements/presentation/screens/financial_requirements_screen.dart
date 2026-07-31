@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/services/service_locator.dart';
+import '../../../../core/funcation.dart';
 import '../../../../core/utils/app_color.dart';
 import '../../../../core/utils/app_font.dart';
 import '../../../../core/utils/app_string.dart';
@@ -18,6 +19,7 @@ import '../widgets/financial_summary_cards.dart';
 import '../widgets/screen_header.dart';
 import '../widgets/search_bar_widget.dart';
 import '../widgets/section_title.dart';
+import 'financial_requirement_add_screen.dart';
 import 'financial_requirement_edit_screen.dart';
 
 class FinancialRequirementsScreen extends StatelessWidget {
@@ -53,47 +55,38 @@ class _FinancialRequirementsViewState
   }
 
   Future<void> _onAddProject() async {
-    final created = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const FinancialRequirementEditScreen(item: null),
-      ),
-    );
+    final created = await FinancialRequirementAddScreen.open(context);
 
     if (created == true && mounted) {
       context.read<FinancialRequirementsBloc>().add(
-            const LoadFinancialRequirements(),
-          );
+        const LoadFinancialRequirements(),
+      );
     }
   }
 
-  void _onEditItem(FinancialRequirement item) {
-    Navigator.push(
+  Future<void> _onEditItem(FinancialRequirement item) async {
+    final updated = await FinancialRequirementEditScreen.open(
       context,
-      MaterialPageRoute(
-        builder: (context) => FinancialRequirementEditScreen(item: item),
-      ),
+      item: item,
     );
+
+    if (updated == true && mounted) {
+      context.read<FinancialRequirementsBloc>().add(
+        const LoadFinancialRequirements(),
+      );
+    }
   }
 
-  void _onDeleteItem(FinancialRequirement item) {
-    showDialog(
+  Future<void> _onDeleteItem(FinancialRequirement item) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => DeleteConfirmationDialog(
-        onConfirm: () {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: RobotoText(
-                text: AppString.deletedSuccessfully.tr(),
-                fontSize: 14.sp,
-                color: AppColor.kWhiteColor,
-              ),
-              backgroundColor: AppColor.kPrimaryColor,
-            ),
-          );
-        },
-      ),
+      builder: (dialogContext) => const DeleteConfirmationDialog(),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    context.read<FinancialRequirementsBloc>().add(
+      DeleteFinancialRequirement(item.id),
     );
   }
 
@@ -102,7 +95,29 @@ class _FinancialRequirementsViewState
     return Scaffold(
       backgroundColor: AppColor.kBackgroundColor,
       body: SafeArea(
-        child: BlocBuilder<FinancialRequirementsBloc, FinancialRequirementsState>(
+        child: BlocConsumer<FinancialRequirementsBloc, FinancialRequirementsState>(
+          listenWhen: (previous, current) =>
+              current is FinancialRequirementsLoaded &&
+              current.feedbackMessage != null &&
+              (previous is! FinancialRequirementsLoaded ||
+                  previous.feedbackMessage != current.feedbackMessage),
+          listener: (context, state) {
+            if (state is! FinancialRequirementsLoaded ||
+                state.feedbackMessage == null) {
+              return;
+            }
+
+            final message = state.feedbackMessage!.tr();
+            if (state.feedbackIsError) {
+              AppFunctions.showsToast(message, AppColor.kRedColor, context);
+            } else {
+              AppFunctions.showSuccessToast(context, message);
+            }
+
+            context.read<FinancialRequirementsBloc>().add(
+              const ClearFinancialFeedback(),
+            );
+          },
           builder: (context, state) {
             if (state is FinancialRequirementsLoading) {
               return const Center(child: CircularProgressIndicator());

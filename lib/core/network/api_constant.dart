@@ -1,6 +1,8 @@
 class ApiConstants {
   static const String pmoBaseUrl = 'https://pmoapi.almanzoor.net/api/';
-   static const String reefBaseUrl = 'https://apiour.mohamedelsayed.site/api/';
+  // static const String reefBaseUrl = 'https://pmoapi.almanzoor.net/api/';
+      static const String reefBaseUrl = 'https://apiour.mohamedelsayed.site/api/';
+
   static const String domain = pmoBaseUrl;
 
   static const String tempAccessToken =
@@ -23,6 +25,112 @@ class ApiConstants {
   static String get resturantimageUrl => "${baseUrl}uploads/resturantimage/";
   static String get storeimageUrl => "${baseUrl}uploads/storeimage/";
   static String get customerImageUrl => "${baseUrl}uploads/imageProfile/";
+
+  static const String projectMediaBaseUrl =
+      'https://apiour.mohamedelsayed.site/api/media/';
+
+  /// Keeps the full JWE access token (HEADER..IV.CIPHERTEXT.TAG) unchanged.
+  static String? normalizeJweAccessToken(String? token) {
+    if (token == null) return null;
+
+    var value = token.trim();
+    if (value.isEmpty) return null;
+
+    const bearerPrefix = 'Bearer ';
+    if (value.startsWith(bearerPrefix)) {
+      value = value.substring(bearerPrefix.length).trim();
+    }
+
+    return value.isEmpty ? null : value;
+  }
+
+  /// JWE with alg=dir: `eyJ...` + `..` + IV + ciphertext + tag → 5 dot segments.
+  static int jweTokenPartCount(String token) => token.split('.').length;
+
+  static bool jweTokenStartsWithHeader(String token) => token.startsWith('eyJ');
+
+  /// `imageUrl` from API + base + full JWE token (raw, not encoded).
+  static String? resolveProjectImageUrl(
+    String? imageUrl, {
+    String? token,
+  }) {
+    if (imageUrl == null || imageUrl.trim().isEmpty) return null;
+
+    final trimmed = imageUrl.trim();
+    final jweToken = normalizeJweAccessToken(token);
+
+    if (trimmed.startsWith('http')) {
+      if (jweToken == null || trimmed.contains('token=')) return trimmed;
+      final separator = trimmed.contains('?') ? '&' : '?';
+      return '$trimmed${separator}token=$jweToken';
+    }
+
+    final path = trimmed.startsWith('/') ? trimmed.substring(1) : trimmed;
+    final url = '$projectMediaBaseUrl$path';
+    if (jweToken == null) return url;
+
+    // String concat only — preserves `..` in JWE (empty encrypted key for alg=dir).
+    return '$url?token=$jweToken';
+  }
+
+  /// Builds a full URL for profile/media paths returned by the PMO API.
+  /// Format: `{base}{path}?token={jwe}`
+  static String? resolveProfilePictureUrl(
+    String? path, {
+    String? token,
+  }) {
+    if (path == null || path.trim().isEmpty) return null;
+
+    final trimmed = path.trim();
+    final jweToken = normalizeJweAccessToken(token);
+
+    if (trimmed.startsWith('http')) {
+      if (jweToken == null || trimmed.contains('token=')) return trimmed;
+      final separator = trimmed.contains('?') ? '&' : '?';
+      return '$trimmed${separator}token=$jweToken';
+    }
+
+    final normalized =
+        trimmed.startsWith('/') ? trimmed.substring(1) : trimmed;
+    final url = '$projectMediaBaseUrl$normalized';
+    if (jweToken == null) return url;
+
+    return '$url?token=$jweToken';
+  }
+
+  /// Task-detail attachment images only: force `/api/media/{path}?token=...`
+  /// even when the API returns a full URL without `/media/`.
+  static String? resolveAttachmentMediaUrl(
+    String? path, {
+    String? token,
+  }) {
+    if (path == null) return null;
+    var trimmed = path.trim().replaceAll('\\', '/');
+    if (trimmed.isEmpty) return null;
+
+    final uri = Uri.tryParse(trimmed);
+    if (uri != null &&
+        uri.hasScheme &&
+        (uri.isScheme('http') || uri.isScheme('https'))) {
+      trimmed = uri.path;
+    }
+
+    if (trimmed.startsWith('/')) trimmed = trimmed.substring(1);
+
+    const prefixes = <String>['api/media/', 'media/', 'api/'];
+    for (final prefix in prefixes) {
+      if (trimmed.toLowerCase().startsWith(prefix)) {
+        trimmed = trimmed.substring(prefix.length);
+        break;
+      }
+    }
+    if (trimmed.isEmpty) return null;
+
+    final jweToken = normalizeJweAccessToken(token);
+    final url = '$projectMediaBaseUrl$trimmed';
+    if (jweToken == null) return url;
+    return '$url?token=$jweToken';
+  }
   static String get sliderImageUrl => "${baseUrl}uploads/sliderimage/";
   static String get categoryImageUrl => "${baseUrl}uploads/categoryimage/";
   static String get logosImageUrl => "${baseUrl}uploads/logos/";

@@ -27,11 +27,15 @@ class InfoRow extends StatelessWidget {
           color: colors.kGrayColor,
           fontSize: 11.sp,
         ),
-        RobotoText(
-          text: value,
-          color: colors.kGrayColor,
-          fontSize: 12.sp,
-          fontWeight: FontWeight.bold,
+        SizedBox(width: 10.w),
+        Flexible(
+          child: RobotoText(
+            text: value,
+            color: colors.kGrayColor,
+            fontSize: 12.sp,
+            textAlign: TextAlign.end,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );

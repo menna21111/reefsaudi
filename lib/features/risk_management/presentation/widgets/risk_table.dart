@@ -1,22 +1,38 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/utils/app_color_scheme.dart';
 import '../../../../core/utils/app_string.dart';
+import '../../../../core/utils/app_theme_context.dart';
 import '../../data/models/project_risk_models.dart';
 import '../constants/risk_enums.dart';
 
+/// Visual variants for risk tables.
+enum RiskTableVariant {
+  /// Global risk management: project + region + response + edit/delete.
+  management,
+
+  /// Project-scoped risks: owner + row tap (chevron).
+  project,
+}
+
+/// Risk data table styled like [FinancialRequirementTable].
 class RiskTable extends StatelessWidget {
   const RiskTable({
     super.key,
     required this.risks,
-    required this.colors,
+    this.variant = RiskTableVariant.management,
+    this.onEdit,
+    this.onDelete,
+    this.onRowTap,
   });
 
   final List<ProjectRiskDto> risks;
-  final AppColorScheme colors;
+  final RiskTableVariant variant;
+  final ValueChanged<ProjectRiskDto>? onEdit;
+  final ValueChanged<ProjectRiskDto>? onDelete;
+  final ValueChanged<ProjectRiskDto>? onRowTap;
 
   String _formatDate(String? raw) {
     if (raw == null || raw.isEmpty) return '-';
@@ -25,21 +41,16 @@ class RiskTable extends StatelessWidget {
     return DateFormat.yMMMd().format(parsed.toLocal());
   }
 
-  static const _columnWidths = [140.0, 180.0, 90.0, 90.0, 80.0, 90.0, 90.0, 100.0];
-
-  double get _tableWidth {
-    final columns = _columnWidths.fold<double>(0, (sum, width) => sum + width.w);
-    return columns + 28.w;
-  }
-
-  double _tableHeight(int rowCount) {
-    const headerHeight = 44.0;
-    const rowHeight = 52.0;
-    return headerHeight.h + (rowCount * rowHeight.h);
+  String _label(List<RiskStringOption> options, String? value) {
+    final key = RiskEnums.labelForValue(options, value);
+    if (key.isEmpty) return '-';
+    return key.tr();
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     if (risks.isEmpty) {
       return Container(
         width: double.infinity,
@@ -47,12 +58,16 @@ class RiskTable extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.kInputColor,
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: colors.kBorderColor.withOpacity(0.3)),
+          border: Border.all(color: colors.kBorderColor.withValues(alpha: 0.3)),
         ),
         child: Text(
           AppString.noData.tr(),
           textAlign: TextAlign.center,
-          style: TextStyle(color: colors.kGrayColor, fontSize: 14.sp),
+          style: TextStyle(
+            color: colors.kGrayColor,
+            fontSize: 14.sp,
+            fontFamily: 'Almarai',
+          ),
         ),
       );
     }
@@ -61,29 +76,31 @@ class RiskTable extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.kInputColor,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.kBorderColor.withOpacity(0.3)),
+        border: Border.all(color: colors.kBorderColor.withValues(alpha: 0.3)),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: SizedBox(
-        height: _tableHeight(risks.length),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          child: SizedBox(
-            width: _tableWidth,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minWidth: MediaQuery.of(context).size.width - 32.w,
+          ),
+          child: IntrinsicWidth(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _HeaderRow(colors: colors, columnWidths: _columnWidths),
-                ...risks.map(
-                  (risk) => _DataRow(
-                    risk: risk,
-                    colors: colors,
+                _RiskTableHeader(variant: variant),
+                ...risks.asMap().entries.map((entry) {
+                  return _RiskTableRow(
+                    risk: entry.value,
+                    isEven: entry.key.isEven,
+                    variant: variant,
                     formatDate: _formatDate,
-                    columnWidths: _columnWidths,
-                  ),
-                ),
+                    label: _label,
+                    onEdit: onEdit,
+                    onDelete: onDelete,
+                    onRowTap: onRowTap,
+                  );
+                }),
               ],
             ),
           ),
@@ -93,137 +110,371 @@ class RiskTable extends StatelessWidget {
   }
 }
 
-class _HeaderRow extends StatelessWidget {
-  const _HeaderRow({
-    required this.colors,
-    required this.columnWidths,
-  });
+class _RiskTableHeader extends StatelessWidget {
+  const _RiskTableHeader({required this.variant});
 
-  final AppColorScheme colors;
-  final List<double> columnWidths;
+  final RiskTableVariant variant;
 
   @override
   Widget build(BuildContext context) {
-    final labels = [
-      AppString.riskTitle.tr(),
-      AppString.projectName.tr(),
-      AppString.region.tr(),
-      AppString.riskProbability.tr(),
-      AppString.riskImpact.tr(),
-      AppString.riskStatusLabel.tr(),
-      AppString.riskResponseLabel.tr(),
-      AppString.date.tr(),
-    ];
+    final colors = context.appColors;
+    final isProject = variant == RiskTableVariant.project;
 
     return Container(
-      height: 44.h,
-      padding: EdgeInsets.symmetric(horizontal: 14.w),
-      alignment: Alignment.centerLeft,
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
-        color: colors.kDarkGrayColor.withOpacity(0.35),
+        color: colors.kBorderColor.withValues(alpha: 0.35),
+        borderRadius: BorderRadiusDirectional.only(
+          topStart: Radius.circular(16.r),
+          topEnd: Radius.circular(16.r),
+        ),
       ),
       child: Row(
-        children: List.generate(
-          labels.length,
-          (index) => _cell(labels[index], columnWidths[index].w, isHeader: true),
-        ),
+        children: [
+          _headerCell(
+            colors,
+            AppString.riskTitle.tr(),
+            width: 200.w,
+            align: TextAlign.start,
+          ),
+          if (!isProject) ...[
+            _headerCell(
+              colors,
+              AppString.projectName.tr(),
+              width: 180.w,
+              align: TextAlign.start,
+            ),
+            _headerCell(colors, AppString.region.tr(), width: 100.w),
+          ],
+          _headerCell(colors, AppString.riskProbability.tr(), width: 120.w),
+          _headerCell(colors, AppString.riskImpact.tr(), width: 110.w),
+          _headerCell(colors, AppString.riskStatusLabel.tr(), width: 110.w),
+          if (!isProject)
+            _headerCell(colors, AppString.riskResponseLabel.tr(), width: 110.w),
+          _headerCell(
+            colors,
+            AppString.contingencyPlan.tr(),
+            width: 160.w,
+            align: TextAlign.start,
+          ),
+          if (isProject)
+            _headerCell(colors, AppString.projectOwner.tr(), width: 130.w),
+          _headerCell(colors, AppString.date.tr(), width: 110.w),
+          _headerCell(colors, '', width: 80.w),
+        ],
       ),
     );
   }
 
-  Widget _cell(String text, double width, {bool isHeader = false}) {
+  Widget _headerCell(
+    AppColorScheme colors,
+    String text, {
+    required double width,
+    TextAlign align = TextAlign.center,
+  }) {
     return SizedBox(
       width: width,
       child: Text(
         text,
+        textAlign: align,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          color: isHeader ? colors.kGrayColor : colors.kFontColor,
-          fontSize: 11.sp,
-          fontWeight: isHeader ? FontWeight.bold : FontWeight.w500,
+          color: colors.kGrayColor,
+          fontSize: 12.sp,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Almarai',
         ),
       ),
     );
   }
 }
 
-class _DataRow extends StatelessWidget {
-  const _DataRow({
+class _RiskTableRow extends StatelessWidget {
+  const _RiskTableRow({
     required this.risk,
-    required this.colors,
+    required this.isEven,
+    required this.variant,
     required this.formatDate,
-    required this.columnWidths,
+    required this.label,
+    this.onEdit,
+    this.onDelete,
+    this.onRowTap,
   });
 
   final ProjectRiskDto risk;
-  final AppColorScheme colors;
+  final bool isEven;
+  final RiskTableVariant variant;
   final String Function(String?) formatDate;
-  final List<double> columnWidths;
+  final String Function(List<RiskStringOption>, String?) label;
+  final ValueChanged<ProjectRiskDto>? onEdit;
+  final ValueChanged<ProjectRiskDto>? onDelete;
+  final ValueChanged<ProjectRiskDto>? onRowTap;
 
   @override
   Widget build(BuildContext context) {
-    final statusLabel =
-        RiskEnums.labelForValue(RiskEnums.riskStatus, risk.riskStatus);
-    final probabilityLabel = RiskEnums.labelForValue(
-      RiskEnums.riskProbability,
-      risk.riskProbability,
-    );
-    final impactLabel =
-        RiskEnums.labelForValue(RiskEnums.riskImpact, risk.riskImpact);
-    final responseLabel =
-        RiskEnums.labelForValue(RiskEnums.riskResponse, risk.riskResponse);
+    final colors = context.appColors;
+    final isProject = variant == RiskTableVariant.project;
+    final statusLabel = label(RiskEnums.riskStatus, risk.riskStatus);
+    final probabilityLabel =
+        label(RiskEnums.riskProbability, risk.riskProbability);
+    final impactLabel = label(RiskEnums.riskImpact, risk.riskImpact);
+    final responseLabel = label(RiskEnums.riskResponse, risk.riskResponse);
 
-    final values = [
-      risk.title,
-      risk.projectTitle ?? '-',
-      risk.region ?? '-',
-      probabilityLabel.tr(),
-      impactLabel.tr(),
-      statusLabel.tr(),
-      responseLabel.tr(),
-      formatDate(risk.riskDate),
-    ];
-
-    return Container(
-      height: 52.h,
-      padding: EdgeInsets.symmetric(horizontal: 14.w),
-      alignment: Alignment.centerLeft,
+    final row = Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
       decoration: BoxDecoration(
+        color: isEven
+            ? colors.kBgColor.withValues(alpha: 0.35)
+            : Colors.transparent,
         border: Border(
-          bottom: BorderSide(color: colors.kBorderColor.withOpacity(0.2)),
+          bottom: BorderSide(
+            color: colors.kBorderColor.withValues(alpha: 0.15),
+            width: 0.5,
+          ),
         ),
       ),
       child: Row(
-        children: List.generate(
-          values.length,
-          (index) => _cell(
-            values[index],
-            columnWidths[index].w,
-            bold: index == 0,
-            muted: index == values.length - 1,
+        children: [
+          _titleCell(colors, risk.title, risk.riskStatus),
+          if (!isProject) ...[
+            _textCell(
+              risk.projectTitle ?? '-',
+              180.w,
+              colors.kFontColor,
+              12.sp,
+              align: TextAlign.start,
+              bold: true,
+            ),
+            _textCell(risk.region ?? '-', 100.w, colors.kGrayColor, 11.sp),
+          ],
+          _badgeCell(
+            probabilityLabel,
+            120.w,
+            _toneForProbability(colors, risk.riskProbability),
+          ),
+          _badgeCell(
+            impactLabel,
+            110.w,
+            _toneForImpact(colors, risk.riskImpact),
+          ),
+          _badgeCell(
+            statusLabel,
+            110.w,
+            _toneForStatus(colors, risk.riskStatus),
+          ),
+          if (!isProject)
+            _badgeCell(responseLabel, 110.w, colors.kGrayColor),
+          _textCell(
+            risk.contingencyPlan.isNotEmpty ? risk.contingencyPlan : '-',
+            160.w,
+            colors.kGrayColor,
+            11.sp,
+            align: TextAlign.start,
+          ),
+          if (isProject)
+            _textCell(
+              risk.ownerName ?? '-',
+              130.w,
+              colors.kGrayColor,
+              11.sp,
+            ),
+          _textCell(
+            formatDate(risk.riskDate),
+            110.w,
+            colors.kGrayColor,
+            10.sp,
+          ),
+          _actionsCell(colors, isProject: isProject),
+        ],
+      ),
+    );
+
+    if (onRowTap == null) return row;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onRowTap!(risk),
+        child: row,
+      ),
+    );
+  }
+
+  Widget _titleCell(AppColorScheme colors, String title, String status) {
+    final tone = _toneForStatus(colors, status);
+    return SizedBox(
+      width: 200.w,
+      child: Row(
+        children: [
+          Container(
+            width: 3.w,
+            height: 28.h,
+            margin: EdgeInsetsDirectional.only(end: 8.w),
+            decoration: BoxDecoration(
+              color: tone,
+              borderRadius: BorderRadius.circular(2.r),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: colors.kFontColor,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'Almarai',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _textCell(
+    String text,
+    double width,
+    Color color,
+    double size, {
+    TextAlign align = TextAlign.center,
+    bool bold = false,
+  }) {
+    return SizedBox(
+      width: width,
+      child: Text(
+        text,
+        textAlign: align,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: color,
+          fontSize: size,
+          fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
+          fontFamily: 'Almarai',
+        ),
+      ),
+    );
+  }
+
+  Widget _badgeCell(String text, double width, Color color) {
+    return SizedBox(
+      width: width,
+      child: Center(
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: color,
+              fontSize: 10.sp,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Almarai',
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _cell(
-    String text,
-    double width, {
-    bool bold = false,
-    bool muted = false,
-  }) {
-    return SizedBox(
-      width: width,
-      child: Text(
-        text,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: muted ? colors.kGrayColor : colors.kFontColor,
-          fontSize: 11.sp,
-          fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
+  Widget _actionsCell(AppColorScheme colors, {required bool isProject}) {
+    if (isProject) {
+      return SizedBox(
+        width: 80.w,
+        child: Icon(
+          Icons.chevron_left_rounded,
+          color: colors.kGrayColor,
+          size: 20.sp,
         ),
+      );
+    }
+
+    return SizedBox(
+      width: 80.w,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (onEdit != null) ...[
+            _actionButton(
+              icon: Icons.edit_outlined,
+              color: colors.kPrimaryColor,
+              onTap: () => onEdit!(risk),
+            ),
+            SizedBox(width: 8.w),
+          ],
+          if (onDelete != null)
+            _actionButton(
+              icon: Icons.delete_outline,
+              color: colors.kRedColor,
+              onTap: () => onDelete!(risk),
+            ),
+        ],
       ),
     );
+  }
+
+  Widget _actionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(6.w),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(6.r),
+        ),
+        child: Icon(icon, size: 16.sp, color: color),
+      ),
+    );
+  }
+
+  Color _toneForStatus(AppColorScheme colors, String status) {
+    switch (status.trim().toLowerCase()) {
+      case 'open':
+        return colors.kRedColor;
+      case 'pending':
+      case 'realized':
+        return colors.kGoldColor;
+      case 'closed':
+        return colors.kPrimaryColor;
+      default:
+        return colors.kGrayColor;
+    }
+  }
+
+  Color _toneForProbability(AppColorScheme colors, String value) {
+    final v = value.trim().toLowerCase();
+    if (v.contains('verylikely') || v.contains('likely')) {
+      return colors.kRedColor;
+    }
+    if (v.contains('may')) return colors.kGoldColor;
+    if (v.contains('unlikely') || v.contains('verylow')) {
+      return colors.kPrimaryColor;
+    }
+    return colors.kGrayColor;
+  }
+
+  Color _toneForImpact(AppColorScheme colors, String value) {
+    final v = value.trim().toLowerCase();
+    if (v.contains('certain') || v.contains('likely')) {
+      return colors.kRedColor;
+    }
+    if (v.contains('moderate')) return colors.kGoldColor;
+    if (v.contains('unlikely') || v.contains('rare')) {
+      return colors.kPrimaryColor;
+    }
+    return colors.kGrayColor;
   }
 }

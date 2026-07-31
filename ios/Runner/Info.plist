@@ -8,6 +8,8 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Reefsaudia</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+<string>يحتاج التطبيق للوصول لمكتبة الصور لاختيار وتحميل الصور الشخصية أو المرفقات.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -26,6 +28,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>نحتاج للوصول إلى الميكروفون للدردشة الصوتية مع فاهِم</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Uses speech recognition to convert your voice to text.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

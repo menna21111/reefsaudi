@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/utils/app_color_scheme.dart';
+import '../../../../core/utils/app_string.dart';
 import '../../../../core/utils/app_theme_context.dart';
+import '../../../../core/widgets/shimmer_widgets.dart';
 import '../../domain/entities/project.dart';
 import 'table_row.dart';
 
@@ -45,25 +47,89 @@ class ProjectTable extends StatelessWidget {
                 colors: colors,
               );
             }),
-            if (showBottomLoader)
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.h),
-                child: SizedBox(
-                  width: 880.w,
-                  child: Center(
-                    child: SizedBox(
-                      width: 24.w,
-                      height: 24.w,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: colors.kPrimaryColor,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            if (showBottomLoader) _TableBottomLoader(colors: colors),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _TableBottomLoader extends StatelessWidget {
+  const _TableBottomLoader({required this.colors});
+
+  final AppColorScheme colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 880.w,
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: colors.kBorderColor.withValues(alpha: 0.35)),
+        ),
+      ),
+      child: Column(
+        children: [
+          ...List.generate(2, (index) => _TableLoadingRow(colors: colors)),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.h),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 22.w,
+                  height: 22.w,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colors.kPrimaryColor,
+                  ),
+                ),
+                SizedBox(width: 10.w),
+                Text(
+                  AppString.loading.tr(),
+                  style: TextStyle(
+                    color: colors.kPrimaryColor,
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Almarai',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TableLoadingRow extends StatelessWidget {
+  const _TableLoadingRow({required this.colors});
+
+  final AppColorScheme colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: colors.kBorderColor.withValues(alpha: 0.2)),
+        ),
+      ),
+      child: Row(
+        children: [
+          ShimmerBox(width: 220.w, height: 14.h, borderRadius: 6),
+          SizedBox(width: 30.w),
+          ShimmerBox(width: 70.w, height: 14.h, borderRadius: 6),
+          SizedBox(width: 30.w),
+          ShimmerBox(width: 70.w, height: 14.h, borderRadius: 6),
+          SizedBox(width: 30.w),
+          ShimmerBox(width: 120.w, height: 14.h, borderRadius: 6),
+          SizedBox(width: 30.w),
+          ShimmerBox(width: 150.w, height: 14.h, borderRadius: 6),
+        ],
       ),
     );
   }

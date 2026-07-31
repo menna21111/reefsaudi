@@ -33,37 +33,97 @@ class ProjectStatisticsError extends ProjectStatisticsState {
   List<Object?> get props => [message];
 }
 
-sealed class ProjectDetailsState extends Equatable {
-  const ProjectDetailsState();
+enum ProjectDetailsSectionStatus { initial, loading, loaded, error }
+
+class ProjectDetailsSectionState<T> extends Equatable {
+  const ProjectDetailsSectionState({
+    this.status = ProjectDetailsSectionStatus.initial,
+    this.data,
+    this.items = const [],
+    this.errorMessage,
+  });
+
+  final ProjectDetailsSectionStatus status;
+  final T? data;
+  final List<T> items;
+  final String? errorMessage;
+
+  bool get isLoading => status == ProjectDetailsSectionStatus.loading;
+  bool get isLoaded => status == ProjectDetailsSectionStatus.loaded;
+  bool get hasError => status == ProjectDetailsSectionStatus.error;
+
+  ProjectDetailsSectionState<T> copyWith({
+    ProjectDetailsSectionStatus? status,
+    T? data,
+    List<T>? items,
+    String? errorMessage,
+    bool clearError = false,
+    bool clearData = false,
+  }) {
+    return ProjectDetailsSectionState<T>(
+      status: status ?? this.status,
+      data: clearData ? null : (data ?? this.data),
+      items: items ?? this.items,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+    );
+  }
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [status, data, items, errorMessage];
 }
 
-class ProjectDetailsInitial extends ProjectDetailsState {
-  const ProjectDetailsInitial();
-}
+class ProjectDetailsState extends Equatable {
+  const ProjectDetailsState({
+    required this.projectData,
+    required this.editProject,
+    required this.executiveSummary,
+    required this.achievement,
+    required this.risks,
+    required this.projectImages,
+  });
 
-class ProjectDetailsLoading extends ProjectDetailsState {
-  const ProjectDetailsLoading();
-}
+  final ProjectDetailsSectionState<ProjectDataDto> projectData;
+  final ProjectDetailsSectionState<EditProjectFormData> editProject;
+  final ProjectDetailsSectionState<ProjectExecutiveSummaryDto> executiveSummary;
+  final ProjectDetailsSectionState<ProjectAchievementPointDto> achievement;
+  final ProjectDetailsSectionState<RiskMatrixItemDto> risks;
+  final ProjectDetailsSectionState<ProjectImageDto> projectImages;
 
-class ProjectDetailsLoaded extends ProjectDetailsState {
-  final ProjectDetailsBundle bundle;
+  const ProjectDetailsState.initial()
+      : projectData = const ProjectDetailsSectionState(),
+        editProject = const ProjectDetailsSectionState(),
+        executiveSummary = const ProjectDetailsSectionState(),
+        achievement = const ProjectDetailsSectionState(),
+        risks = const ProjectDetailsSectionState(),
+        projectImages = const ProjectDetailsSectionState();
 
-  const ProjectDetailsLoaded(this.bundle);
+  ProjectDetailsState copyWith({
+    ProjectDetailsSectionState<ProjectDataDto>? projectData,
+    ProjectDetailsSectionState<EditProjectFormData>? editProject,
+    ProjectDetailsSectionState<ProjectExecutiveSummaryDto>? executiveSummary,
+    ProjectDetailsSectionState<ProjectAchievementPointDto>? achievement,
+    ProjectDetailsSectionState<RiskMatrixItemDto>? risks,
+    ProjectDetailsSectionState<ProjectImageDto>? projectImages,
+  }) {
+    return ProjectDetailsState(
+      projectData: projectData ?? this.projectData,
+      editProject: editProject ?? this.editProject,
+      executiveSummary: executiveSummary ?? this.executiveSummary,
+      achievement: achievement ?? this.achievement,
+      risks: risks ?? this.risks,
+      projectImages: projectImages ?? this.projectImages,
+    );
+  }
 
   @override
-  List<Object?> get props => [bundle];
-}
-
-class ProjectDetailsError extends ProjectDetailsState {
-  final String message;
-
-  const ProjectDetailsError(this.message);
-
-  @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [
+        projectData,
+        editProject,
+        executiveSummary,
+        achievement,
+        risks,
+        projectImages,
+      ];
 }
 
 sealed class ProjectRisksState extends Equatable {
@@ -82,12 +142,34 @@ class ProjectRisksLoading extends ProjectRisksState {
 }
 
 class ProjectRisksLoaded extends ProjectRisksState {
-  final List<RiskMatrixItemDto> risks;
+  final List<ProjectRiskDto> risks;
+  final int totalCount;
+  final bool isSubmitting;
+  final bool isRefreshing;
 
-  const ProjectRisksLoaded(this.risks);
+  const ProjectRisksLoaded({
+    required this.risks,
+    required this.totalCount,
+    this.isSubmitting = false,
+    this.isRefreshing = false,
+  });
+
+  ProjectRisksLoaded copyWith({
+    List<ProjectRiskDto>? risks,
+    int? totalCount,
+    bool? isSubmitting,
+    bool? isRefreshing,
+  }) {
+    return ProjectRisksLoaded(
+      risks: risks ?? this.risks,
+      totalCount: totalCount ?? this.totalCount,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
+      isRefreshing: isRefreshing ?? this.isRefreshing,
+    );
+  }
 
   @override
-  List<Object?> get props => [risks];
+  List<Object?> get props => [risks, totalCount, isSubmitting, isRefreshing];
 }
 
 class ProjectRisksError extends ProjectRisksState {
@@ -143,4 +225,41 @@ class ProjectBlueprintError extends ProjectBlueprintState {
 
   @override
   List<Object?> get props => [message];
+}
+
+class ProjectCharterState extends Equatable {
+  const ProjectCharterState({
+    required this.achievements,
+    required this.stages,
+    required this.constraints,
+    required this.attachments,
+  });
+
+  final CharterSectionState<CharterAchievementDto> achievements;
+  final CharterSectionState<CharterStageDto> stages;
+  final CharterSectionState<CharterConstraintDto> constraints;
+  final CharterSectionState<CharterAttachmentDto> attachments;
+
+  const ProjectCharterState.initial()
+      : achievements = const CharterSectionState(),
+        stages = const CharterSectionState(),
+        constraints = const CharterSectionState(),
+        attachments = const CharterSectionState();
+
+  ProjectCharterState copyWith({
+    CharterSectionState<CharterAchievementDto>? achievements,
+    CharterSectionState<CharterStageDto>? stages,
+    CharterSectionState<CharterConstraintDto>? constraints,
+    CharterSectionState<CharterAttachmentDto>? attachments,
+  }) {
+    return ProjectCharterState(
+      achievements: achievements ?? this.achievements,
+      stages: stages ?? this.stages,
+      constraints: constraints ?? this.constraints,
+      attachments: attachments ?? this.attachments,
+    );
+  }
+
+  @override
+  List<Object?> get props => [achievements, stages, constraints, attachments];
 }

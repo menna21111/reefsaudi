@@ -17,75 +17,80 @@ class RiskRepositoryImpl implements RiskRepository {
   final RiskRemoteDataSource remoteDataSource;
   final NetworkInfo networkInfo;
 
+  Future<Either<Failure, T>> _guard<T>(Future<T> Function() call) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure('no_internet_error'));
+    }
+    try {
+      return Right(await call());
+    } on DioException catch (e) {
+      return Left(ServerFailure.fromDioError(e));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
   @override
   Future<Either<Failure, ProjectRiskListResponse>> getProjectRisks({
     int skip = 0,
     int take = 10,
-  }) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure('no_internet_error'));
-    }
-
-    try {
-      final response = await remoteDataSource.getProjectRisks(
-        skip: skip,
-        take: take,
+    String? searchText,
+  }) =>
+      _guard(
+        () => remoteDataSource.getProjectRisks(
+          skip: skip,
+          take: take,
+          searchText: searchText,
+        ),
       );
-      return Right(response);
-    } on DioException catch (e) {
-      return Left(ServerFailure.fromDioError(e));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
+
+  @override
+  Future<Either<Failure, ProjectRiskListResponse>> getProjectRisksByProjectId(
+    String projectId, {
+    int skip = 0,
+    int take = 10,
+  }) =>
+      _guard(
+        () => remoteDataSource.getProjectRisksByProjectId(
+          projectId,
+          skip: skip,
+          take: take,
+        ),
+      );
 
   @override
   Future<Either<Failure, void>> createProjectRisk(
     CreateProjectRiskRequest request,
-  ) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure('no_internet_error'));
-    }
-
-    try {
-      await remoteDataSource.createProjectRisk(request);
-      return const Right(null);
-    } on DioException catch (e) {
-      return Left(ServerFailure.fromDioError(e));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
+  ) =>
+      _guard(() => remoteDataSource.createProjectRisk(request));
 
   @override
-  Future<Either<Failure, List<ProjectDxItemDto>>> getProjects() async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure('no_internet_error'));
-    }
-
-    try {
-      final projects = await remoteDataSource.getProjects();
-      return Right(projects);
-    } on DioException catch (e) {
-      return Left(ServerFailure.fromDioError(e));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
+  Future<Either<Failure, void>> createProjectRiskForProject({
+    required String projectId,
+    required ProjectRiskWriteRequest request,
+  }) =>
+      _guard(
+        () => remoteDataSource.createProjectRiskForProject(
+          projectId: projectId,
+          request: request,
+        ),
+      );
 
   @override
-  Future<Either<Failure, List<AccountDxItemDto>>> getAccounts() async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure('no_internet_error'));
-    }
+  Future<Either<Failure, void>> updateProjectRisk(
+    ProjectRiskWriteRequest request,
+  ) =>
+      _guard(() => remoteDataSource.updateProjectRisk(request));
 
-    try {
-      final accounts = await remoteDataSource.getAccounts();
-      return Right(accounts);
-    } on DioException catch (e) {
-      return Left(ServerFailure.fromDioError(e));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
+  @override
+  Future<Either<Failure, void>> deleteProjectRisk(String riskId) =>
+      _guard(() => remoteDataSource.deleteProjectRisk(riskId));
+
+  @override
+  Future<Either<Failure, List<ProjectDxItemDto>>> getProjects() =>
+      _guard(remoteDataSource.getProjects);
+
+  @override
+  Future<Either<Failure, List<AccountDxItemDto>>> getAccounts() =>
+      _guard(remoteDataSource.getAccounts);
 }

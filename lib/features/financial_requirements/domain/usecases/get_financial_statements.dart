@@ -9,14 +9,12 @@ class GetFinancialStatementsParams {
   final int pageNumber;
   final int pageSize;
 
-  const GetFinancialStatementsParams({
-    this.pageNumber = 1,
-    this.pageSize = 10,
-  });
+  const GetFinancialStatementsParams({this.pageNumber = 1, this.pageSize = 10});
 }
 
 class GetFinancialStatementsUseCase
-    extends UseCase2<PaginatedFinancialRequirements, GetFinancialStatementsParams> {
+    extends
+        UseCase2<PaginatedFinancialRequirements, GetFinancialStatementsParams> {
   final FinancialRequirementsRepository repository;
 
   GetFinancialStatementsUseCase(this.repository);

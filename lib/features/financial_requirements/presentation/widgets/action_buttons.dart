@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/utils/app_color.dart';
+
+import '../../../../core/utils/app_theme_context.dart';
 
 class ActionButtons extends StatelessWidget {
   final VoidCallback onEdit;
@@ -14,6 +15,8 @@ class ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return SizedBox(
       width: 80.w,
       child: Row(
@@ -21,13 +24,13 @@ class ActionButtons extends StatelessWidget {
         children: [
           _buildButton(
             icon: Icons.edit_outlined,
-            color: AppColor.kPrimaryColor,
+            color: colors.kPrimaryColor,
             onTap: onEdit,
           ),
           SizedBox(width: 8.w),
           _buildButton(
             icon: Icons.delete_outline,
-            color: Colors.red,
+            color: colors.kRedColor,
             onTap: onDelete,
           ),
         ],
@@ -45,7 +48,7 @@ class ActionButtons extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(6.w),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(6.r),
         ),
         child: Icon(

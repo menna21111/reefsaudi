@@ -13,11 +13,13 @@ class PermissionGate extends StatelessWidget {
     this.fallback = const SizedBox.shrink(),
     this.requireEdit = false,
     this.editPermission,
+    this.allowAdmin = false,
   });
 
   final String permission;
   final String? editPermission;
   final bool requireEdit;
+  final bool allowAdmin;
   final Widget child;
   final Widget fallback;
 
@@ -26,11 +28,15 @@ class PermissionGate extends StatelessWidget {
     return BlocBuilder<PermissionCubit, ProfileModel?>(
       builder: (context, _) {
         final cubit = context.read<PermissionCubit>();
-        final canView = cubit.has(permission);
+        final canView =
+            (allowAdmin && cubit.isAdmin) || cubit.has(permission);
         if (!canView) return fallback;
 
         if (requireEdit && editPermission != null) {
-          if (!cubit.has(editPermission!)) return fallback;
+          if (!(allowAdmin && cubit.isAdmin) &&
+              !cubit.has(editPermission!)) {
+            return fallback;
+          }
         }
 
         return child;

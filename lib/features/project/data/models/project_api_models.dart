@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class ProjectDataDto {
   final String projectId;
   final String stepTitle;
@@ -466,6 +468,56 @@ List<ProjectDxItemDto> parseProjectDxItems(dynamic raw) =>
 
 List<ProjectStepItemDto> parseProjectStepItems(dynamic raw) =>
     _parseList(raw, ProjectStepItemDto.fromJson);
+
+class ProjectImageDto {
+  const ProjectImageDto({
+    required this.name,
+    required this.size,
+    required this.imageUrl,
+  });
+
+  final String name;
+  final int size;
+  final String imageUrl;
+
+  factory ProjectImageDto.fromJson(Map<String, dynamic> json) {
+    return ProjectImageDto(
+      name: json['name']?.toString() ?? '',
+      size: _toInt(json['size']),
+      imageUrl: json['imageUrl']?.toString() ?? '',
+    );
+  }
+}
+
+List<ProjectImageDto> parseProjectImages(dynamic raw) {
+  if (raw is String && raw.trim().isNotEmpty) {
+    try {
+      return parseProjectImages(jsonDecode(raw));
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  if (raw is Map) {
+    final map = Map<String, dynamic>.from(raw);
+    for (final key in const ['data', 'Data', 'items', 'Items', 'result', 'Result']) {
+      final value = map[key];
+      if (value != null) {
+        final parsed = parseProjectImages(value);
+        if (parsed.isNotEmpty) return parsed;
+      }
+    }
+  }
+
+  if (raw is List) {
+    return raw
+        .whereType<Map>()
+        .map((item) => ProjectImageDto.fromJson(Map<String, dynamic>.from(item)))
+        .where((image) => image.imageUrl.trim().isNotEmpty)
+        .toList();
+  }
+  return const [];
+}
 
 String formatApiDate(String raw) {
   if (raw.isEmpty) return raw;

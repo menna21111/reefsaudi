@@ -6,9 +6,14 @@ import '../../../../core/utils/app_font.dart';
 import '../../../../core/utils/app_string.dart';
 
 class DeleteConfirmationDialog extends StatelessWidget {
-  final VoidCallback onConfirm;
+  const DeleteConfirmationDialog({
+    super.key,
+    this.titleKey = AppString.confirmDelete,
+    this.messageKey = AppString.confirmDeleteFinancialRequirement,
+  });
 
-  const DeleteConfirmationDialog({super.key, required this.onConfirm});
+  final String titleKey;
+  final String messageKey;
 
   @override
   Widget build(BuildContext context) {
@@ -18,21 +23,21 @@ class DeleteConfirmationDialog extends StatelessWidget {
         borderRadius: BorderRadius.circular(16.r),
       ),
       title: RobotoText(
-        text: AppString.confirmDelete.tr(),
+        text: titleKey.tr(),
         fontSize: 18.sp,
         fontWeight: FontWeight.bold,
         color: AppColor.kWhiteColor,
         textAlign: TextAlign.start,
       ),
       content: RobotoText(
-        text: AppString.confirmDeleteFinancialRequirement.tr(),
+        text: messageKey.tr(),
         fontSize: 14.sp,
         color: AppColor.kGrayTextColor,
         textAlign: TextAlign.start,
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context, false),
           child: RobotoText(
             text: AppString.cancel.tr(),
             fontSize: 14.sp,
@@ -40,7 +45,7 @@ class DeleteConfirmationDialog extends StatelessWidget {
           ),
         ),
         TextButton(
-          onPressed: onConfirm,
+          onPressed: () => Navigator.pop(context, true),
           child: RobotoText(
             text: AppString.delete.tr(),
             fontSize: 14.sp,

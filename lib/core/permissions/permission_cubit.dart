@@ -35,7 +35,27 @@ class PermissionCubit extends Cubit<ProfileModel?> {
 
   bool get canViewTasks => has(AppPermissions.taskView);
 
+  bool get canViewExtracts => has(AppPermissions.financialStatementView);
+
+  bool get canViewAchievementRates =>
+      has(AppPermissions.projectAchievementManualView);
+
+  bool get canViewQuality =>
+      hasAny(const [
+        AppPermissions.requestTaskView,
+        AppPermissions.projectRequests,
+        AppPermissions.dynamicFormView,
+      ]);
+
   bool get canViewFinancial =>
       has(AppPermissions.financialView) ||
-      has(AppPermissions.quotationView);
+      has(AppPermissions.quotationView) ||
+      canViewExtracts;
+
+  bool get isContractorAccount => state?.isContractorAccount ?? false;
+
+  bool get isAdmin => state?.isAdminAccount ?? false;
+
+  /// Admin can access master-data / forms-builder screens.
+  bool get canViewMainDataAndForms => isAdmin;
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../utils/app_theme_context.dart';
+import 'popup_menu_position.dart';
 
 class StyledPopupDropdown<T> extends StatefulWidget {
   const StyledPopupDropdown({
@@ -12,6 +13,7 @@ class StyledPopupDropdown<T> extends StatefulWidget {
     required this.value,
     this.isLoading = false,
     this.required = false,
+    this.showValidationError = false,
     this.hintText,
     this.prefixIcon,
   });
@@ -22,6 +24,7 @@ class StyledPopupDropdown<T> extends StatefulWidget {
   final T? value;
   final bool isLoading;
   final bool required;
+  final bool showValidationError;
   final String? hintText;
   final Widget? prefixIcon;
 
@@ -33,6 +36,7 @@ class StyledPopupDropdown<T> extends StatefulWidget {
 
 class _StyledPopupDropdownState<T> extends State<StyledPopupDropdown<T>> {
   final FocusNode _focusNode = FocusNode();
+  final GlobalKey _fieldKey = GlobalKey();
   bool _hasFocus = false;
 
   static const double _menuMaxHeight = 320;
@@ -57,41 +61,12 @@ class _StyledPopupDropdownState<T> extends State<StyledPopupDropdown<T>> {
   Future<T?> _showMenu() async {
     if (widget.items.isEmpty) return null;
 
-    final renderBox = context.findRenderObject() as RenderBox?;
-    if (renderBox == null) return null;
-
-    final offset = renderBox.localToGlobal(Offset.zero);
-    final size = renderBox.size;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final spaceBelow = screenHeight - (offset.dy + size.height);
-    final isEnoughSpaceBelow = spaceBelow > _menuMaxHeight;
     final colors = context.appColorsRead;
 
-    return showMenu<T>(
+    return showAnchoredPopupMenu<T>(
       context: context,
-      color: colors.kInputColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14.r),
-        side: BorderSide(color: colors.kBorderColor.withValues(alpha: 0.4)),
-      ),
-      position: isEnoughSpaceBelow
-          ? RelativeRect.fromLTRB(
-              offset.dx,
-              offset.dy + size.height + 4,
-              offset.dx + size.width,
-              offset.dy,
-            )
-          : RelativeRect.fromLTRB(
-              offset.dx,
-              offset.dy - _menuMaxHeight,
-              offset.dx + size.width,
-              offset.dy + size.height,
-            ),
-      constraints: BoxConstraints(
-        minWidth: size.width,
-        maxWidth: size.width,
-        maxHeight: _menuMaxHeight,
-      ),
+      anchorKey: _fieldKey,
+      maxHeight: _menuMaxHeight,
       items: widget.items
           .map(
             (item) => PopupMenuItem<T>(
@@ -120,10 +95,15 @@ class _StyledPopupDropdownState<T> extends State<StyledPopupDropdown<T>> {
 
     return FormField<T>(
       initialValue: widget.value,
+      autovalidateMode: widget.showValidationError
+          ? AutovalidateMode.always
+          : AutovalidateMode.disabled,
       validator: widget.required ? (v) => v == null ? ' ' : null : (_) => null,
       builder: (field) {
-        final hasError =
-            field.hasError && (field.errorText?.isNotEmpty ?? false);
+        final externalError =
+            widget.showValidationError && widget.required && widget.value == null;
+        final hasError = externalError ||
+            (field.hasError && (field.errorText?.isNotEmpty ?? false));
         final borderColor = hasError
             ? colors.kRedColor
             : _hasFocus
@@ -134,7 +114,8 @@ class _StyledPopupDropdownState<T> extends State<StyledPopupDropdown<T>> {
         if (widget.value == null) {
           displayWidget = Text(
             widget.hintText ?? '',
-            textAlign: TextAlign.start,
+            textAlign: FormLayout.alignOf(context),
+            textDirection: FormLayout.directionOf(context),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -144,15 +125,36 @@ class _StyledPopupDropdownState<T> extends State<StyledPopupDropdown<T>> {
             ),
           );
         } else {
-          displayWidget = Align(
-            alignment: AlignmentDirectional.centerStart,
+          final matched = widget.items.where(
+            (e) =>
+                e.value == widget.value ||
+                e.value.toString().toLowerCase() ==
+                    widget.value.toString().toLowerCase(),
+          );
+          final selectedChild = matched.isNotEmpty
+              ? matched.first.child
+              : Text(
+                  widget.value.toString(),
+                  textAlign: FormLayout.alignOf(context),
+                  textDirection: FormLayout.directionOf(context),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: colors.kFontColor,
+                    fontSize: 15.sp,
+                    fontFamily: 'Almarai',
+                  ),
+                );
+          displayWidget = Directionality(
+            textDirection: FormLayout.directionOf(context),
             child: DefaultTextStyle(
               style: TextStyle(
                 color: colors.kFontColor,
                 fontSize: 15.sp,
                 fontFamily: 'Almarai',
               ),
-              child: widget.items.firstWhere((e) => e.value == widget.value).child,
+              textAlign: FormLayout.alignOf(context),
+              child: selectedChild,
             ),
           );
         }
@@ -162,11 +164,12 @@ class _StyledPopupDropdownState<T> extends State<StyledPopupDropdown<T>> {
           children: [
             Text(
               widget.title,
-              textAlign: TextAlign.start,
+              // textAlign: FormLayout.alignOf(context),
+              // textDirection: FormLayout.directionOf(context),
               style: TextStyle(
                 fontSize: 15.sp,
                 fontWeight: FontWeight.w600,
-                color: colors.kFontColor,
+                color: hasError ? colors.kRedColor : colors.kFontColor,
                 fontFamily: 'Almarai',
               ),
             ),
@@ -175,7 +178,7 @@ class _StyledPopupDropdownState<T> extends State<StyledPopupDropdown<T>> {
               onTap: widget.isLoading
                   ? null
                   : () async {
-                      _focusNode.requestFocus();
+                      FocusManager.instance.primaryFocus?.unfocus();
                       final selected = await _showMenu();
                       if (!mounted) return;
                       field.didChange(selected);
@@ -185,6 +188,7 @@ class _StyledPopupDropdownState<T> extends State<StyledPopupDropdown<T>> {
               child: Focus(
                 focusNode: _focusNode,
                 child: Container(
+                  key: _fieldKey,
                   constraints: BoxConstraints(
                     minHeight: StyledPopupDropdown.fieldMinHeight,
                   ),
@@ -198,6 +202,7 @@ class _StyledPopupDropdownState<T> extends State<StyledPopupDropdown<T>> {
                     ),
                   ),
                   child: Row(
+                    textDirection: FormLayout.directionOf(context),
                     children: [
                       if (widget.prefixIcon != null) ...[
                         widget.prefixIcon!,

@@ -87,10 +87,13 @@ class ServerFailure<T> extends Failure<T> {
     final messages = <String>[];
     for (final entry in errors.entries) {
       final value = entry.value;
-      if (value is List && value.isNotEmpty) {
-        messages.add(value.first.toString());
-      } else if (value is String && value.isNotEmpty) {
-        messages.add(value);
+      if (value is List) {
+        for (final item in value) {
+          final text = item?.toString().trim() ?? '';
+          if (text.isNotEmpty) messages.add(text);
+        }
+      } else if (value is String && value.trim().isNotEmpty) {
+        messages.add(value.trim());
       }
     }
     return messages.isEmpty ? null : messages.join('\n');

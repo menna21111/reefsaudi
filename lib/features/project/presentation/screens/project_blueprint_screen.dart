@@ -3,16 +3,83 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../core/funcation.dart';
+import '../../../../core/utils/app_color.dart';
 import '../../../../core/utils/app_string.dart';
 import '../../../../core/utils/app_theme_context.dart';
+import '../../data/models/project_api_models.dart';
 import '../cubit/project_statistics_cubit.dart';
+import '../widgets/achievement_manual_form_sheet.dart';
 import '../widgets/achievement_manual_table.dart';
 import '../widgets/execution_rate_chart_widget.dart';
+import '../../../achievement_rates_management/presentation/widgets/achievement_add_month_button.dart';
 
 class ProjectBlueprintScreen extends StatelessWidget {
   final String projectId;
 
   const ProjectBlueprintScreen({super.key, required this.projectId});
+
+  Future<void> _openCreateSheet(BuildContext context) async {
+    await AchievementManualFormSheet.show(context, projectId: projectId);
+  }
+
+  Future<void> _openEditSheet(
+    BuildContext context,
+    AchievementManualItemDto record,
+  ) async {
+    await AchievementManualFormSheet.show(
+      context,
+      projectId: projectId,
+      record: record,
+    );
+  }
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    AchievementManualItemDto record,
+  ) async {
+    final colors = context.appColorsRead;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: colors.kInputColor,
+        title: Text(
+          AppString.delete.tr(),
+          style: TextStyle(color: colors.kFontColor, fontSize: 16.sp),
+        ),
+        content: Text(
+          AppString.deleteAchievementConfirmation.tr(),
+          style: TextStyle(color: colors.kGrayColor, fontSize: 13.sp),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(AppString.cancel.tr()),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(
+              AppString.delete.tr(),
+              style: TextStyle(color: colors.kRedColor),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final error =
+        await context.read<ProjectBlueprintCubit>().deleteAchievement(record.id);
+    if (!context.mounted) return;
+
+    if (error != null) {
+      AppFunctions.showsToast(error, AppColor.kRedColor, context);
+      return;
+    }
+
+    AppFunctions.showSuccessToast(context, AppString.deletedSuccessfully.tr());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +112,23 @@ class ProjectBlueprintScreen extends StatelessWidget {
               ),
             ),
             centerTitle: true,
+            actions: [
+              if (loaded != null)
+                Padding(
+                  padding: EdgeInsetsDirectional.only(end: 8.w),
+                  child: AchievementAddMonthButton(
+                    onTap: () => _openCreateSheet(context),
+                  ),
+                ),
+            ],
           ),
-          body: _buildBody(context, state, loaded, latestActual, totalCount),
+          body: _buildBody(
+            context,
+            state,
+            loaded,
+            latestActual,
+            totalCount,
+          ),
         );
       },
     );
@@ -120,16 +202,28 @@ class ProjectBlueprintScreen extends StatelessWidget {
             plannedPoints: plannedPoints,
           ),
           SizedBox(height: 24.h),
-          Text(
-            AppString.monthlyAchievementLog.tr(),
-            style: TextStyle(
-              color: colors.kWhiteColor,
-              fontSize: 14.sp,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                AppString.monthlyAchievementLog.tr(),
+                style: TextStyle(
+                  color: colors.kWhiteColor,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              AchievementAddMonthButton(
+                onTap: () => _openCreateSheet(context),
+              ),
+            ],
           ),
           SizedBox(height: 12.h),
-          AchievementManualTable(records: loaded.records),
+          AchievementManualTable(
+            records: loaded.records,
+            onEdit: (record) => _openEditSheet(context, record),
+            onDelete: (record) => _confirmDelete(context, record),
+          ),
           if (loaded.totalPages > 1) ...[
             SizedBox(height: 20.h),
             _PaginationBar(state: loaded),

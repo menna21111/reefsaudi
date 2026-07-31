@@ -53,7 +53,8 @@ class ProjectCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(statusData),
+            _buildHeader(statusData),   SizedBox(height: 14.h),
+            _buildMetaTags(context),
             _buildTitleAndDescription(context),
             _buildBudgetAndEntity(context),
             SizedBox(height: 14.h),
@@ -122,7 +123,7 @@ class ProjectCard extends StatelessWidget {
                 SizedBox(width: 6.w),
                 RobotoText(
                   text: statusData['label'],
-
+textAlign: TextAlign.start,
                   color: statusData['color'],
                   fontSize: 10.sp,
                   fontWeight: FontWeight.bold,
@@ -144,6 +145,58 @@ class ProjectCard extends StatelessWidget {
     );
   }
 
+  Widget _buildMetaTags(BuildContext context) {
+    final colors = context.appColors;
+    final tags = <Widget>[];
+
+    if (project.brandTitle.isNotEmpty) {
+      tags.add(
+        _ProjectMetaChip(
+          icon: Icons.grid_view_rounded,
+          label: project.brandTitle,
+          backgroundColor: colors.kPrimaryColor.withValues(alpha: 0.1),
+          foregroundColor: colors.kPrimaryColor,
+          borderColor: colors.kPrimaryColor.withValues(alpha: 0.25),
+        ),
+      );
+    }
+
+    if (project.product.isNotEmpty) {
+      tags.add(
+        _ProjectMetaChip(
+          icon: Icons.location_on_outlined,
+          label: project.product,
+          backgroundColor: colors.kGoldColor.withValues(alpha: 0.12),
+          foregroundColor: colors.kGoldColor,
+          borderColor: colors.kGoldColor.withValues(alpha: 0.3),
+        ),
+      );
+    }
+
+    if (project.sizeML.isNotEmpty) {
+      tags.add(
+        _ProjectMetaChip(
+          icon: Icons.layers_outlined,
+          label: project.sizeML,
+          backgroundColor: colors.kBgColor,
+          foregroundColor: colors.kGrayColor,
+          borderColor: colors.kBorderColor.withValues(alpha: 0.45),
+        ),
+      );
+    }
+
+    if (tags.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 4.h),
+      child: Wrap(
+        spacing: 8.w,
+        runSpacing: 8.h,
+        children: tags,
+      ),
+    );
+  }
+
   Widget _buildTitleAndDescription(BuildContext context) {
     final colors = context.appColors;
     return Padding(
@@ -153,7 +206,7 @@ class ProjectCard extends StatelessWidget {
         children: [
           RobotoText(
             text: project.title,
-
+textAlign: TextAlign.start,
             fontSize: 14.sp,
             fontWeight: FontWeight.bold,
             color: colors.kFontColor,
@@ -288,6 +341,52 @@ class ProjectCard extends StatelessWidget {
               Icons.more_horiz_rounded,
               color: colors.kGrayColor,
               size: 20.sp,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProjectMetaChip extends StatelessWidget {
+  const _ProjectMetaChip({
+    required this.icon,
+    required this.label,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.borderColor,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final Color borderColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: borderColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13.sp, color: foregroundColor),
+          SizedBox(width: 5.w),
+          Flexible(
+            child: RobotoText(
+              text: label,
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w600,
+              color: foregroundColor,
+              textAlign: TextAlign.start,
+              maxLines: 1,
+              textOverflow: TextOverflow.ellipsis,
             ),
           ),
         ],

@@ -63,34 +63,10 @@ class _StatisticsView extends StatelessWidget {
       ),
       body: BlocBuilder<GlobalStatisticsCubit, GlobalStatisticsState>(
         builder: (context, state) {
-          if (state is GlobalStatisticsLoading ||
-              state is GlobalStatisticsInitial) {
+          if (state is GlobalStatisticsInitial ||
+              state is GlobalStatisticsLoading) {
             return Center(
               child: CircularProgressIndicator(color: colors.kPrimaryColor),
-            );
-          }
-
-          if (state is GlobalStatisticsError) {
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.all(24.w),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      state.message.tr(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: colors.kRedColor, fontSize: 14.sp),
-                    ),
-                    SizedBox(height: 16.h),
-                    FilledButton(
-                      onPressed: () =>
-                          context.read<GlobalStatisticsCubit>().refresh(),
-                      child: Text(AppString.retry.tr()),
-                    ),
-                  ],
-                ),
-              ),
             );
           }
 
@@ -98,132 +74,92 @@ class _StatisticsView extends StatelessWidget {
             return const SizedBox.shrink();
           }
 
-          final bundle = state.bundle;
-          final general = bundle.general;
-          final execution = bundle.execution;
           final cubit = context.read<GlobalStatisticsCubit>();
+          final general = state.general.data;
+          final execution = state.execution.data;
+          final areas = state.areas.data ?? const <AreaProjectDto>[];
+          final sectors = state.sectors.data ?? const <SectorProjectDto>[];
+          final qcTechnical =
+              state.qcTechnical.data ?? const <GlobalQcCategoryDto>[];
 
-          final content = RefreshIndicator(
-            onRefresh: cubit.refresh,
-            color: colors.kPrimaryColor,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
-              ),
-              padding: EdgeInsets.all(16.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (bundle.selectedRegionTitle != null) ...[
-                    _RegionFilterBanner(title: bundle.selectedRegionTitle!),
-                    SizedBox(height: 16.h),
-                  ],
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _SummaryCard(
-                          title: AppString.totalBudget.tr(),
-                          value:
-                              '${_formatMoney(general.totalBudget)} ${AppString.sar.tr()}',
-                          valueColor: colors.kPrimaryColor,
-                        ),
-                      ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: _SummaryCard(
-                          title: AppString.totalProjects.tr(),
-                          value: '${general.projectsCount}',
-                          valueColor: colors.kGoldColor,
-                        ),
-                      ),
-                    ],
+          return Stack(
+            children: [
+              RefreshIndicator(
+                onRefresh: cubit.refresh,
+                color: colors.kPrimaryColor,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
                   ),
+                  padding: EdgeInsets.all(16.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (state.selectedRegionTitle != null) ...[
+                        _RegionFilterBanner(title: state.selectedRegionTitle!),
+                        SizedBox(height: 16.h),
+                      ],
+                      if (state.general.isLoading)
+                        SizedBox(
+                          height: 88.h,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: colors.kPrimaryColor,
+                            ),
+                          ),
+                        )
+                      else if (general != null)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _SummaryCard(
+                                title: AppString.totalBudget.tr(),
+                                value:
+                                    '${_formatMoney(general.totalBudget)} ${AppString.sar.tr()}',
+                                valueColor: colors.kPrimaryColor,
+                              ),
+                            ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: _SummaryCard(
+                            title: AppString.totalProjects.tr(),
+                            value: '${general.projectsCount}',
+                            valueColor: colors.kGoldColor,
+                          ),
+                        ),
+                      ],
+                    ),
                   SizedBox(height: 24.h),
                   _SectionTitle(title: AppString.regionalDistribution.tr()),
                   SizedBox(height: 12.h),
-                  SaudiStatisticsMap(
-                    areas: bundle.areas,
-                    selectedRegionCode: bundle.selectedRegionCode,
-                    onRegionSelected: cubit.selectRegion,
-                    onUnknownRegionTapped: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(AppString.regionHasNoProjects.tr()),
-                          behavior: SnackBarBehavior.floating,
+                  if (state.areas.isLoading)
+                    SizedBox(
+                      height: 200.h,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: colors.kPrimaryColor,
                         ),
-                      );
-                    },
-                  ),
-                  SizedBox(height: 16.h),
-                  StatisticsTable(
-                    columns: [
-                      StatisticsTableColumn(
-                        label: AppString.region.tr(),
-                        flex: 3,
                       ),
-                      StatisticsTableColumn(
-                        label: AppString.projects.tr(),
-                        flex: 1,
-                      ),
-                    ],
-                    rows: _buildRegionalTableRows(bundle.areas, colors),
-                  ),
-                  SizedBox(height: 24.h),
-                  _SectionTitle(title: AppString.executionSummary.tr()),
-                  SizedBox(height: 12.h),
-                  StatisticsTable(
-                    columns: [
-                      StatisticsTableColumn(
-                        label: AppString.metric.tr(),
-                        flex: 3,
-                      ),
-                      StatisticsTableColumn(
-                        label: AppString.projects.tr(),
-                        flex: 1,
-                      ),
-                      StatisticsTableColumn(
-                        label: AppString.completionPercentage.tr(),
-                        flex: 2,
-                      ),
-                    ],
-                    rows: _buildExecutionTableRows(execution, colors),
-                  ),
-                  SizedBox(height: 24.h),
-                  _SectionTitle(title: AppString.projectStatus.tr()),
-                  SizedBox(height: 12.h),
-                  _ProjectStatusCard(execution: execution),
-                  SizedBox(height: 24.h),
-                  _SectionTitle(title: AppString.performanceOverview.tr()),
-                  SizedBox(height: 12.h),
-                  _PerformanceCard(execution: execution, colors: colors),
-                  SizedBox(height: 24.h),
-                  _SectionTitle(title: AppString.financialOverview.tr()),
-                  SizedBox(height: 12.h),
-                  StatisticsTable(
-                    columns: [
-                      StatisticsTableColumn(
-                        label: AppString.metric.tr(),
-                        flex: 2,
-                      ),
-                      StatisticsTableColumn(
-                        label: AppString.amount.tr(),
-                        flex: 3,
-                      ),
-                    ],
-                    rows: _buildFinancialTableRows(
-                      general,
-                      _formatMoney,
-                      colors,
+                    )
+                  else ...[
+                    SaudiStatisticsMap(
+                      areas: areas,
+                      selectedRegionCode: state.selectedRegionCode,
+                      onRegionSelected: cubit.selectRegion,
+                      onUnknownRegionTapped: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(AppString.regionHasNoProjects.tr()),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
                     ),
-                  ),
-                  if (bundle.selectedRegionId != null) ...[
-                    SizedBox(height: 24.h),
-                    _SectionTitle(title: AppString.sectorDistribution.tr()),
-                    SizedBox(height: 12.h),
+                    SizedBox(height: 16.h),
                     StatisticsTable(
                       columns: [
                         StatisticsTableColumn(
-                          label: AppString.sector.tr(),
+                          label: AppString.region.tr(),
                           flex: 3,
                         ),
                         StatisticsTableColumn(
@@ -231,56 +167,160 @@ class _StatisticsView extends StatelessWidget {
                           flex: 1,
                         ),
                       ],
-                      rows: bundle.sectors
-                          .map(
-                            (s) => StatisticsTableRow(
-                              cells: [s.title, '${s.count}'],
-                            ),
-                          )
-                          .toList(),
+                      rows: _buildRegionalTableRows(areas, colors),
                     ),
-                    SizedBox(height: 24.h),
-                    _SectionTitle(title: AppString.qualityManagement.tr()),
-                    SizedBox(height: 12.h),
+                  ],
+                  SizedBox(height: 24.h),
+                  _SectionTitle(title: AppString.executionSummary.tr()),
+                  SizedBox(height: 12.h),
+                  if (state.execution.isLoading)
+                    SizedBox(
+                      height: 140.h,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: colors.kPrimaryColor,
+                        ),
+                      ),
+                    )
+                  else if (execution != null) ...[
                     StatisticsTable(
                       columns: [
                         StatisticsTableColumn(
-                          label: AppString.category.tr(),
+                          label: AppString.metric.tr(),
                           flex: 3,
                         ),
                         StatisticsTableColumn(
-                          label: AppString.statements.tr(),
+                          label: AppString.projects.tr(),
                           flex: 1,
                         ),
+                        StatisticsTableColumn(
+                          label: AppString.completionPercentage.tr(),
+                          flex: 2,
+                        ),
                       ],
-                      rows: bundle.qcTechnical
-                          .map(
-                            (q) => StatisticsTableRow(
-                              cells: [q.category, '${q.statementsCount}'],
-                            ),
-                          )
-                          .toList(),
+                      rows: _buildExecutionTableRows(execution, colors),
                     ),
+                    SizedBox(height: 24.h),
+                    _SectionTitle(title: AppString.projectStatus.tr()),
+                    SizedBox(height: 12.h),
+                    _ProjectStatusCard(execution: execution),
+                    SizedBox(height: 24.h),
+                    _SectionTitle(title: AppString.performanceOverview.tr()),
+                    SizedBox(height: 12.h),
+                    _PerformanceCard(execution: execution, colors: colors),
+                  ],
+                  SizedBox(height: 24.h),
+                  _SectionTitle(title: AppString.financialOverview.tr()),
+                  SizedBox(height: 12.h),
+                  if (state.general.isLoading)
+                    SizedBox(
+                      height: 140.h,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: colors.kPrimaryColor,
+                        ),
+                      ),
+                    )
+                  else if (general != null)
+                    StatisticsTable(
+                      columns: [
+                        StatisticsTableColumn(
+                          label: AppString.metric.tr(),
+                          flex: 2,
+                        ),
+                        StatisticsTableColumn(
+                          label: AppString.amount.tr(),
+                          flex: 3,
+                        ),
+                      ],
+                      rows: _buildFinancialTableRows(
+                        general,
+                        _formatMoney,
+                        colors,
+                      ),
+                    ),
+                  if (state.selectedRegionId != null) ...[
+                    SizedBox(height: 24.h),
+                    _SectionTitle(title: AppString.sectorDistribution.tr()),
+                    SizedBox(height: 12.h),
+                    if (state.sectors.isLoading)
+                      SizedBox(
+                        height: 100.h,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: colors.kPrimaryColor,
+                          ),
+                        ),
+                      )
+                    else
+                      StatisticsTable(
+                        columns: [
+                          StatisticsTableColumn(
+                            label: AppString.sector.tr(),
+                            flex: 3,
+                          ),
+                          StatisticsTableColumn(
+                            label: AppString.projects.tr(),
+                            flex: 1,
+                          ),
+                        ],
+                        rows: sectors
+                            .map(
+                              (s) => StatisticsTableRow(
+                                cells: [s.title, '${s.count}'],
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    SizedBox(height: 24.h),
+                    _SectionTitle(title: AppString.qualityManagement.tr()),
+                    SizedBox(height: 12.h),
+                    if (state.qcTechnical.isLoading)
+                      SizedBox(
+                        height: 100.h,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: colors.kPrimaryColor,
+                          ),
+                        ),
+                      )
+                    else
+                      StatisticsTable(
+                        columns: [
+                          StatisticsTableColumn(
+                            label: AppString.category.tr(),
+                            flex: 3,
+                          ),
+                          StatisticsTableColumn(
+                            label: AppString.statements.tr(),
+                            flex: 1,
+                          ),
+                        ],
+                        rows: qcTechnical
+                            .map(
+                              (q) => StatisticsTableRow(
+                                cells: [q.category, '${q.statementsCount}'],
+                              ),
+                            )
+                            .toList(),
+                      ),
                   ],
                   SizedBox(height: 32.h),
                 ],
               ),
             ),
-          );
-
-          if (!state.isRefreshing) return content;
-
-          return Stack(
-            children: [
-              content,
-              Positioned.fill(
-                child: Container(
-                  color: colors.kBgColor.withOpacity(0.55),
-                  child: Center(
-                    child: CircularProgressIndicator(color: colors.kPrimaryColor),
+              ),
+              if (state.isRefreshing)
+                Positioned.fill(
+                  child: ColoredBox(
+                    color: colors.kBgColor.withValues(alpha: 0.45),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: colors.kPrimaryColor,
+                      ),
+                    ),
                   ),
                 ),
-              ),
             ],
           );
         },

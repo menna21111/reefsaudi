@@ -3,11 +3,7 @@ class StatusModel {
   final String? title;
   final String? description;
 
-  const StatusModel({
-    this.id,
-    this.title,
-    this.description,
-  });
+  const StatusModel({this.id, this.title, this.description});
 
   factory StatusModel.fromJson(Map<String, dynamic>? json) {
     if (json == null) return const StatusModel();

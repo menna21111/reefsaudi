@@ -221,13 +221,13 @@ class _ProjectStatisticsScreenState extends State<ProjectStatisticsScreen>
                     ),
                   ),
                   SizedBox(height: 24.h),
-                  _buildAnimatedSection(
-                    9,
-                    _QcSummaryCard(
-                      technical: bundle.qcTechnical,
-                      acceptedWork: bundle.qcAcceptedWork,
-                    ),
-                  ),
+                  // _buildAnimatedSection(
+                  //   9,
+                  //   _QcSummaryCard(
+                  //     technical: bundle.qcTechnical,
+                  //     acceptedWork: bundle.qcAcceptedWork,
+                  //   ),
+                  // ),
                   SizedBox(height: 32.h),
                 ],
               ),

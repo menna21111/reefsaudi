@@ -1,5 +1,4 @@
 import '../../../risk_management/data/models/project_risk_models.dart';
-import '../../data/models/supplier_models.dart';
 
 sealed class AddProjectState {}
 
@@ -15,14 +14,14 @@ class AddProjectLoaded extends AddProjectState {
     this.isSubmitting = false,
   });
 
-  final List<SupplierDxItemDto> contractors;
-  final List<SupplierDxItemDto> consultants;
+  final List<AccountDxItemDto> contractors;
+  final List<AccountDxItemDto> consultants;
   final List<AccountDxItemDto> accounts;
   final bool isSubmitting;
 
   AddProjectLoaded copyWith({
-    List<SupplierDxItemDto>? contractors,
-    List<SupplierDxItemDto>? consultants,
+    List<AccountDxItemDto>? contractors,
+    List<AccountDxItemDto>? consultants,
     List<AccountDxItemDto>? accounts,
     bool? isSubmitting,
   }) {

@@ -1,105 +1,67 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../core/permissions/app_permissions.dart';
-import '../../../../core/permissions/permission_gate.dart';
-import '../../../../core/utils/app_color_scheme.dart';
 import '../../../../core/utils/app_theme_context.dart';
 
-import '../../../risk_management/presentation/screens/risk_management_screen.dart';
-import '../../../project/presentation/screens/add_project_screen.dart';
-import '../screens/statices_homescrean.dart';
-import '../screens/statistics_screen.dart';
+enum DashboardHeaderLeading { drawer, back }
 
 class DashboardHeader extends StatelessWidget {
-  const DashboardHeader({super.key});
+  const DashboardHeader({
+    super.key,
+    this.leading = DashboardHeaderLeading.drawer,
+    this.titleKey,
+    this.trailing,
+  });
+
+  final DashboardHeaderLeading leading;
+  final String? titleKey;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Builder(
-          builder: (context) => GestureDetector(
-            onTap: () => Scaffold.of(context).openDrawer(),
-            child: Icon(
-              Icons.menu_rounded,
-              color: colors.kPrimaryColor,
-              size: 24.sp,
-            ),
-          ),
-        ),
-        Row(
-          children: [
-            PermissionGate(
-              permission: AppPermissions.projectCreate,
-              child: _ActionIcon(
-                icon: Icons.add_rounded,
-                colors: colors,
-                onTap: () {
-                  Navigator.push(context, AddProjectScreen.route());
-                },
+        if (leading == DashboardHeaderLeading.drawer)
+          Builder(
+            builder: (context) => GestureDetector(
+              onTap: () => Scaffold.of(context).openDrawer(),
+              child: Icon(
+                Icons.menu_rounded,
+                color: colors.kPrimaryColor,
+                size: 24.sp,
               ),
             ),
-            SizedBox(width: 8.w),
-            _ActionIcon(
-              icon: Icons.warning_amber_outlined,
-              colors: colors,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const RiskManagementScreen(),
-                  ),
-                );
-              },
+          )
+        else
+          GestureDetector(
+            onTap: () => Navigator.maybePop(context),
+            child: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: colors.kPrimaryColor,
+              size: 22.sp,
             ),
-            SizedBox(width: 8.w),
-            _ActionIcon(
-              icon: Icons.bar_chart_rounded,
-              colors: colors,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const StatisticsHomeScrean(),
-                  ),
-                );
-              },
+          ),
+        if (titleKey != null) ...[
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Text(
+              titleKey!.tr(),
+              textAlign: TextAlign.start,
+              style: TextStyle(
+                color: colors.kWhiteColor,
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Almarai',
+              ),
             ),
-          ],
-        ),
+          ),
+        ] else
+          const Spacer(),
+        if (trailing != null) trailing!,
       ],
-    );
-  }
-}
-
-class _ActionIcon extends StatelessWidget {
-  final IconData icon;
-  final AppColorScheme colors;
-  final VoidCallback? onTap;
-
-  const _ActionIcon({
-    required this.icon,
-    required this.colors,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(8.w),
-        decoration: BoxDecoration(
-          color: colors.kInputColor,
-          shape: BoxShape.circle,
-          border: Border.all(color: colors.kBorderColor.withOpacity(0.3)),
-        ),
-        child: Icon(icon, color: colors.kWhiteColor, size: 20.sp),
-      ),
     );
   }
 }

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/presination/screans/login_screan.dart';
 import '../funcation.dart';
 import '../services/service_locator.dart';
 import '../utils/app_theme_context.dart';
 import '../widgets/applogo.dart';
 import 'navigation.dart';
+import '../../features/auth/data/repositories/auth_repository_impl.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -54,11 +54,17 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _bootstrap() async {
-    final results = await Future.wait([
-      _restoreSession(),
-      Future<void>.delayed(const Duration(milliseconds: 2500)),
-    ]);
-    final isLoggedIn = results[0] as bool;
+    var isLoggedIn = false;
+
+    try {
+      final results = await Future.wait([
+        _restoreSession(),
+        Future<void>.delayed(const Duration(milliseconds: 2500)),
+      ]);
+      isLoggedIn = results[0] as bool;
+    } catch (_) {
+      isLoggedIn = false;
+    }
 
     if (!mounted) return;
 

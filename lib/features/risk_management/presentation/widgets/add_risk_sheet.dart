@@ -40,11 +40,11 @@ class _AddRiskSheetState extends State<AddRiskSheet> {
   String? _ownerId;
   String? _approvedById;
   DateTime? _riskDate;
-  int? _riskImpact;
-  int? _riskPriority;
-  int? _riskProbability;
-  int? _riskResponse;
-  int? _riskStatus;
+  String? _riskImpact;
+  String? _riskPriority;
+  String? _riskProbability;
+  String? _riskResponse;
+  String? _riskStatus;
 
   @override
   void dispose() {
@@ -370,13 +370,13 @@ class _AddRiskSheetState extends State<AddRiskSheet> {
 
   Widget _enumDropdown({
     required String label,
-    required int? value,
+    required String? value,
     required List<RiskEnumOption> options,
-    required ValueChanged<int?> onChanged,
+    required ValueChanged<String?> onChanged,
   }) {
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
-      child: DropdownButtonFormField<int>(
+      child: DropdownButtonFormField<String>(
         value: value,
         items: options
             .map(

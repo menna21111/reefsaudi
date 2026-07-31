@@ -9,6 +9,7 @@ import '../services/service_locator.dart';
 import '../services/token_service/token_storage.dart';
 import 'api_constant.dart';
 import 'authorization_header.dart';
+import '../services/app_locle.dart';
 
 class DioHelper {
   static Dio? dio;
@@ -29,6 +30,9 @@ class DioHelper {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           await AuthorizationHeader.applyStandard(options, _tokenStorage);
+          if (options.data is FormData) {
+            options.headers.remove('Content-Type');
+          }
           final auth = options.headers[AuthorizationHeader.headerKey];
           log(
             'DioHelper - ${options.method} ${options.path} | '
@@ -64,14 +68,11 @@ class DioHelper {
   }
 
   static Future<void> syncHeaders({required String path}) async {
-    final built = await headers(
-      path: path,
-      // Keep Authorization per-request only (interceptor), not on shared Dio options.
-      includeAuth: false,
-    );
+    final lang = await AppLocale.getSavedLanguage();
     if (dio != null) {
-      dio!.options.headers = Map<String, dynamic>.from(built);
-      dio!.options.headers.remove(AuthorizationHeader.headerKey);
+      dio!.options.headers = {
+        'Accept-Language': lang,
+      };
     }
   }
 
@@ -80,26 +81,45 @@ class DioHelper {
   static Future<Response> getData({
     required String url,
     Map<String, dynamic>? query,
+    ResponseType? responseType,
   }) async {
     await syncHeaders(path: url);
-    return dio!.get(url, queryParameters: query);
+    return dio!.get(
+      url,
+      queryParameters: query,
+      options: responseType == null
+          ? null
+          : Options(responseType: responseType),
+    );
   }
 
   static Future<Response> postData({
     required String url,
     required dynamic data,
     Map<String, dynamic>? query,
+    Options? options,
   }) async {
     await syncHeaders(path: url);
-    return dio!.post(url, data: data, queryParameters: query);
+    return dio!.post(url, data: data, queryParameters: query, options: options);
   }
 
   static Future<Response> putData({
     required String url,
     required dynamic data,
     Map<String, dynamic>? query,
+    Options? options,
+    bool legacyAuthQuery = true,
   }) async {
     await syncHeaders(path: url);
+    if (!legacyAuthQuery) {
+      return dio!.put(
+        url,
+        data: data,
+        queryParameters: query,
+        options: options,
+      );
+    }
+
     final token = await _tokenStorage.getToken();
     final userId = await _tokenStorage.getLegacyUserId();
 
@@ -107,12 +127,14 @@ class DioHelper {
       '$url?access-token=$token&id=$userId',
       data: data,
       queryParameters: query,
+      options: options,
     );
   }
 
   static Future<Response> deleteData({
     required String url,
     Map<String, dynamic>? query,
+    dynamic data,
   }) async {
     await syncHeaders(path: url);
     final token = await _tokenStorage.getToken();
@@ -121,6 +143,7 @@ class DioHelper {
     return dio!.delete(
       '$url?access-token=$token&id=$userId',
       queryParameters: query,
+      data: data,
     );
   }
 }

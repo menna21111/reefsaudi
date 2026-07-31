@@ -1,9 +1,13 @@
-import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_styled_toast/flutter_styled_toast.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:syncfusion_localizations/syncfusion_localizations.dart';
 
+import 'core/navigation/app_navigator.dart';
 import 'core/blocs/theme_bloc.dart';
 import 'core/config/splash_screen.dart';
 import 'core/permissions/permission_cubit.dart';
@@ -13,8 +17,8 @@ import 'core/services/service_locator.dart';
 import 'core/theme/dark_theme_data.dart';
 import 'core/theme/light_theme_data.dart';
 import 'core/utils/cache_helper.dart';
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+import 'core/utils/responsive.dart';
+import 'features/chat/core/config/app_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +26,7 @@ void main() async {
   debugPrint("🚀 Starting app initialization...");
 
   await EasyLocalization.ensureInitialized();
+  ensureChatConfig();
   ServiceLocator().init();
   await CacheHelper.init();
   await DioHelper.init();
@@ -55,7 +60,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: const Size(360, 800),
+      // Phone: 360x800 — Tablet/iPad: 768x1024 so .w/.sp don't overscale.
+      designSize: appDesignSize(),
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
@@ -66,7 +72,13 @@ class MyApp extends StatelessWidget {
               navigatorKey: navigatorKey,
 
               // ✅ Localization
-              localizationsDelegates: context.localizationDelegates,
+              localizationsDelegates: [
+                ...context.localizationDelegates,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+                SfGlobalLocalizations.delegate,
+              ],
               supportedLocales: context.supportedLocales,
               locale: context.locale,
 
@@ -74,6 +86,18 @@ class MyApp extends StatelessWidget {
               theme: lightThemeData,
               darkTheme: darkThemeData,
               themeMode: themeState.isDark ? ThemeMode.dark : ThemeMode.light,
+
+              builder: (context, child) {
+                final direction = context.locale.languageCode == 'ar'
+                    ? TextDirection.rtl
+                    : TextDirection.ltr;
+                return StyledToast(
+                  child: Directionality(
+                    textDirection: direction,
+                    child: child ?? const SizedBox.shrink(),
+                  ),
+                );
+              },
 
               // ✅ FIX: IMPORTANT (prevents your crash)
               home: const SplashScreen(),

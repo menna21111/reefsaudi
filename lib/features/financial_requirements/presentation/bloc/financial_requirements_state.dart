@@ -24,6 +24,8 @@ class FinancialRequirementsLoaded extends FinancialRequirementsState {
   final bool hasPreviousPage;
   final bool hasNextPage;
   final bool isPageLoading;
+  final String? feedbackMessage;
+  final bool feedbackIsError;
 
   const FinancialRequirementsLoaded({
     required this.allItems,
@@ -36,6 +38,8 @@ class FinancialRequirementsLoaded extends FinancialRequirementsState {
     required this.hasPreviousPage,
     required this.hasNextPage,
     this.isPageLoading = false,
+    this.feedbackMessage,
+    this.feedbackIsError = false,
   });
 
   FinancialRequirementsLoaded copyWith({
@@ -49,6 +53,9 @@ class FinancialRequirementsLoaded extends FinancialRequirementsState {
     bool? hasPreviousPage,
     bool? hasNextPage,
     bool? isPageLoading,
+    String? feedbackMessage,
+    bool? feedbackIsError,
+    bool clearFeedback = false,
   }) {
     return FinancialRequirementsLoaded(
       allItems: allItems ?? this.allItems,
@@ -61,6 +68,9 @@ class FinancialRequirementsLoaded extends FinancialRequirementsState {
       hasPreviousPage: hasPreviousPage ?? this.hasPreviousPage,
       hasNextPage: hasNextPage ?? this.hasNextPage,
       isPageLoading: isPageLoading ?? this.isPageLoading,
+      feedbackMessage:
+          clearFeedback ? null : (feedbackMessage ?? this.feedbackMessage),
+      feedbackIsError: feedbackIsError ?? this.feedbackIsError,
     );
   }
 
@@ -76,6 +86,8 @@ class FinancialRequirementsLoaded extends FinancialRequirementsState {
         hasPreviousPage,
         hasNextPage,
         isPageLoading,
+        feedbackMessage,
+        feedbackIsError,
       ];
 }
 

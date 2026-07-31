@@ -29,16 +29,14 @@ class FinancialStatementModel {
 
   factory FinancialStatementModel.fromJson(Map<String, dynamic> json) {
     return FinancialStatementModel(
-      id: json['id'] as String?,
+      id: json['id']?.toString(),
       statementNo: json['statementNo'] as int?,
       startDate: json['startDate'] as String?,
       endDate: json['endDate'] as String?,
       amount: (json['amount'] as num?)?.toDouble(),
       description: json['description'] as String?,
       sector: json['sector'] as String?,
-      pmStatus: StatusModel.fromJson(
-        json['pmStatus'] as Map<String, dynamic>?,
-      ),
+      pmStatus: StatusModel.fromJson(json['pmStatus'] as Map<String, dynamic>?),
       financialStatus: StatusModel.fromJson(
         json['financialStatus'] as Map<String, dynamic>?,
       ),

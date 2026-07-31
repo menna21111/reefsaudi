@@ -42,3 +42,16 @@ class SearchFinancialRequirements extends FinancialRequirementsEvent {
   @override
   List<Object?> get props => [query];
 }
+
+class ClearFinancialFeedback extends FinancialRequirementsEvent {
+  const ClearFinancialFeedback();
+}
+
+class DeleteFinancialRequirement extends FinancialRequirementsEvent {
+  final String id;
+
+  const DeleteFinancialRequirement(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}

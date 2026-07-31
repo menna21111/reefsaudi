@@ -12,16 +12,15 @@ class ProjectModel extends Project {
     required super.entityName,
     super.daysLeft,
     super.statusColor,
+    super.brandTitle,
+    super.product,
+    super.sizeML,
   });
 
   factory ProjectModel.fromDto(PmoProjectDto dto) {
-    final segments = [dto.brandTitle, dto.product, dto.sizeML]
-        .where((s) => s.trim().isNotEmpty);
-    final compositeTitle = segments.join(' - ');
-
     return ProjectModel(
       id: dto.id,
-      title: compositeTitle.isNotEmpty ? compositeTitle : dto.title,
+      title: dto.title.trim().isNotEmpty ? dto.title : dto.activityTitle,
       description: dto.activityTitle.trim().isNotEmpty
           ? dto.activityTitle
           : dto.title,
@@ -31,6 +30,9 @@ class ProjectModel extends Project {
       entityName: dto.currentStep?.status.titleAr ?? '',
       daysLeft: dto.dayesLeft,
       statusColor: dto.currentStep?.status.color,
+      brandTitle: dto.brandTitle.trim(),
+      product: dto.product.trim(),
+      sizeML: dto.sizeML.trim(),
     );
   }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../core/utils/app_color.dart';
+import '../../../../core/utils/app_theme_context.dart';
 
 class StatusBadge extends StatelessWidget {
   final String label;
@@ -10,13 +10,14 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _resolveColor(label);
+    final colors = context.appColors;
+    final color = _resolveColor(label, colors.kPrimaryColor, colors.kGoldColor, colors.kGrayColor);
 
     return Center(
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.12),
+          color: color.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(8.r),
         ),
         child: Text(
@@ -33,19 +34,24 @@ class StatusBadge extends StatelessWidget {
     );
   }
 
-  Color _resolveColor(String status) {
+  Color _resolveColor(
+    String status,
+    Color primary,
+    Color gold,
+    Color gray,
+  ) {
     final normalized = status.trim();
 
     if (normalized.contains('صرف') || normalized.contains('مكتمل')) {
       return Colors.cyan;
     }
     if (normalized.contains('معتمد') || normalized.contains('ممول')) {
-      return AppColor.kPrimaryColor;
+      return primary;
     }
     if (normalized.contains('غير')) {
-      return AppColor.kGoldColor;
+      return gold;
     }
 
-    return AppColor.kGrayTextColor;
+    return gray;
   }
 }

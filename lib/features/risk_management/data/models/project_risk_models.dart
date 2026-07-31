@@ -1,27 +1,18 @@
-class ProjectRiskDto {
-  final String id;
-  final String title;
-  final String? description;
-  final String ownerId;
-  final String approvedById;
-  final int riskStatus;
-  final int riskProbability;
-  final int riskImpact;
-  final int riskPriority;
-  final int riskResponse;
-  final String? riskDate;
-  final String responsePlan;
-  final String contingencyPlan;
-  final String projectId;
-  final String? projectTitle;
-  final String? region;
+import 'dart:convert';
 
+import 'package:dio/dio.dart';
+
+import '../../presentation/constants/risk_enums.dart';
+
+class ProjectRiskDto {
   const ProjectRiskDto({
     required this.id,
     required this.title,
     this.description,
     required this.ownerId,
+    this.ownerName,
     required this.approvedById,
+    this.approvedByName,
     required this.riskStatus,
     required this.riskProbability,
     required this.riskImpact,
@@ -35,6 +26,25 @@ class ProjectRiskDto {
     this.region,
   });
 
+  final String id;
+  final String title;
+  final String? description;
+  final String ownerId;
+  final String? ownerName;
+  final String approvedById;
+  final String? approvedByName;
+  final String riskStatus;
+  final String riskProbability;
+  final String riskImpact;
+  final String riskPriority;
+  final String riskResponse;
+  final String? riskDate;
+  final String responsePlan;
+  final String contingencyPlan;
+  final String projectId;
+  final String? projectTitle;
+  final String? region;
+
   factory ProjectRiskDto.fromJson(Map<String, dynamic> json) {
     final project = json['project'];
     return ProjectRiskDto(
@@ -42,12 +52,15 @@ class ProjectRiskDto {
       title: json['title']?.toString() ?? '',
       description: json['description']?.toString(),
       ownerId: json['ownerId']?.toString() ?? '',
+      ownerName: json['ownerName']?.toString(),
       approvedById: json['approvedById']?.toString() ?? '',
-      riskStatus: _toInt(json['riskStatus']),
-      riskProbability: _toInt(json['riskProbability']),
-      riskImpact: _toInt(json['riskImpact']),
-      riskPriority: _toInt(json['riskPriority']),
-      riskResponse: _toInt(json['riskResponse']),
+      approvedByName: json['approvedByName']?.toString(),
+      riskStatus: RiskApiValueMapper.statusFromApi(json['riskStatus']),
+      riskProbability:
+          RiskApiValueMapper.probabilityFromApi(json['riskProbability']),
+      riskImpact: RiskApiValueMapper.impactFromApi(json['riskImpact']),
+      riskPriority: RiskApiValueMapper.priorityFromApi(json['riskPriority']),
+      riskResponse: RiskApiValueMapper.responseFromApi(json['riskResponse']),
       riskDate: json['riskDate']?.toString(),
       responsePlan: json['responsePlan']?.toString() ?? '',
       contingencyPlan: json['contingencyPlan']?.toString() ?? '',
@@ -61,13 +74,13 @@ class ProjectRiskDto {
 }
 
 class ProjectRiskListResponse {
-  final List<ProjectRiskDto> data;
-  final int totalCount;
-
   const ProjectRiskListResponse({
     required this.data,
     required this.totalCount,
   });
+
+  final List<ProjectRiskDto> data;
+  final int totalCount;
 
   factory ProjectRiskListResponse.fromJson(Map<String, dynamic> json) {
     return ProjectRiskListResponse(
@@ -78,10 +91,10 @@ class ProjectRiskListResponse {
 }
 
 class AccountDxItemDto {
+  const AccountDxItemDto({required this.id, required this.fullName});
+
   final String id;
   final String fullName;
-
-  const AccountDxItemDto({required this.id, required this.fullName});
 
   factory AccountDxItemDto.fromJson(Map<String, dynamic> json) {
     return AccountDxItemDto(
@@ -91,21 +104,100 @@ class AccountDxItemDto {
   }
 }
 
-class CreateProjectRiskRequest {
+class ProjectRiskWriteRequest {
+  const ProjectRiskWriteRequest({
+    required this.title,
+    this.description,
+    required this.responsePlan,
+    required this.contingencyPlan,
+    required this.riskDate,
+    required this.ownerId,
+    required this.approvedById,
+    required this.riskPriority,
+    required this.riskResponse,
+    required this.riskImpact,
+    required this.riskProbability,
+    required this.riskStatus,
+    this.id,
+    this.projectId,
+  });
+
+  final String? id;
+  final String? projectId;
   final String title;
-  final String projectId;
   final String? description;
   final String responsePlan;
   final String contingencyPlan;
   final DateTime riskDate;
   final String ownerId;
   final String approvedById;
-  final int riskPriority;
-  final int riskResponse;
-  final int riskImpact;
-  final int riskProbability;
-  final int riskStatus;
+  final String riskPriority;
+  final String riskResponse;
+  final String riskImpact;
+  final String riskProbability;
+  final String riskStatus;
 
+  factory ProjectRiskWriteRequest.fromDto(ProjectRiskDto dto) {
+    return ProjectRiskWriteRequest(
+      id: dto.id,
+      projectId: dto.projectId,
+      title: dto.title,
+      description: dto.description,
+      responsePlan: dto.responsePlan,
+      contingencyPlan: dto.contingencyPlan,
+      riskDate: DateTime.tryParse(dto.riskDate ?? '') ?? DateTime.now(),
+      ownerId: dto.ownerId,
+      approvedById: dto.approvedById,
+      riskPriority: dto.riskPriority,
+      riskResponse: dto.riskResponse,
+      riskImpact: dto.riskImpact,
+      riskProbability: dto.riskProbability,
+      riskStatus: dto.riskStatus,
+    );
+  }
+
+  Map<String, dynamic> toApiValuesJson({String? projectId}) {
+    final resolvedProjectId = projectId ?? this.projectId;
+    final json = <String, dynamic>{
+      'title': title,
+      'description': description ?? '',
+      'responsePlan': responsePlan,
+      'contingencyPlan': contingencyPlan,
+      'riskDate': formatProjectRiskDate(riskDate),
+      'ownerId': ownerId,
+      'approvedById': approvedById,
+      'riskPriority': RiskApiValueMapper.priorityToApi(riskPriority),
+      'riskResponse': RiskApiValueMapper.responseToApi(riskResponse),
+      'riskImpact': RiskApiValueMapper.impactToApi(riskImpact),
+      'riskProbability': RiskApiValueMapper.probabilityToApi(riskProbability),
+      'riskStatus': RiskApiValueMapper.statusToApi(riskStatus),
+    };
+    if (resolvedProjectId != null && resolvedProjectId.isNotEmpty) {
+      json['projectId'] = resolvedProjectId;
+    }
+    if (id != null && id!.isNotEmpty) json['id'] = id;
+    return json;
+  }
+
+  FormData toFormData({String? projectId}) {
+    return FormData.fromMap({
+      'values': jsonEncode(toApiValuesJson(projectId: projectId)),
+    });
+  }
+
+  FormData toUpdateFormData() {
+    return FormData.fromMap({
+      if (id != null && id!.isNotEmpty) 'key': id,
+      'values': jsonEncode(toApiValuesJson()),
+    });
+  }
+
+  @Deprecated('Use toApiValuesJson / toFormData for API calls')
+  Map<String, dynamic> toJson() => toApiValuesJson();
+}
+
+/// Legacy int-based request kept for global risk management screen compatibility.
+class CreateProjectRiskRequest {
   const CreateProjectRiskRequest({
     required this.title,
     required this.projectId,
@@ -122,22 +214,52 @@ class CreateProjectRiskRequest {
     required this.riskStatus,
   });
 
-  Map<String, dynamic> toJson() => {
+  final String title;
+  final String projectId;
+  final String? description;
+  final String responsePlan;
+  final String contingencyPlan;
+  final DateTime riskDate;
+  final String ownerId;
+  final String approvedById;
+  final String riskPriority;
+  final String riskResponse;
+  final String riskImpact;
+  final String riskProbability;
+  final String riskStatus;
+
+  Map<String, dynamic> toApiValuesJson() => {
         'title': title,
         'projectId': projectId,
         if (description != null && description!.isNotEmpty)
           'description': description,
         'responsePlan': responsePlan,
         'contingencyPlan': contingencyPlan,
-        'riskDate': riskDate.toUtc().toIso8601String(),
+        'riskDate': formatProjectRiskDate(riskDate),
         'ownerId': ownerId,
         'approvedById': approvedById,
-        'riskPriority': riskPriority,
-        'riskResponse': riskResponse,
-        'riskImpact': riskImpact,
-        'riskProbability': riskProbability,
-        'riskStatus': riskStatus,
+        'riskPriority': RiskApiValueMapper.priorityToApi(riskPriority),
+        'riskResponse': RiskApiValueMapper.responseToApi(riskResponse),
+        'riskImpact': RiskApiValueMapper.impactToApi(riskImpact),
+        'riskProbability': RiskApiValueMapper.probabilityToApi(riskProbability),
+        'riskStatus': RiskApiValueMapper.statusToApi(riskStatus),
       };
+
+  FormData toFormData() {
+    return FormData.fromMap({
+      'values': jsonEncode(toApiValuesJson()),
+    });
+  }
+
+  @Deprecated('Use toApiValuesJson / toFormData for API calls')
+  Map<String, dynamic> toJson() => toApiValuesJson();
+}
+
+String formatProjectRiskDate(DateTime date) {
+  final year = date.year.toString().padLeft(4, '0');
+  final month = date.month.toString().padLeft(2, '0');
+  final day = date.day.toString().padLeft(2, '0');
+  return '$year-$month-${day}T00:00:00.000';
 }
 
 List<ProjectRiskDto> parseProjectRisks(dynamic raw) {

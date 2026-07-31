@@ -10,6 +10,9 @@ class Project extends Equatable {
   final String entityName; // e.g. 'منصة اعتماد' or 'شركة الخريف'
   final int? daysLeft;
   final String? statusColor;
+  final String brandTitle;
+  final String product;
+  final String sizeML;
 
   const Project({
     required this.id,
@@ -21,6 +24,9 @@ class Project extends Equatable {
     required this.entityName,
     this.daysLeft,
     this.statusColor,
+    this.brandTitle = '',
+    this.product = '',
+    this.sizeML = '',
   });
 
   @override
@@ -34,5 +40,8 @@ class Project extends Equatable {
         entityName,
         daysLeft,
         statusColor,
+        brandTitle,
+        product,
+        sizeML,
       ];
 }

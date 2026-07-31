@@ -19,7 +19,8 @@ class ProjectNestedModel {
       id: json['id'] as String?,
       title: json['title'] as String?,
       projectCode: json['projectCode'] as String?,
-      areaTitle: json['areaTitle']?.toString() ??
+      areaTitle:
+          json['areaTitle']?.toString() ??
           json['area']?.toString() ??
           json['regionTitle']?.toString() ??
           json['region']?.toString(),

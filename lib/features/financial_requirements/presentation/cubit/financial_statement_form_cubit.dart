@@ -1,24 +1,31 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../project/data/models/project_api_models.dart';
 import '../../data/models/create_financial_statement_request.dart';
+import '../../data/models/dx_title_item_dto.dart';
 import '../../domain/repositories/financial_requirements_repository.dart';
 
 part 'financial_statement_form_state.dart';
 
 class FinancialStatementFormCubit extends Cubit<FinancialStatementFormState> {
   FinancialStatementFormCubit({required this.repository})
-      : super(const FinancialStatementFormInitial());
+      : super(const FinancialStatementFormLoaded());
 
   final FinancialRequirementsRepository repository;
 
-  Future<void> loadLookups() async {
-    emit(const FinancialStatementFormLoading());
+  Future<List<ProjectDxItemDto>> fetchProjects() async {
+    final result = await repository.getProjectsDx();
+    return result.fold((_) => <ProjectDxItemDto>[], (items) => items);
+  }
 
-    final result = await repository.getFormLookups();
-    result.fold(
-      (failure) => emit(FinancialStatementFormError(failure.errMessage)),
-      (lookups) => emit(FinancialStatementFormLoaded(lookups: lookups)),
-    );
+  Future<List<DxTitleItemDto>> fetchFinancialStatuses() async {
+    final result = await repository.getFinancialStatusesDx();
+    return result.fold((_) => <DxTitleItemDto>[], (items) => items);
+  }
+
+  Future<List<DxTitleItemDto>> fetchPmStatuses() async {
+    final result = await repository.getPmStatusesDx();
+    return result.fold((_) => <DxTitleItemDto>[], (items) => items);
   }
 
   /// Returns `null` on success, or an error message key/string on failure.

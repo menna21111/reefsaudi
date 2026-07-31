@@ -44,6 +44,9 @@ class ErrorHandler implements Exception {
         return DataSource.connectionError.getFailure();
       case DioExceptionType.unknown:
         return DataSource.unKnown.getFailure();
+      case DioExceptionType.transformTimeout:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 }

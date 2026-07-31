@@ -63,31 +63,70 @@ class AuthRepositoryImpl {
     }
   }
 
+  Future<void> _clearSession() async {
+    await tokenStorage.clearToken();
+    await permissionCubit.clear();
+  }
+
   Future<bool> restoreSession() async {
     final token = await tokenStorage.getToken();
     final hasToken = token != null && token.isNotEmpty;
 
     if (!hasToken) {
-      await permissionCubit.clear();
+      await _clearSession();
       return false;
     }
 
-    await permissionCubit.loadCached();
+    try {
+      if (!await networkInfo.isConnected) {
+        await permissionCubit.loadCached();
+        return permissionCubit.state != null;
+      }
 
-    final profileResult = await refreshProfile();
-    if (profileResult.isRight()) {
+      return await _restoreProfileFromServer();
+    } catch (_) {
+      await _clearSession();
+      return false;
+    }
+  }
+
+  /// Validates the saved token against `/account`.
+  /// Only retries after a token refresh on 401/403; any other API error logs out.
+  Future<bool> _restoreProfileFromServer() async {
+    final firstAttempt = await _tryFetchAndStoreProfile();
+    if (firstAttempt) return true;
+
+    final statusCode = _lastAccountStatusCode;
+    if (statusCode == 401 || statusCode == 403) {
+      final refreshed = await tokenRefreshService.refreshAccessToken();
+      if (!refreshed) {
+        await _clearSession();
+        return false;
+      }
+
+      final retryAttempt = await _tryFetchAndStoreProfile();
+      if (retryAttempt) return true;
+    }
+
+    await _clearSession();
+    return false;
+  }
+
+  int? _lastAccountStatusCode;
+
+  Future<bool> _tryFetchAndStoreProfile() async {
+    _lastAccountStatusCode = null;
+    try {
+      final profile = await remoteDataSource.getAccount();
+      await tokenStorage.storeUserId(profile.id);
+      await permissionCubit.setProfile(profile);
       return true;
-    }
-
-    final refreshed = await tokenRefreshService.refreshAccessToken();
-    if (!refreshed) {
-      await tokenStorage.clearToken();
-      await permissionCubit.clear();
+    } on DioException catch (e) {
+      _lastAccountStatusCode = e.response?.statusCode;
+      return false;
+    } catch (_) {
       return false;
     }
-
-    final retryResult = await refreshProfile();
-    return retryResult.isRight();
   }
 
   Future<Either<Failure, ProfileModel>> refreshProfile() async {

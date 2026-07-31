@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:reefsaudia/core/utils/app_color.dart';
+
 import 'package:reefsaudia/core/utils/app_theme_context.dart';
 
 class ProjectDetailsWidget extends StatelessWidget {

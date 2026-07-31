@@ -1,27 +1,37 @@
-import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
 
+import '../../../../core/funcation.dart';
+import '../../../../core/utils/app_color.dart';
 import '../../../../core/utils/app_string.dart';
 import '../../../../core/utils/app_color_scheme.dart';
 import '../../../../core/utils/app_theme_context.dart';
+import '../../../../core/widgets/button_custom.dart';
+import '../../../../core/widgets/lazy_styled_popup_dropdown.dart';
+import '../../../../core/widgets/styled_popup_dropdown.dart';
 import '../../../project/data/models/project_api_models.dart';
+import '../../../project/presentation/widgets/edit_project/edit_project_form_utils.dart';
 import '../../data/models/project_risk_models.dart';
 import '../constants/risk_enums.dart';
 import '../cubit/risk_management_cubit.dart';
 
-import '../../../../core/widgets/styled_popup_dropdown.dart';
-
 class RiskAddScreen extends StatefulWidget {
-  const RiskAddScreen({super.key});
+  const RiskAddScreen({super.key, this.initial});
 
-  static Route<bool> route(RiskManagementCubit cubit) {
+  final ProjectRiskDto? initial;
+
+  bool get isEdit => initial != null;
+
+  static Route<bool> route(
+    RiskManagementCubit cubit, {
+    ProjectRiskDto? initial,
+  }) {
     return MaterialPageRoute<bool>(
       builder: (_) => BlocProvider.value(
         value: cubit,
-        child: const RiskAddScreen(),
+        child: RiskAddScreen(initial: initial),
       ),
     );
   }
@@ -32,22 +42,57 @@ class RiskAddScreen extends StatefulWidget {
 
 class _RiskAddScreenState extends State<RiskAddScreen> {
   final _formKey = GlobalKey<FormState>();
+  bool _showValidationErrors = false;
 
-  final _titleController = TextEditingController();
-  final _regionController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _responsePlanController = TextEditingController();
-  final _contingencyPlanController = TextEditingController();
+  late final TextEditingController _titleController;
+  late final TextEditingController _regionController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _responsePlanController;
+  late final TextEditingController _contingencyPlanController;
 
   DateTime? _riskDate;
   String? _projectId;
+  String? _projectName;
   String? _ownerId;
+  String? _ownerName;
   String? _approvedById;
-  int? _riskImpact;
-  int? _riskPriority;
-  int? _riskProbability;
-  int? _riskResponse;
-  int? _riskStatus;
+  String? _approvedByName;
+  String? _riskImpact;
+  String? _riskPriority;
+  String? _riskProbability;
+  String? _riskResponse;
+  String? _riskStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initial;
+    _titleController = TextEditingController(text: initial?.title ?? '');
+    _regionController = TextEditingController(text: initial?.region ?? '');
+    _descriptionController =
+        TextEditingController(text: initial?.description ?? '');
+    _responsePlanController =
+        TextEditingController(text: initial?.responsePlan ?? '');
+    _contingencyPlanController =
+        TextEditingController(text: initial?.contingencyPlan ?? '');
+    _riskDate = initial?.riskDate != null
+        ? DateTime.tryParse(initial!.riskDate!)
+        : null;
+    _projectId = _nonEmpty(initial?.projectId);
+    _projectName = initial?.projectTitle;
+    _ownerId = _nonEmpty(initial?.ownerId);
+    _ownerName = initial?.ownerName;
+    _approvedById = _nonEmpty(initial?.approvedById);
+    _approvedByName = initial?.approvedByName;
+    _riskImpact = _nonEmpty(initial?.riskImpact);
+    _riskPriority = _nonEmpty(initial?.riskPriority);
+    _riskProbability = _nonEmpty(initial?.riskProbability);
+    _riskResponse = _nonEmpty(initial?.riskResponse);
+    _riskStatus = _nonEmpty(initial?.riskStatus);
+  }
+
+  String? _nonEmpty(String? value) =>
+      value == null || value.isEmpty ? null : value;
 
   @override
   void dispose() {
@@ -59,19 +104,19 @@ class _RiskAddScreenState extends State<RiskAddScreen> {
     super.dispose();
   }
 
+  RiskManagementCubit get _cubit => context.read<RiskManagementCubit>();
+
   Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _riskDate ?? now,
-      firstDate: DateTime(now.year - 1),
-      lastDate: DateTime(now.year + 10),
+    await EditProjectFormUtils.pickDate(
+      context,
+      initial: _riskDate,
+      onPicked: (picked) => setState(() => _riskDate = picked),
     );
-    if (picked != null) setState(() => _riskDate = picked);
   }
 
   Future<void> _submit(RiskManagementLoaded state) async {
-    if (!_formKey.currentState!.validate()) return;
+    setState(() => _showValidationErrors = true);
+    if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_projectId == null ||
         _ownerId == null ||
         _approvedById == null ||
@@ -84,51 +129,84 @@ class _RiskAddScreenState extends State<RiskAddScreen> {
       return;
     }
 
-    final request = CreateProjectRiskRequest(
-      title: _titleController.text.trim(),
-      projectId: _projectId!,
-      description: _descriptionController.text.trim(),
-      responsePlan: _responsePlanController.text.trim(),
-      contingencyPlan: _contingencyPlanController.text.trim(),
-      riskDate: _riskDate!,
-      ownerId: _ownerId!,
-      approvedById: _approvedById!,
-      riskPriority: _riskPriority!,
-      riskResponse: _riskResponse!,
-      riskImpact: _riskImpact!,
-      riskProbability: _riskProbability!,
-      riskStatus: _riskStatus!,
-    );
-
-    final cubit = context.read<RiskManagementCubit>();
-    final success = await cubit.createRisk(request);
+    final success = widget.isEdit
+        ? await _cubit.updateRisk(
+            ProjectRiskWriteRequest(
+              id: widget.initial!.id,
+              projectId: _projectId!,
+              title: _titleController.text.trim(),
+              description: _descriptionController.text.trim(),
+              responsePlan: _responsePlanController.text.trim(),
+              contingencyPlan: _contingencyPlanController.text.trim(),
+              riskDate: _riskDate!,
+              ownerId: _ownerId!,
+              approvedById: _approvedById!,
+              riskPriority: _riskPriority!,
+              riskResponse: _riskResponse!,
+              riskImpact: _riskImpact!,
+              riskProbability: _riskProbability!,
+              riskStatus: _riskStatus!,
+            ),
+          )
+        : await _cubit.createRisk(
+            CreateProjectRiskRequest(
+              title: _titleController.text.trim(),
+              projectId: _projectId!,
+              description: _descriptionController.text.trim(),
+              responsePlan: _responsePlanController.text.trim(),
+              contingencyPlan: _contingencyPlanController.text.trim(),
+              riskDate: _riskDate!,
+              ownerId: _ownerId!,
+              approvedById: _approvedById!,
+              riskPriority: _riskPriority!,
+              riskResponse: _riskResponse!,
+              riskImpact: _riskImpact!,
+              riskProbability: _riskProbability!,
+              riskStatus: _riskStatus!,
+            ),
+          );
     if (!mounted) return;
-    if (success) Navigator.pop(context, true);
+    if (success) {
+      AppFunctions.showSuccessToast(
+        context,
+        widget.isEdit
+            ? AppString.savedSuccessfully.tr()
+            : AppString.riskCreatedSuccess.tr(),
+      );
+      Navigator.pop(context, true);
+    } else {
+      AppFunctions.showsToast(
+        widget.isEdit
+            ? AppString.unKnownError.tr()
+            : AppString.riskCreateFailed.tr(),
+        AppColor.kRedColor,
+        context,
+      );
+    }
   }
 
-  List<DropdownMenuItem<String>> _projectItems(
-    List<ProjectDxItemDto> projects,
-  ) =>
-      projects
-          .map(
-            (p) => DropdownMenuItem<String>(
-              value: p.id,
-              child: Text(p.title, overflow: TextOverflow.ellipsis),
+  Future<List<DropdownMenuItem<String>>> _loadProjects() async {
+    final projects = await _cubit.fetchProjects();
+    return projects
+        .map(
+          (ProjectDxItemDto project) => DropdownMenuItem<String>(
+            value: project.id,
+            child: Text(
+              project.title,
+              textAlign: FormLayout.alignOf(context),
+              textDirection: FormLayout.directionOf(context),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-          )
-          .toList();
+          ),
+        )
+        .toList();
+  }
 
-  List<DropdownMenuItem<String>> _accountItems(
-    List<AccountDxItemDto> accounts,
-  ) =>
-      accounts
-          .map(
-            (a) => DropdownMenuItem<String>(
-              value: a.id,
-              child: Text(a.fullName, overflow: TextOverflow.ellipsis),
-            ),
-          )
-          .toList();
+  Future<List<DropdownMenuItem<String>>> _loadAccounts() async {
+    final accounts = await _cubit.fetchAccounts();
+    return EditProjectFormUtils.accountItems(context, accounts);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,235 +214,256 @@ class _RiskAddScreenState extends State<RiskAddScreen> {
 
     return BlocBuilder<RiskManagementCubit, RiskManagementState>(
       builder: (context, state) {
-        if (state is! RiskManagementLoaded) {
-          return Scaffold(
-            backgroundColor: colors.kBgColor,
-            appBar: AppBar(
-              backgroundColor: colors.kInputColor,
-              elevation: 0,
-              centerTitle: true,
-              title: Text(
-                AppString.addRisk.tr(),
-                style: TextStyle(
-                  color: colors.kPrimaryColor,
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            body: const Center(child: CircularProgressIndicator()),
-          );
-        }
+        final loaded = state is RiskManagementLoaded ? state : null;
 
         return Scaffold(
           backgroundColor: colors.kBgColor,
           appBar: AppBar(
-            backgroundColor: colors.kInputColor,
+            backgroundColor: colors.kBgColor,
             elevation: 0,
             centerTitle: true,
             title: Text(
-              AppString.addRisk.tr(),
+              (widget.isEdit ? AppString.editRisk : AppString.addRisk).tr(),
               style: TextStyle(
                 color: colors.kPrimaryColor,
                 fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
+                fontFamily: 'Almarai',
               ),
             ),
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new_rounded,
-                  color: colors.kPrimaryColor),
+              icon: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: colors.kFontColor,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
           ),
           body: SafeArea(
             child: Form(
               key: _formKey,
+              autovalidateMode: _showValidationErrors
+                  ? AutovalidateMode.always
+                  : AutovalidateMode.disabled,
               child: ListView(
-                padding: EdgeInsets.all(16.w),
+                padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 24.h),
                 children: [
                   TextFormField(
                     controller: _titleController,
+                    textAlign: FormLayout.alignOf(context),
+                    textDirection: FormLayout.directionOf(context),
                     validator: (v) =>
                         v == null || v.trim().isEmpty ? ' ' : null,
-                    decoration: _inputDecoration(
-                      colors: colors,
+                    decoration: EditProjectFormUtils.inputDecoration(
+                      context,
                       label: '${AppString.riskTitle.tr()} *',
                     ),
                   ),
                   SizedBox(height: 14.h),
-
-                  StyledPopupDropdown<String>(
+                  LazyStyledPopupDropdown(
                     title: AppString.projectName.tr(),
+                    valueId: _projectId,
+                    valueLabel: _projectName,
                     hintText: AppString.select.tr(),
-                    value: _projectId,
                     required: true,
-                    isLoading: state.isFormDataLoading,
-                    items: _projectItems(state.projects),
-                    onChanged: (v) => setState(() => _projectId = v),
+                    showValidationError: _showValidationErrors,
+                    loadItems: _loadProjects,
+                    onSelected: (id, label) {
+                      setState(() {
+                        _projectId = id;
+                        _projectName = label;
+                      });
+                    },
                   ),
+                  // SizedBox(height: 14.h),
+                  // TextFormField(
+                  //   controller: _regionController,
+                  //   textAlign: FormLayout.alignOf(context),
+                  //   textDirection: FormLayout.directionOf(context),
+                  //   decoration: EditProjectFormUtils.inputDecoration(
+                  //     context,
+                  //     label: AppString.region.tr(),
+                  //   ),
+                  // ),
                   SizedBox(height: 14.h),
-
-                  TextFormField(
-                    controller: _regionController,
-                    decoration: _inputDecoration(
-                      colors: colors,
-                      label: AppString.region.tr(),
-                    ),
-                  ),
-                  SizedBox(height: 14.h),
-
                   TextFormField(
                     controller: _descriptionController,
-                    maxLines: 3,
-                    decoration: _inputDecoration(
-                      colors: colors,
+                    minLines: 3,
+                    maxLines: 5,
+                    textAlign: FormLayout.alignOf(context),
+                    textDirection: FormLayout.directionOf(context),
+                    decoration: EditProjectFormUtils.inputDecoration(
+                      context,
                       label: AppString.description.tr(),
                     ),
                   ),
                   SizedBox(height: 14.h),
-
                   TextFormField(
                     controller: _responsePlanController,
-                    maxLines: 3,
+                    minLines: 3,
+                    maxLines: 5,
+                    textAlign: FormLayout.alignOf(context),
+                    textDirection: FormLayout.directionOf(context),
                     validator: (v) =>
                         v == null || v.trim().isEmpty ? ' ' : null,
-                    decoration: _inputDecoration(
-                      colors: colors,
+                    decoration: EditProjectFormUtils.inputDecoration(
+                      context,
                       label: '${AppString.responsePlan.tr()} *',
                     ),
                   ),
                   SizedBox(height: 14.h),
-
                   TextFormField(
                     controller: _contingencyPlanController,
-                    maxLines: 3,
+                    minLines: 3,
+                    maxLines: 5,
+                    textAlign: FormLayout.alignOf(context),
+                    textDirection: FormLayout.directionOf(context),
                     validator: (v) =>
                         v == null || v.trim().isEmpty ? ' ' : null,
-                    decoration: _inputDecoration(
-                      colors: colors,
+                    decoration: EditProjectFormUtils.inputDecoration(
+                      context,
                       label: '${AppString.contingencyPlan.tr()} *',
                     ),
                   ),
                   SizedBox(height: 14.h),
-
-                  InkWell(
-                    borderRadius: BorderRadius.circular(12.r),
+                  _DateField(
+                    colors: colors,
+                    label: '${AppString.date.tr()} *',
+                    value: _riskDate,
                     onTap: _pickDate,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12.w,
-                        vertical: 14.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colors.kBgColor,
-                        borderRadius: BorderRadius.circular(12.r),
-                        border: Border.all(color: colors.kBorderColor),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _riskDate == null
-                                  ? '${AppString.date.tr()} *'
-                                  : DateFormat.yMMMd().format(_riskDate!),
-                              style: TextStyle(
-                                color: colors.kFontColor,
-                                fontSize: 14.sp,
-                              ),
-                            ),
-                          ),
-                          Icon(
-                            Icons.calendar_today_outlined,
-                            color: colors.kGrayColor,
-                          ),
-                        ],
-                      ),
-                    ),
+                    showValidationError: _showValidationErrors,
                   ),
                   SizedBox(height: 14.h),
-
-                  StyledPopupDropdown<String>(
+                  LazyStyledPopupDropdown(
                     title: AppString.projectOwner.tr(),
+                    valueId: _ownerId,
+                    valueLabel: _ownerName,
                     hintText: AppString.select.tr(),
-                    value: _ownerId,
                     required: true,
-                    isLoading: state.isFormDataLoading,
-                    items: _accountItems(state.accounts),
-                    onChanged: (v) => setState(() => _ownerId = v),
+                    showValidationError: _showValidationErrors,
+                    loadItems: _loadAccounts,
+                    onSelected: (id, label) {
+                      setState(() {
+                        _ownerId = id;
+                        _ownerName = label;
+                      });
+                    },
                   ),
                   SizedBox(height: 14.h),
-
-                  StyledPopupDropdown<String>(
+                  LazyStyledPopupDropdown(
                     title: AppString.approvalOfficer.tr(),
+                    valueId: _approvedById,
+                    valueLabel: _approvedByName,
                     hintText: AppString.select.tr(),
-                    value: _approvedById,
                     required: true,
-                    isLoading: state.isFormDataLoading,
-                    items: _accountItems(state.accounts),
-                    onChanged: (v) => setState(() => _approvedById = v),
+                    showValidationError: _showValidationErrors,
+                    loadItems: _loadAccounts,
+                    onSelected: (id, label) {
+                      setState(() {
+                        _approvedById = id;
+                        _approvedByName = label;
+                      });
+                    },
                   ),
                   SizedBox(height: 14.h),
-
-                  _intEnumDropdown(
+                  _stringEnumDropdown(
                     label: AppString.riskImpact.tr(),
                     value: _riskImpact,
                     required: true,
                     options: RiskEnums.riskImpact,
                     onChanged: (v) => setState(() => _riskImpact = v),
                   ),
-
-                  _intEnumDropdown(
+                  _stringEnumDropdown(
                     label: AppString.riskPriority.tr(),
                     value: _riskPriority,
                     required: true,
                     options: RiskEnums.riskPriority,
                     onChanged: (v) => setState(() => _riskPriority = v),
                   ),
-
-                  _intEnumDropdown(
+                  _stringEnumDropdown(
                     label: AppString.riskProbability.tr(),
                     value: _riskProbability,
                     required: true,
                     options: RiskEnums.riskProbability,
                     onChanged: (v) => setState(() => _riskProbability = v),
                   ),
-
-                  _intEnumDropdown(
+                  _stringEnumDropdown(
                     label: AppString.riskResponseLabel.tr(),
                     value: _riskResponse,
                     required: true,
                     options: RiskEnums.riskResponse,
                     onChanged: (v) => setState(() => _riskResponse = v),
                   ),
-
-                  _intEnumDropdown(
+                  _stringEnumDropdown(
                     label: AppString.riskStatusLabel.tr(),
                     value: _riskStatus,
                     required: true,
                     options: RiskEnums.riskStatus,
                     onChanged: (v) => setState(() => _riskStatus = v),
                   ),
-
-                  SizedBox(height: 18.h),
-
-                  SizedBox(
-                    height: 50.h,
-                    child: FilledButton(
-                      onPressed: state.isSubmitting ? null : () => _submit(state),
-                      child: Text(
-                        state.isSubmitting
-                            ? AppString.loading.tr()
-                            : AppString.save.tr(),
+                  SizedBox(height: 24.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: loaded?.isSubmitting == true
+                              ? null
+                              : () => Navigator.pop(context),
+                          child: Container(
+                            alignment: Alignment.center,
+                            padding: EdgeInsets.symmetric(vertical: 14.h),
+                            decoration: BoxDecoration(
+                              color: colors.kInputColor,
+                              borderRadius: BorderRadius.circular(8.r),
+                              border: Border.all(
+                                color: colors.kBorderColor,
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              AppString.cancel.tr(),
+                              style: TextStyle(
+                                fontFamily: 'Almarai',
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.w600,
+                                color: colors.kFontColor,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: loaded?.isSubmitting == true
+                            ? Container(
+                                alignment: Alignment.center,
+                                padding: EdgeInsets.symmetric(vertical: 14.h),
+                                decoration: BoxDecoration(
+                                  color: colors.kPrimaryColor,
+                                  borderRadius: BorderRadius.circular(8.r),
+                                  border: Border.all(
+                                    color: colors.kPrimaryColor,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: SizedBox(
+                                  height: 22.h,
+                                  width: 22.w,
+                                  child: const CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              )
+                            : ButtonCustom(
+                                text: AppString.save.tr(),
+                                onTap: () {
+                                  if (loaded != null) _submit(loaded);
+                                },
+                              ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 12.h),
-
-                  OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(AppString.cancel.tr()),
-                  ),
-                  SizedBox(height: 28.h),
                 ],
               ),
             ),
@@ -374,52 +473,30 @@ class _RiskAddScreenState extends State<RiskAddScreen> {
     );
   }
 
-  InputDecoration _inputDecoration({
-    required AppColorScheme colors,
+  Widget _stringEnumDropdown({
     required String label,
-  }) {
-    return InputDecoration(
-      labelText: label,
-      filled: true,
-      fillColor: colors.kBgColor,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: colors.kBorderColor),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: colors.kBorderColor),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: colors.kPrimaryColor),
-      ),
-      labelStyle: TextStyle(
-        color: colors.kGrayColor,
-        fontSize: 14.sp,
-      ),
-    );
-  }
-
-  Widget _intEnumDropdown({
-    required String label,
-    required int? value,
+    required String? value,
     required bool required,
     required List<RiskEnumOption> options,
-    required ValueChanged<int?> onChanged,
+    required ValueChanged<String?> onChanged,
   }) {
     return Padding(
       padding: EdgeInsets.only(bottom: 14.h),
-      child: StyledPopupDropdown<int>(
+      child: StyledPopupDropdown<String>(
         title: label,
         hintText: AppString.select.tr(),
         value: value,
         required: required,
+        showValidationError: _showValidationErrors,
         items: options
             .map(
-              (o) => DropdownMenuItem<int>(
+              (o) => DropdownMenuItem<String>(
                 value: o.value,
-                child: Text(o.labelKey.tr()),
+                child: Text(
+                  o.labelKey.tr(),
+                  textAlign: FormLayout.alignOf(context),
+                  textDirection: FormLayout.directionOf(context),
+                ),
               ),
             )
             .toList(),
@@ -429,3 +506,85 @@ class _RiskAddScreenState extends State<RiskAddScreen> {
   }
 }
 
+class _DateField extends StatelessWidget {
+  const _DateField({
+    required this.colors,
+    required this.label,
+    required this.value,
+    required this.onTap,
+    required this.showValidationError,
+  });
+
+  final AppColorScheme colors;
+  final String label;
+  final DateTime? value;
+  final VoidCallback onTap;
+  final bool showValidationError;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasError = showValidationError && value == null;
+    final display = value == null
+        ? AppString.select.tr()
+        : DateFormat('dd/MM/yyyy').format(value!);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          label,
+          textAlign: FormLayout.alignOf(context),
+          textDirection: FormLayout.directionOf(context),
+          style: TextStyle(
+            fontSize: 15.sp,
+            fontWeight: FontWeight.w600,
+            color: hasError ? colors.kRedColor : colors.kFontColor,
+            fontFamily: 'Almarai',
+          ),
+        ),
+        SizedBox(height: 10.h),
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14.r),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+            decoration: BoxDecoration(
+              color: colors.kInputColor,
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(
+                color: hasError
+                    ? colors.kRedColor
+                    : colors.kBorderColor.withValues(alpha: 0.45),
+                width: hasError ? 1.5 : 1,
+              ),
+            ),
+            child: Row(
+              textDirection: FormLayout.directionOf(context),
+              children: [
+                Expanded(
+                  child: Text(
+                    display,
+                    textAlign: FormLayout.alignOf(context),
+                    textDirection: FormLayout.directionOf(context),
+                    style: TextStyle(
+                      color: value == null
+                          ? colors.kGrayColor
+                          : colors.kFontColor,
+                      fontSize: 15.sp,
+                      fontFamily: 'Almarai',
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.calendar_today_outlined,
+                  color: colors.kGrayColor,
+                  size: 20.sp,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -34,28 +34,35 @@ class FinancialStatementsResponseModel {
   }
 
   PaginatedFinancialRequirements toEntity({required int pageSize}) {
-    final count = totalCount ?? items.length;
-    final currentPage = pageNumber ?? 1;
     final received = items.length;
+    final currentPage = pageNumber ?? 1;
+    final entities = items.map((item) => item.toEntity()).toList();
 
-    // When the API returns the full dataset in one response, keep all rows visible.
-    final allLoadedInOneResponse = received >= count ||
-        (hasNextPage == false && received > pageSize);
+    if (totalCount != null) {
+      final pages =
+          totalPages ??
+          (totalCount == 0 ? 1 : ((totalCount! - 1) ~/ pageSize) + 1);
+      return PaginatedFinancialRequirements(
+        items: entities,
+        pageNumber: currentPage,
+        totalPages: pages < 1 ? 1 : pages,
+        totalCount: totalCount!,
+        hasPreviousPage: hasPreviousPage ?? currentPage > 1,
+        hasNextPage: hasNextPage ?? currentPage < pages,
+      );
+    }
 
-    final pages = totalPages ??
-        (allLoadedInOneResponse ? 1 : (count / pageSize).ceil().clamp(1, 999999));
+    // API didn't send totalCount — infer from whether this page is full.
+    final hasMore = hasNextPage ?? received >= pageSize;
+    final pages = totalPages ?? (hasMore ? currentPage + 1 : currentPage);
 
     return PaginatedFinancialRequirements(
-      items: items.map((item) => item.toEntity()).toList(),
+      items: entities,
       pageNumber: currentPage,
-      totalPages: pages,
-      totalCount: count,
-      hasPreviousPage: allLoadedInOneResponse
-          ? false
-          : (hasPreviousPage ?? currentPage > 1),
-      hasNextPage: allLoadedInOneResponse
-          ? false
-          : (hasNextPage ?? currentPage < pages),
+      totalPages: pages < 1 ? 1 : pages,
+      totalCount: received,
+      hasPreviousPage: hasPreviousPage ?? currentPage > 1,
+      hasNextPage: hasMore,
     );
   }
 }

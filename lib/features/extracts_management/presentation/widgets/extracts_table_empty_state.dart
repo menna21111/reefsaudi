@@ -21,11 +21,7 @@ class ExtractsTableEmptyState extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 40.sp,
-            color: colors.kGrayColor,
-          ),
+          Icon(Icons.inbox_outlined, size: 40.sp, color: colors.kGrayColor),
           SizedBox(height: 8.h),
           Text(
             'no_extracts_found'.tr(),

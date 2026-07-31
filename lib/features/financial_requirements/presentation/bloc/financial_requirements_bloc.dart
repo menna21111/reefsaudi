@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/financial_requirement.dart';
+import '../../domain/repositories/financial_requirements_repository.dart';
 import '../../domain/usecases/get_financial_statements.dart';
 import 'financial_requirements_event.dart';
 import 'financial_requirements_state.dart';
@@ -8,15 +9,28 @@ import 'financial_requirements_state.dart';
 class FinancialRequirementsBloc
     extends Bloc<FinancialRequirementsEvent, FinancialRequirementsState> {
   final GetFinancialStatementsUseCase getFinancialStatementsUseCase;
+  final FinancialRequirementsRepository repository;
   static const int defaultPageSize = 10;
 
   FinancialRequirementsBloc({
     required this.getFinancialStatementsUseCase,
+    required this.repository,
   }) : super(FinancialRequirementsInitial()) {
     on<LoadFinancialRequirements>(_onLoad);
     on<ChangeFinancialRequirementsPage>(_onChangePage);
     on<ChangeFinancialRequirementsPageSize>(_onChangePageSize);
     on<SearchFinancialRequirements>(_onSearch);
+    on<DeleteFinancialRequirement>(_onDelete);
+    on<ClearFinancialFeedback>(_onClearFeedback);
+  }
+
+  void _onClearFeedback(
+    ClearFinancialFeedback event,
+    Emitter<FinancialRequirementsState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is! FinancialRequirementsLoaded) return;
+    emit(currentState.copyWith(clearFeedback: true));
   }
 
   Future<void> _onLoad(
@@ -81,6 +95,61 @@ class FinancialRequirementsBloc
       searchQuery: event.query,
       filteredItems: _filterItems(currentState.allItems, event.query),
     ));
+  }
+
+  Future<void> _onDelete(
+    DeleteFinancialRequirement event,
+    Emitter<FinancialRequirementsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! FinancialRequirementsLoaded ||
+        currentState.isPageLoading) {
+      return;
+    }
+
+    if (event.id.trim().isEmpty) {
+      emit(currentState.copyWith(
+        feedbackMessage: 'something_went_wrong',
+        feedbackIsError: true,
+      ));
+      return;
+    }
+
+    final deletingState = currentState.copyWith(
+      isPageLoading: true,
+      clearFeedback: true,
+    );
+    emit(deletingState);
+
+    final result = await repository.deleteFinancialStatement(event.id.trim());
+
+    result.fold(
+      (failure) {
+        emit(deletingState.copyWith(
+          isPageLoading: false,
+          feedbackMessage: failure.errMessage,
+          feedbackIsError: true,
+        ));
+      },
+      (_) {
+        final updatedAll = deletingState.allItems
+            .where((item) => item.id != event.id)
+            .toList();
+        final updatedFiltered =
+            _filterItems(updatedAll, deletingState.searchQuery);
+
+        emit(deletingState.copyWith(
+          allItems: updatedAll,
+          filteredItems: updatedFiltered,
+          totalCount: deletingState.totalCount > 0
+              ? deletingState.totalCount - 1
+              : 0,
+          isPageLoading: false,
+          feedbackMessage: 'deleted_successfully',
+          feedbackIsError: false,
+        ));
+      },
+    );
   }
 
   Future<void> _fetchPage(

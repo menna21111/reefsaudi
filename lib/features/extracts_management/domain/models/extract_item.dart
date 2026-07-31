@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/utils/app_color.dart';
 
-enum ExtractStatus {
-  completed,
-  underReview,
-  delayed,
-}
+enum ExtractStatus { completed, underReview, delayed }
 
 extension ExtractStatusX on ExtractStatus {
   String get label {

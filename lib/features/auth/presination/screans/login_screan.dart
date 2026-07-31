@@ -11,26 +11,38 @@ import '../../../../core/services/service_locator.dart';
 import '../../../../core/utils/app_color.dart';
 import '../../../../core/utils/app_string.dart';
 import '../../../../core/utils/app_theme.dart';
+import '../../../../core/utils/enums.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../../core/utils/validators.dart';
-import '../../data/repositories/auth_repository_impl.dart';
-
+import '../cubit/auth_cubit.dart';
 import '../widgets/login_header_widget.dart';
 import '../widgets/login_text_field_widget.dart';
 
-class LoginScrean extends StatefulWidget {
+class LoginScrean extends StatelessWidget {
   const LoginScrean({super.key});
 
   @override
-  State<LoginScrean> createState() => _LoginScreanState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => sl<AuthCubit>(),
+      child: const _LoginView(),
+    );
+  }
 }
 
-class _LoginScreanState extends State<LoginScrean>
+class _LoginView extends StatefulWidget {
+  const _LoginView();
+
+  @override
+  State<_LoginView> createState() => _LoginViewState();
+}
+
+class _LoginViewState extends State<_LoginView>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _isLoading = false;
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -69,85 +81,103 @@ class _LoginScreanState extends State<LoginScrean>
   }
 
   void _togglePasswordVisibility() {
-    setState(() {
-      _obscurePassword = !_obscurePassword;
-    });
+    setState(() => _obscurePassword = !_obscurePassword);
   }
 
-  Future<void> _onLogin() async {
-    if (!(_formKey.currentState?.validate() ?? false) || _isLoading) return;
+  void _onLogin() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    setState(() => _isLoading = true);
-
-    final result = await sl<AuthRepositoryImpl>().login(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
-
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    result.fold(
-      (failure) {
-        AppFunctions.showsToast(
-          failure.errMessage,
-          AppColor.kRedColor,
-          context,
+    context.read<AuthCubit>().login(
+          email: _emailController.text,
+          password: _passwordController.text,
         );
-      },
-      (_) => AppFunctions.navigateToAndFinish(context, BottomNavigation()),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = AppTheme.of(Theme.of(context).brightness == Brightness.dark);
-  
+    final isTablet = context.isTablet;
+    final horizontalPad = isTablet ? 40.w : 24.w;
 
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: theme.kBgColor,
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            children: [
-              LoginHeaderWidget(
-                trailing: BlocBuilder<ThemeBloc, ThemeState>(
-                  builder: (context, themeState) {
-                    return IconButton(
-                      onPressed: () {
-                        if (themeState.isDark) {
-                          context.read<ThemeBloc>().add(LightThemeEvent());
-                        } else {
-                          context.read<ThemeBloc>().add(DarkThemeEvent());
-                        }
-                      },
-                      icon: Icon(
-                        themeState.isDark
-                            ? Icons.light_mode_outlined
-                            : Icons.dark_mode_outlined,
-                        color: theme.kPrimaryColor,
+    return BlocListener<AuthCubit, AuthState>(
+      listenWhen: (previous, current) =>
+          previous.loginStatus != current.loginStatus,
+      listener: (context, state) {
+        if (state.loginStatus == RequestStatus.error) {
+          AppFunctions.showsToast(
+            state.loginError,
+            AppColor.kRedColor,
+            context,
+          );
+        } else if (state.loginStatus == RequestStatus.success) {
+          AppFunctions.navigateToAndFinish(context, BottomNavigation());
+        }
+      },
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Scaffold(
+          backgroundColor: theme.kBgColor,
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          LoginHeaderWidget(
+                            trailing: BlocBuilder<ThemeBloc, ThemeState>(
+                              builder: (context, themeState) {
+                                return IconButton(
+                                  onPressed: () {
+                                    if (themeState.isDark) {
+                                      context
+                                          .read<ThemeBloc>()
+                                          .add(LightThemeEvent());
+                                    } else {
+                                      context
+                                          .read<ThemeBloc>()
+                                          .add(DarkThemeEvent());
+                                    }
+                                  },
+                                  icon: Icon(
+                                    themeState.isDark
+                                        ? Icons.light_mode_outlined
+                                        : Icons.dark_mode_outlined,
+                                    color: theme.kPrimaryColor,
+                                    size: isTablet ? 28.sp : 24.sp,
+                                  ),
+                                  tooltip: themeState.isDark
+                                      ? 'المظهر الفاتح'
+                                      : 'المظهر الداكن',
+                                );
+                              },
+                            ),
+                          ),
+                          if (isTablet) const Spacer(flex: 1),
+                          FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: SlideTransition(
+                              position: _slideAnimation,
+                              child: AdaptiveContent(
+                                maxWidth: kFormMaxWidth,
+                                padding:
+                                    EdgeInsets.symmetric(horizontal: horizontalPad),
+                                child: _buildLoginCard(context),
+                              ),
+                            ),
+                          ),
+                          if (isTablet) const Spacer(flex: 2),
+                          SizedBox(height: isTablet ? 48.h : 32.h),
+                        ],
                       ),
-                      tooltip: themeState.isDark
-                          ? 'المظهر الفاتح'
-                          : 'المظهر الداكن',
-                    );
-                  },
-                ),
-              ),
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24.w),
-                    child: _buildLoginCard(context),
+                    ),
                   ),
-                ),
-              ),
-              SizedBox(height: 32.h),
-            ],
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -157,12 +187,16 @@ class _LoginScreanState extends State<LoginScrean>
   Widget _buildLoginCard(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final secondaryText = theme.textTheme.bodyMedium?.color ??
-        AppColor.kGrayTextColor;
+    final secondaryText =
+        theme.textTheme.bodyMedium?.color ?? AppColor.kGrayTextColor;
+    final isTablet = context.isTablet;
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: isTablet ? 28.w : 16.w,
+        vertical: isTablet ? 32.h : 24.h,
+      ),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24.r),
@@ -170,6 +204,15 @@ class _LoginScreanState extends State<LoginScrean>
           color: theme.dividerColor.withValues(alpha: 0.5),
           width: 1,
         ),
+        boxShadow: isTablet
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ]
+            : null,
       ),
       child: Form(
         key: _formKey,
@@ -178,12 +221,12 @@ class _LoginScreanState extends State<LoginScrean>
             Center(
               child: RobotoText(
                 text: AppString.loginTitle.tr(),
-                fontSize: 18.sp,
+                fontSize: isTablet ? 22.sp : 18.sp,
                 fontWeight: FontWeight.w700,
                 color: colorScheme.onSurface,
               ),
             ),
-            SizedBox(height: 24.h),
+            SizedBox(height: isTablet ? 28.h : 24.h),
             LoginTextFieldWidget(
               controller: _emailController,
               label: AppString.emailLabel.tr(),
@@ -211,19 +254,7 @@ class _LoginScreanState extends State<LoginScrean>
                 ),
               ),
             ),
-            // SizedBox(height: 12.h),
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.end,
-            //   children: [
-            //     RobotoText(
-            //       text: AppString.forgotYourPassword.tr(),
-            //       fontSize: 12.sp,
-            //       fontWeight: FontWeight.w500,
-            //       color: colorScheme.primary,
-            //     ),
-            //   ],
-            // ),
-            SizedBox(height: 28.h),
+            SizedBox(height: isTablet ? 32.h : 28.h),
             _buildLoginButton(context),
             SizedBox(height: 24.h),
           ],
@@ -233,40 +264,49 @@ class _LoginScreanState extends State<LoginScrean>
   }
 
   Widget _buildLoginButton(BuildContext context) {
-    return GestureDetector(
-      onTap: _isLoading ? null : _onLogin,
-      child: Container(
-        width: double.infinity,
-        height: 52.h,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).colorScheme.primary,
-              const Color(0xFF0D9668),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+    return BlocBuilder<AuthCubit, AuthState>(
+      buildWhen: (previous, current) =>
+          previous.loginStatus != current.loginStatus,
+      builder: (context, state) {
+        final isLoading = state.isLoginLoading;
+        final isTablet = context.isTablet;
+
+        return GestureDetector(
+          onTap: isLoading ? null : _onLogin,
+          child: Container(
+            width: double.infinity,
+            height: isTablet ? 56.h : 52.h,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primary,
+                  const Color(0xFF0D9668),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Center(
+              child: isLoading
+                  ? SizedBox(
+                      width: 22.w,
+                      height: 22.w,
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : RobotoText(
+                      text: AppString.login.tr(),
+                      fontSize: isTablet ? 16.sp : 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+            ),
           ),
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-        child: Center(
-          child: _isLoading
-              ? SizedBox(
-                  width: 22.w,
-                  height: 22.w,
-                  child: const CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : RobotoText(
-                  text: AppString.login.tr(),
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

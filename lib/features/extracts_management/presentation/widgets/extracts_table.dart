@@ -68,13 +68,13 @@ class ExtractsTable extends StatelessWidget {
                     children: [
                       const ExtractsTableHeader(),
                       ...items.asMap().entries.map(
-                            (entry) => ExtractsTableRow(
-                              item: entry.value,
-                              isEven: entry.key.isEven,
-                              onEdit: () => onEdit(entry.value),
-                              onDelete: () => onDelete(entry.value),
-                            ),
-                          ),
+                        (entry) => ExtractsTableRow(
+                          item: entry.value,
+                          isEven: entry.key.isEven,
+                          onEdit: () => onEdit(entry.value),
+                          onDelete: () => onDelete(entry.value),
+                        ),
+                      ),
                     ],
                   ),
                   if (isPageLoading)
@@ -92,10 +92,7 @@ class ExtractsTable extends StatelessWidget {
               ),
             ),
           ),
-          Divider(
-            height: 1,
-            color: colors.kBorderColor.withOpacity(0.3),
-          ),
+          Divider(height: 1, color: colors.kBorderColor.withOpacity(0.3)),
           TablePaginationWidget(
             currentPage: currentPage,
             totalPages: totalPages,

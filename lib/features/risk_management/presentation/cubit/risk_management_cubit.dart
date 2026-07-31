@@ -14,6 +14,11 @@ class RiskManagementCubit extends Cubit<RiskManagementState> {
   final RiskRepository repository;
   static const int _pageSize = 10;
 
+  String get _searchText {
+    final current = state;
+    return current is RiskManagementLoaded ? current.searchText : '';
+  }
+
   Future<void> load() async {
     emit(const RiskManagementLoading());
 
@@ -31,13 +36,21 @@ class RiskManagementCubit extends Cubit<RiskManagementState> {
     );
   }
 
-  Future<void> refresh() async {
+  Future<void> search(String query) async {
+    final trimmed = query.trim();
     final current = state;
     if (current is RiskManagementLoaded) {
-      emit(current.copyWith(isRefreshing: true));
+      emit(current.copyWith(searchText: trimmed, isRefreshing: true));
+    } else {
+      emit(const RiskManagementLoading());
     }
 
-    final result = await repository.getProjectRisks(skip: 0, take: _pageSize);
+    final result = await repository.getProjectRisks(
+      skip: 0,
+      take: _pageSize,
+      searchText: trimmed,
+    );
+
     result.fold(
       (failure) {
         if (current is RiskManagementLoaded) {
@@ -52,6 +65,41 @@ class RiskManagementCubit extends Cubit<RiskManagementState> {
           totalCount: response.totalCount,
           skip: 0,
           take: _pageSize,
+          searchText: trimmed,
+          projects: current is RiskManagementLoaded ? current.projects : const [],
+          accounts: current is RiskManagementLoaded ? current.accounts : const [],
+        ),
+      ),
+    );
+  }
+
+  Future<void> refresh() async {
+    final current = state;
+    final searchText = _searchText;
+    if (current is RiskManagementLoaded) {
+      emit(current.copyWith(isRefreshing: true));
+    }
+
+    final result = await repository.getProjectRisks(
+      skip: 0,
+      take: _pageSize,
+      searchText: searchText,
+    );
+    result.fold(
+      (failure) {
+        if (current is RiskManagementLoaded) {
+          emit(current.copyWith(isRefreshing: false));
+        } else {
+          emit(RiskManagementError(failure.errMessage));
+        }
+      },
+      (response) => emit(
+        RiskManagementLoaded(
+          risks: response.data,
+          totalCount: response.totalCount,
+          skip: 0,
+          take: _pageSize,
+          searchText: searchText,
           projects: current is RiskManagementLoaded ? current.projects : const [],
           accounts: current is RiskManagementLoaded ? current.accounts : const [],
         ),
@@ -73,6 +121,7 @@ class RiskManagementCubit extends Cubit<RiskManagementState> {
     final result = await repository.getProjectRisks(
       skip: nextSkip,
       take: _pageSize,
+      searchText: current.searchText,
     );
 
     result.fold(
@@ -88,31 +137,14 @@ class RiskManagementCubit extends Cubit<RiskManagementState> {
     );
   }
 
-  Future<void> loadFormData() async {
-    final current = state;
-    if (current is! RiskManagementLoaded) return;
-    if (current.projects.isNotEmpty && current.accounts.isNotEmpty) return;
+  Future<List<ProjectDxItemDto>> fetchProjects() async {
+    final result = await repository.getProjects();
+    return result.fold((_) => <ProjectDxItemDto>[], (items) => items);
+  }
 
-    emit(current.copyWith(isFormDataLoading: true));
-
-    final projectsResult = await repository.getProjects();
-    final accountsResult = await repository.getAccounts();
-
-    projectsResult.fold(
-      (_) => emit(current.copyWith(isFormDataLoading: false)),
-      (projects) {
-        accountsResult.fold(
-          (_) => emit(current.copyWith(isFormDataLoading: false)),
-          (accounts) => emit(
-            current.copyWith(
-              projects: projects,
-              accounts: accounts,
-              isFormDataLoading: false,
-            ),
-          ),
-        );
-      },
-    );
+  Future<List<AccountDxItemDto>> fetchAccounts() async {
+    final result = await repository.getAccounts();
+    return result.fold((_) => <AccountDxItemDto>[], (items) => items);
   }
 
   Future<bool> createRisk(CreateProjectRiskRequest request) async {
@@ -122,6 +154,46 @@ class RiskManagementCubit extends Cubit<RiskManagementState> {
     emit(current.copyWith(isSubmitting: true));
 
     final result = await repository.createProjectRisk(request);
+    return result.fold(
+      (_) {
+        emit(current.copyWith(isSubmitting: false));
+        return false;
+      },
+      (_) async {
+        emit(current.copyWith(isSubmitting: false));
+        await refresh();
+        return true;
+      },
+    );
+  }
+
+  Future<bool> updateRisk(ProjectRiskWriteRequest request) async {
+    final current = state;
+    if (current is! RiskManagementLoaded) return false;
+
+    emit(current.copyWith(isSubmitting: true));
+
+    final result = await repository.updateProjectRisk(request);
+    return result.fold(
+      (_) {
+        emit(current.copyWith(isSubmitting: false));
+        return false;
+      },
+      (_) async {
+        emit(current.copyWith(isSubmitting: false));
+        await refresh();
+        return true;
+      },
+    );
+  }
+
+  Future<bool> deleteRisk(String riskId) async {
+    final current = state;
+    if (current is! RiskManagementLoaded) return false;
+
+    emit(current.copyWith(isSubmitting: true));
+
+    final result = await repository.deleteProjectRisk(riskId);
     return result.fold(
       (_) {
         emit(current.copyWith(isSubmitting: false));

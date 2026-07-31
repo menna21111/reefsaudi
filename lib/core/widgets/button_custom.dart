@@ -22,14 +22,18 @@ class ButtonCustom extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: Container(     width: double.infinity,
         alignment: Alignment.center,
+    
+            padding: EdgeInsets.symmetric(horizontal: 16.w,vertical: 8.h),
+            decoration: BoxDecoration(
 
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
-        decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.r),
+            
+   
+      
           color: buttoncolor ?? AppColor.kPrimaryColor,
-          borderRadius: BorderRadius.circular(25.r),
+  
           boxShadow: [
             BoxShadow(
               color:
@@ -47,7 +51,7 @@ class ButtonCustom extends StatelessWidget {
             children: [
               RobotoText(
                 text: text,
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppColor.kWhiteColor,
               ),

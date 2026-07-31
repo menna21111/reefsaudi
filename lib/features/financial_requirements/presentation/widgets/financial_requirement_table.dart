@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../core/utils/app_color.dart';
+import '../../../../core/utils/app_theme_context.dart';
 import '../../domain/entities/financial_requirement.dart';
 import 'table_header.dart';
 import 'table_pagination_widget.dart';
@@ -39,11 +39,13 @@ class FinancialRequirementTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColor.kSurfaceColor,
+        color: colors.kInputColor,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: AppColor.kBorderColor.withOpacity(0.3)),
+        border: Border.all(color: colors.kBorderColor.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -72,9 +74,11 @@ class FinancialRequirementTable extends StatelessWidget {
                     if (isPageLoading)
                       Positioned.fill(
                         child: Container(
-                          color: AppColor.kSurfaceColor.withOpacity(0.6),
-                          child: const Center(
-                            child: CircularProgressIndicator(),
+                          color: colors.kInputColor.withValues(alpha: 0.6),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: colors.kPrimaryColor,
+                            ),
                           ),
                         ),
                       ),
@@ -85,7 +89,7 @@ class FinancialRequirementTable extends StatelessWidget {
           ),
           Divider(
             height: 1,
-            color: AppColor.kBorderColor.withOpacity(0.3),
+            color: colors.kBorderColor.withValues(alpha: 0.3),
           ),
           TablePaginationWidget(
             currentPage: currentPage,

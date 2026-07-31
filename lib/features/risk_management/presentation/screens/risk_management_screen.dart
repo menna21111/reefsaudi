@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../core/funcation.dart';
 import '../../../../core/services/service_locator.dart';
 import '../../../../core/utils/app_color_scheme.dart';
 import '../../../../core/utils/app_string.dart';
 import '../../../../core/utils/app_theme_context.dart';
+import '../../../../core/widgets/master_data_management_table.dart';
+import '../../../financial_requirements/presentation/widgets/delete_confirmation_dialog.dart';
 import '../../data/models/project_risk_models.dart';
 import '../cubit/risk_management_cubit.dart';
 import '../widgets/risk_table.dart';
@@ -33,6 +38,8 @@ class _RiskManagementView extends StatefulWidget {
 
 class _RiskManagementViewState extends State<_RiskManagementView> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -42,6 +49,8 @@ class _RiskManagementViewState extends State<_RiskManagementView> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -54,15 +63,62 @@ class _RiskManagementViewState extends State<_RiskManagementView> {
     }
   }
 
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+      context.read<RiskManagementCubit>().search(value);
+    });
+  }
+
   Future<void> _openAddRiskSheet() async {
     final cubit = context.read<RiskManagementCubit>();
-    await cubit.loadFormData();
+    if (cubit.state is! RiskManagementLoaded) return;
 
+    final created = await Navigator.push<bool>(
+      context,
+      RiskAddScreen.route(cubit),
+    );
+    if (created == true && mounted) {
+      await cubit.refresh();
+    }
+  }
+
+  Future<void> _openEditRisk(ProjectRiskDto risk) async {
+    final cubit = context.read<RiskManagementCubit>();
+    final updated = await Navigator.push<bool>(
+      context,
+      RiskAddScreen.route(cubit, initial: risk),
+    );
+    if (updated == true && mounted) {
+      await cubit.refresh();
+    }
+  }
+
+  Future<void> _deleteRisk(ProjectRiskDto risk) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => const DeleteConfirmationDialog(
+        messageKey: AppString.deleteRiskConfirmation,
+      ),
+    );
+    if (!mounted || confirmed != true) return;
+
+    final success =
+        await context.read<RiskManagementCubit>().deleteRisk(risk.id);
     if (!mounted) return;
-    final state = cubit.state;
-    if (state is! RiskManagementLoaded) return;
 
-    await Navigator.push<bool>(context, RiskAddScreen.route(cubit));
+    if (success) {
+      AppFunctions.showSuccessToast(
+        context,
+        AppString.deletedSuccessfully.tr(),
+      );
+    } else {
+      AppFunctions.showsToast(
+        AppString.unKnownError.tr(),
+        context.appColorsRead.kRedColor,
+        context,
+      );
+    }
   }
 
   @override
@@ -89,6 +145,7 @@ class _RiskManagementViewState extends State<_RiskManagementView> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'risk_management_fab',
         onPressed: _openAddRiskSheet,
         backgroundColor: colors.kRedColor,
         icon: Icon(Icons.add, color: colors.kWhiteColor),
@@ -140,13 +197,23 @@ class _RiskManagementViewState extends State<_RiskManagementView> {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.all(16.w),
               children: [
+                MasterDataManagementToolbar(
+                  searchController: _searchController,
+                  onSearchChanged: _onSearchChanged,
+                  onAddPressed: state.isSubmitting ? () {} : _openAddRiskSheet,
+                ),
+                SizedBox(height: 16.h),
                 _SummaryRow(
                   colors: colors,
                   total: state.totalCount,
                   risks: state.risks,
                 ),
                 SizedBox(height: 16.h),
-                RiskTable(risks: state.risks, colors: colors),
+                RiskTable(
+                  risks: state.risks,
+                  onEdit: state.isSubmitting ? null : _openEditRisk,
+                  onDelete: state.isSubmitting ? null : _deleteRisk,
+                ),
                 if (state.isLoadingMore)
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -175,8 +242,9 @@ class _SummaryRow extends StatelessWidget {
   final int total;
   final List<ProjectRiskDto> risks;
 
-  int _countByStatus(int status) =>
-      risks.where((risk) => risk.riskStatus == status).length;
+  int _countByStatus(String status) => risks
+      .where((risk) => risk.riskStatus.toLowerCase() == status.toLowerCase())
+      .length;
 
   @override
   Widget build(BuildContext context) {
@@ -195,7 +263,7 @@ class _SummaryRow extends StatelessWidget {
           child: _Chip(
             colors: colors,
             label: AppString.riskStatusOpen.tr(),
-            value: '${_countByStatus(1)}',
+            value: '${_countByStatus('Open')}',
             color: colors.kRedColor,
           ),
         ),
@@ -204,7 +272,7 @@ class _SummaryRow extends StatelessWidget {
           child: _Chip(
             colors: colors,
             label: AppString.riskStatusClosed.tr(),
-            value: '${_countByStatus(2)}',
+            value: '${_countByStatus('Closed')}',
             color: colors.kGoldColor,
           ),
         ),

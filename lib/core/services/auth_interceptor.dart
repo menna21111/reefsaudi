@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
-import '../../main.dart';
+import '../navigation/app_navigator.dart';
 import '../funcation.dart';
 import '../network/authorization_header.dart';
 import '../network/pmo_endpoints.dart';
@@ -200,13 +200,10 @@ class AuthInterceptor extends Interceptor {
       );
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final loginContext = navigatorKey.currentContext;
-        if (loginContext == null || !loginContext.mounted) return;
-
         AppFunctions.showsToast(
           AppString.sessionExpired.tr(),
           AppColor.kRedColor,
-          loginContext,
+          null,
           seconds: 4,
         );
       });

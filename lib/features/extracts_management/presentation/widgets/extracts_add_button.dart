@@ -21,11 +21,7 @@ class ExtractsAddButton extends StatelessWidget {
           color: colors.kPrimaryColor,
           borderRadius: BorderRadius.circular(12.r),
         ),
-        child: Icon(
-          Icons.add_rounded,
-          color: colors.kBgColor,
-          size: 26.sp,
-        ),
+        child: Icon(Icons.add_rounded, color: colors.kBgColor, size: 26.sp),
       ),
     );
   }

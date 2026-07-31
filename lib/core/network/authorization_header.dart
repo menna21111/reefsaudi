@@ -58,9 +58,15 @@ class AuthorizationHeader {
   ) async {
     final path = requestPath(options);
     final lang = await AppLocale.getSavedLanguage();
+    final method = options.method.toUpperCase();
 
-    options.headers['Content-Type'] = 'application/json';
+    if (method == 'POST' || method == 'PUT' || method == 'PATCH') {
+      options.headers['Content-Type'] = 'application/json';
+    } else {
+      options.headers.remove('Content-Type');
+    }
     options.headers['Accept-Language'] = lang;
+    options.headers['Accept'] = 'application/json';
     options.headers.remove(headerKey);
 
     if (PmoEndpoints.isPublicAuthPath(path)) {

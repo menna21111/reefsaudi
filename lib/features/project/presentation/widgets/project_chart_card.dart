@@ -32,18 +32,25 @@ class ProjectChartCard extends StatelessWidget {
         border: Border.all(color: colors.kBorderColor.withValues(alpha: 0.35)),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(Icons.bar_chart, color: colors.kPrimaryColor, size: 20.sp),
               SizedBox(width: 8.w),
-              Text(
-                AppString.projectChartStatus.tr(),
-                style: TextStyle(
-                  color: colors.kFontColor,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  AppString.projectChartStatus.tr(),
+                  style: TextStyle(
+                    color: colors.kFontColor,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 2,
+                  softWrap: true,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -54,6 +61,9 @@ class ProjectChartCard extends StatelessWidget {
               namedArgs: {'percent': completionPercent.toStringAsFixed(1)},
             ),
             style: TextStyle(color: colors.kGrayColor, fontSize: 12.sp),
+            maxLines: 2,
+            softWrap: true,
+            overflow: TextOverflow.ellipsis,
           ),
           SizedBox(height: 24.h),
           SizedBox(

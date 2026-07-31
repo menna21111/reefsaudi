@@ -6,6 +6,10 @@ import '../../../../core/network/network_info.dart';
 import '../../domain/repositories/project_repository.dart';
 import '../datasources/project_remote_data_source.dart';
 import '../models/project_api_models.dart';
+import '../models/project_charter_models.dart';
+import '../models/create_project_request.dart';
+import '../models/update_project_request.dart';
+import '../models/achievement_manual_request.dart';
 
 class ProjectRepositoryImpl implements ProjectRepository {
   final ProjectRemoteDataSource remoteDataSource;
@@ -68,6 +72,16 @@ class ProjectRepositoryImpl implements ProjectRepository {
   }
 
   @override
+  Future<Either<Failure, ProjectDataDto>> getProjectData(String projectId) =>
+      _guard(() => remoteDataSource.getProjectData(projectId));
+
+  @override
+  Future<Either<Failure, ProjectExecutiveSummaryDto?>> getExecutiveSummary(
+    String projectId,
+  ) =>
+      _guard(() => remoteDataSource.getExecutiveSummary(projectId));
+
+  @override
   Future<Either<Failure, ProjectDetailsBundle>> getDetailsBundle(
     String projectId,
   ) async {
@@ -104,6 +118,22 @@ class ProjectRepositoryImpl implements ProjectRepository {
       );
 
   @override
+  Future<Either<Failure, void>> createAchievementManual(
+    CreateAchievementManualRequest request,
+  ) =>
+      _guard(() => remoteDataSource.createAchievementManual(request));
+
+  @override
+  Future<Either<Failure, void>> updateAchievementManual(
+    UpdateAchievementManualRequest request,
+  ) =>
+      _guard(() => remoteDataSource.updateAchievementManual(request));
+
+  @override
+  Future<Either<Failure, void>> deleteAchievementManual(String key) =>
+      _guard(() => remoteDataSource.deleteAchievementManual(key));
+
+  @override
   Future<Either<Failure, ProjectStatementsDto>> getProjectStatements(
     String projectId,
   ) =>
@@ -122,8 +152,147 @@ class ProjectRepositoryImpl implements ProjectRepository {
       _guard(() => remoteDataSource.getProjectAchievement(projectId));
 
   @override
+  Future<Either<Failure, List<ProjectImageDto>>> getProjectImages(
+    String projectId,
+  ) =>
+      _guard(() => remoteDataSource.getProjectImages(projectId));
+
+  @override
   Future<Either<Failure, PaginatedProjectStepsDto>> getProjectSteps({
     required int pageNumber,
   }) =>
       _guard(() => remoteDataSource.getProjectSteps(pageNumber: pageNumber));
+
+  @override
+  Future<Either<Failure, String>> createProject(
+    CreateProjectRequest request,
+  ) =>
+      _guard(() => remoteDataSource.createProject(request.toFormData()));
+
+  @override
+  Future<Either<Failure, String?>> updateProject(
+    UpdateProjectRequest request,
+  ) =>
+      _guard(
+        () => remoteDataSource.updateProject(request.id, request.toJson()),
+      );
+
+  @override
+  Future<Either<Failure, ProjectCharterDetailsDto>> getProjectCharter(
+    String projectId,
+  ) =>
+      _guard(() => remoteDataSource.getProjectCharter(projectId));
+
+  @override
+  Future<Either<Failure, CharterPagedResponse<CharterAchievementDto>>>
+      getCharterAchievements(String projectId, {String? search}) => _guard(
+        () => remoteDataSource.getCharterAchievements(
+          projectId,
+          search: search,
+        ),
+      );
+
+  @override
+  Future<Either<Failure, void>> createCharterAchievement(
+    String projectId,
+    CharterTextWriteRequest request,
+  ) =>
+      _guard(() => remoteDataSource.createCharterAchievement(projectId, request));
+
+  @override
+  Future<Either<Failure, void>> updateCharterAchievement(
+    String projectId,
+    CharterTextWriteRequest request,
+  ) =>
+      _guard(() => remoteDataSource.updateCharterAchievement(projectId, request));
+
+  @override
+  Future<Either<Failure, void>> deleteCharterAchievement(
+    String projectId,
+    String key,
+  ) =>
+      _guard(() => remoteDataSource.deleteCharterAchievement(projectId, key));
+
+  @override
+  Future<Either<Failure, CharterPagedResponse<CharterStageDto>>>
+      getCharterStages(String projectId, {String? search}) => _guard(
+        () => remoteDataSource.getCharterStages(
+          projectId,
+          search: search,
+        ),
+      );
+
+  @override
+  Future<Either<Failure, void>> createCharterStage(
+    String projectId,
+    CharterStageWriteRequest request,
+  ) =>
+      _guard(() => remoteDataSource.createCharterStage(projectId, request));
+
+  @override
+  Future<Either<Failure, void>> updateCharterStage(
+    String projectId,
+    CharterStageWriteRequest request,
+  ) =>
+      _guard(() => remoteDataSource.updateCharterStage(projectId, request));
+
+  @override
+  Future<Either<Failure, void>> deleteCharterStage(String projectId, String key) =>
+      _guard(() => remoteDataSource.deleteCharterStage(projectId, key));
+
+  @override
+  Future<Either<Failure, CharterPagedResponse<CharterConstraintDto>>>
+      getCharterConstraints(String projectId, {String? search}) => _guard(
+        () => remoteDataSource.getCharterConstraints(
+          projectId,
+          search: search,
+        ),
+      );
+
+  @override
+  Future<Either<Failure, void>> createCharterConstraint(
+    String projectId,
+    CharterConstraintWriteRequest request,
+  ) =>
+      _guard(() => remoteDataSource.createCharterConstraint(projectId, request));
+
+  @override
+  Future<Either<Failure, void>> updateCharterConstraint(
+    String projectId,
+    CharterConstraintWriteRequest request,
+  ) =>
+      _guard(() => remoteDataSource.updateCharterConstraint(projectId, request));
+
+  @override
+  Future<Either<Failure, void>> deleteCharterConstraint(
+    String projectId,
+    String key,
+  ) =>
+      _guard(() => remoteDataSource.deleteCharterConstraint(projectId, key));
+
+  @override
+  Future<Either<Failure, List<CharterAttachmentDto>>> getCharterAttachments(
+    String projectId,
+    {String? search}
+  ) =>
+      _guard(
+        () => remoteDataSource.getCharterAttachments(projectId, search: search),
+      );
+
+  @override
+  Future<Either<Failure, void>> uploadCharterAttachment(
+    String projectId,
+    String filePath,
+  ) =>
+      _guard(() async {
+        final file = await MultipartFile.fromFile(filePath);
+        await remoteDataSource.uploadCharterAttachment(projectId, file);
+      });
+
+  @override
+  Future<Either<Failure, void>> deleteCharterAttachment(
+    String projectId,
+    String key,
+  ) =>
+      _guard(() => remoteDataSource.deleteCharterAttachment(projectId, key));
 }

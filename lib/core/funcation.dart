@@ -16,6 +16,7 @@ import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'navigation/app_navigator.dart';
 import 'utils/app_color.dart';
 import 'utils/app_font.dart';
 
@@ -40,12 +41,15 @@ class AppFunctions {
   static void showsToast(
     String text,
     Color color,
-    BuildContext context, {
+    BuildContext? context, {
     int seconds = 5,
   }) {
+    final toastContext = resolveToastContext(context);
+    if (toastContext == null) return;
+
     showToast(
       text,
-      context: context,
+      context: toastContext,
       backgroundColor: color,
       animation: StyledToastAnimation.slideFromTopFade,
       reverseAnimation: StyledToastAnimation.slideToTopFade,
@@ -58,10 +62,13 @@ class AppFunctions {
   }
 
   static void showSuccessToast(
-    BuildContext context,
+    BuildContext? context,
     String text, {
     int seconds = 3,
   }) {
+    final toastContext = resolveToastContext(context);
+    if (toastContext == null) return;
+
     showToastWidget(
       Container(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
@@ -97,7 +104,7 @@ class AppFunctions {
           ],
         ),
       ),
-      context: context,
+      context: toastContext,
       animation: StyledToastAnimation.slideFromTop,
       reverseAnimation: StyledToastAnimation.slideToTopFade,
       position: const StyledToastPosition(
