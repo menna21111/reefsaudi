@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../../../core/network/dio_helper.dart';
 import '../../../../core/network/pmo_endpoints.dart';
 import '../models/login_response_model.dart';
@@ -22,14 +24,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String deviceId,
     required String firebaseToken,
   }) async {
+    final body = {
+      'email': email,
+      'password': password,
+      'deviceId': deviceId,
+      'firbaseTokin': firebaseToken,
+    };
+    debugPrint(
+      '🔐 Login body → deviceId=$deviceId | '
+      'firbaseTokin=${firebaseToken.isEmpty ? "(empty)" : "${firebaseToken.substring(0, firebaseToken.length.clamp(0, 20))}…"}',
+    );
+
     final response = await DioHelper.postData(
       url: PmoEndpoints.login,
-      data: {
-        'email': email,
-        'password': password,
-        'deviceId': deviceId,
-        'firbaseTokin': firebaseToken,
-      },
+      data: body,
     );
     return LoginResponseModel.fromJson(
       response.data as Map<String, dynamic>,

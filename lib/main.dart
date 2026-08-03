@@ -13,6 +13,7 @@ import 'core/config/splash_screen.dart';
 import 'core/permissions/permission_cubit.dart';
 import 'core/network/dio_helper.dart';
 import 'core/services/app_locle.dart';
+import 'core/services/notification/push_notification_service.dart';
 import 'core/services/service_locator.dart';
 import 'core/theme/dark_theme_data.dart';
 import 'core/theme/light_theme_data.dart';
@@ -35,6 +36,13 @@ void main() async {
     await dotenv.load(fileName: ".env");
   } catch (e) {
     debugPrint("⚠️ Dotenv not found: $e");
+  }
+
+  try {
+    await PushNotificationService.initialize();
+  } catch (e, st) {
+    debugPrint("⚠️ Push notifications init failed: $e");
+    debugPrint("$st");
   }
 
   runApp(

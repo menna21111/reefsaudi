@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "325145915220",
+    "project_id": "reef-2158c",
+    "storage_bucket": "reef-2158c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:325145915220:android:ef5ccd9210dd94bc8862c1",
+        "android_client_info": {
+          "package_name": "com.reefsaudia"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCm7t-WqkBnr-saIdZHkL0TKGmF_2PcARA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

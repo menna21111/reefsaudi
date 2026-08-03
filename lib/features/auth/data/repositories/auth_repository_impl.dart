@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/permissions/permission_cubit.dart';
+import '../../../../core/services/notification/push_notification_service.dart';
 import '../../../../core/services/pmo_device_service.dart';
 import '../../../../core/services/token_service/token_refresh_service.dart';
 import '../../../../core/services/token_service/token_storage.dart';
@@ -40,7 +41,9 @@ class AuthRepositoryImpl {
       await permissionCubit.clear();
 
       final deviceId = await deviceService.getDeviceId();
-      final firebaseToken = await deviceService.getFirebaseToken();
+      // Refresh FCM right before login so body includes firbaseTokin when available.
+      final firebaseToken =
+          await PushNotificationService.refreshAndPersistToken();
 
       final loginResult = await remoteDataSource.login(
         email: email,
